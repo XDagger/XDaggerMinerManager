@@ -1,0 +1,16 @@
+# Visual Studio
+.vs
+
+# Built files
+
+XDaggerMinerManager\bin
+XDaggerMinerManager\obj
+Updater\bin
+Updater\obj
+
+# Service
+
+InstallUtil.InstallLog
+
+
+
