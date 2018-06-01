@@ -13,6 +13,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.IO.Compression;
+using System.Net.NetworkInformation;
+using System.Threading;
+using XDaggerMinerManager.ObjectModel;
+using System.ComponentModel;
+using IO = System.IO;
+using XDaggerMinerManager.Utils;
+using System.Diagnostics;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -34,9 +41,29 @@ namespace XDaggerMinerManager.UI.Forms
 
         private AddMinerWizardStatus wizardStatus = AddMinerWizardStatus.Initial;
 
+        private MinerClient createdClient = null;
+
+        private WinMinerReleaseBinary winMinerBinary = null;
+
+        private List<DisplayedMinerDevice> displayedDeviceList = null;
+
         public AddMinerWizardWindow()
         {
             InitializeComponent();
+        }
+
+        public MinerClient CreatedClient
+        {
+            get
+            {
+                return createdClient;
+            }
+        }
+
+
+        private void addMinerWizard_Loaded(object sender, RoutedEventArgs e)
+        {
+            SwitchUIToStep(1);
         }
 
         /// <summary>
@@ -61,11 +88,35 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepOneNext_Click(object sender, RoutedEventArgs e)
         {
-            SwitchUIToStep(2);
+            string targetMachineName = txtMachineName.Text;
+            string targetMachinePath = txtTargetPath.Text;
+            createdClient = new MinerClient(targetMachineName, targetMachinePath);
+
+            // Check whether this target is already in Miner Manager Client list
+
+
+            // Check the machine name and path is accessasible
+            StepOne_ValidateTargetMachine();
+
+
+            
+
+
+
+            
+
+            // Download the package and unzip to the folder
+
+
+
+            
         }
+
+        
         private void btnStepTwoNext_Click(object sender, RoutedEventArgs e)
         {
-            SwitchUIToStep(3);
+            // Should Check all of the versions first and then select LATEST by default
+            StepTwo_QueryMinerVersions();
         }
 
         private void btnStepThreeNext_Click(object sender, RoutedEventArgs e)
@@ -138,45 +189,197 @@ namespace XDaggerMinerManager.UI.Forms
                     
                     break;
             }
+
+            if (step ==3 && displayedDeviceList == null)
+            {
+                StepThree_RetrieveDeviceList();
+            }
+
         }
 
-        private void btnDownLoadTest_Click(object sender, RoutedEventArgs e)
+        #region Private Component Level Methods
+
+        private void StepOne_ValidateTargetMachine()
         {
-            string fullPath = System.IO.Path.GetTempPath() + "XDaggerMinerWin-v.0.0.1-x64.zip";
+            if (createdClient == null)
+            {
+                return;
+            }
+
+            btnStepOneNext.IsEnabled = false;
+
+            Ping pingSender = new Ping();
+            AutoResetEvent waiter = new AutoResetEvent(false);
+
+            // When the PingCompleted event is raised,
+            // the PingCompletedCallback method is called.
+            pingSender.PingCompleted += new PingCompletedEventHandler(StepOne_ValidateTargetMachine_Completed);
+
+            // Create a buffer of 32 bytes of data to be transmitted.
+            string data = "test";
+            byte[] buffer = Encoding.ASCII.GetBytes(data);
+
+            // Wait 10 seconds for a reply.
+            int timeout = 10000;
+
+            // Set options for transmission:
+            // The data can go through 64 gateways or routers
+            // before it is destroyed, and the data packet
+            // cannot be fragmented.
+            PingOptions options = new PingOptions(64, true);
+
+            Console.WriteLine("Time to live: {0}", options.Ttl);
+            Console.WriteLine("Don't fragment: {0}", options.DontFragment);
+
+            // Send the ping asynchronously.
+            // Use the waiter as the user token.
+            // When the callback completes, it can wake up this thread.
+            pingSender.SendAsync(createdClient.MachineName, timeout, buffer, options, waiter);
+        }
+
+        private void StepOne_ValidateTargetMachine_Completed(object sender, PingCompletedEventArgs e)
+        {
+            // If the operation was canceled, display a message to the user.
+            if (e.Cancelled)
+            {
+                Console.WriteLine("Ping canceled.");
+                MessageBox.Show("无法连接到目标机器:" + createdClient.MachineName);
+
+                // Let the main thread resume. 
+                // UserToken is the AutoResetEvent object that the main thread 
+                // is waiting for.
+                ((AutoResetEvent)e.UserState).Set();
+                btnStepOneNext.IsEnabled = true;
+                return;
+            }
+
+            // If an error occurred, display the exception to the user.
+            if (e.Error != null)
+            {
+                Console.WriteLine("Ping failed:");
+                Console.WriteLine(e.Error.ToString());
+                MessageBox.Show("无法连接到目标机器:" + createdClient.MachineName);
+                btnStepOneNext.IsEnabled = true;
+
+                // Let the main thread resume. 
+                ((AutoResetEvent)e.UserState).Set();
+                return;
+            }
+
+            PingReply reply = e.Reply;
+            
+            StepOne_ValidateTargetPath();
+
+
+
+            // Enable the UI
+            btnStepOneNext.IsEnabled = true;
+        }
+
+        /// <summary>
+        /// Check the existance of the client, and check version/config if exists
+        /// </summary>
+        private void StepOne_ValidateTargetPath()
+        {
+            if (!System.IO.Directory.Exists(createdClient.GetRemoteDeploymentPath()))
+            {
+                try
+                {
+                    System.IO.Directory.CreateDirectory(createdClient.GetRemoteDeploymentPath());
+                }
+                catch (UnauthorizedAccessException unauthException)
+                {
+                    // TODO Handle Exception
+                }
+            }
+
+            if (System.IO.Directory.Exists(createdClient.GetRemoteBinaryPath()))
+            {
+                MessageBox.Show("目标路径下已经存在矿机，请先删除");
+                // Enable the UI
+                btnStepOneNext.IsEnabled = true;
+                return;
+            }
+
+            btnStepOneNext.IsEnabled = true;
+            SwitchUIToStep(2);
+        }
+
+        private void StepTwo_QueryMinerVersions()
+        {
+            // TODO: Check all Versions
+
+            StepTwo_DownloadPackage();
+        }
+
+        private void StepTwo_DownloadPackage()
+        {
+            string version = this.cBxTargetVersion.Text;
+            winMinerBinary = new WinMinerReleaseBinary(version);
 
             try
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                using (var client = new WebClient())
-                {
-                    btnDownloadTest.IsEnabled = false;
-                    
-                    client.DownloadFileCompleted += (clientsender, even) => {
-
-                        ZipFile.ExtractToDirectory(fullPath, System.IO.Path.GetTempPath());
-                        btnDownloadTest.IsEnabled = true;
-
-                    };
-
-                    Uri uri = new Uri("https://github.com/Toneyisnow/XDaggerMinerWin/releases/download/0.0.1/XDaggerMinerWin-v.0.0.1-x64.zip");
-                    client.DownloadFileAsync(uri, fullPath);
-
-
-                    
-                }
+                winMinerBinary.DownloadPackage(StepTwo_DownloadPackage_Completed);
             }
             catch (WebException webEx)
             {
                 // TODO: Add handler
             }
-            catch(InvalidOperationException invalidOper)
+            catch (InvalidOperationException invalidOper)
             {
                 // TODO: Add handler
             }
         }
+
+        private void StepTwo_DownloadPackage_Completed(object sender, AsyncCompletedEventArgs eventArg)
+        {
+            if (eventArg.Cancelled)
+            {
+                MessageBox.Show("Download Cancelled.");
+                btnStepOneNext.IsEnabled = true;
+                return;
+            }
+
+            if (eventArg.Error != null)
+            {
+                MessageBox.Show("Download Failed:" + eventArg.Error);
+                btnStepOneNext.IsEnabled = true;
+                return;
+            }
+
+            winMinerBinary.ExtractPackage();
+
+            ////
+            //// winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+
+            SwitchUIToStep(3);
+        }
+
+        private void StepThree_RetrieveDeviceList()
+        {
+            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+            
+            Process p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.RedirectStandardInput = true;
+            p.StartInfo.FileName = @"D:\Toney\Personal\Git\xdagger\XDaggerMinerManager\XDaggerMinerManager\External\PsExec64.exe";
+            p.StartInfo.Arguments = string.Format(@"\\{0} {1} -l", createdClient.MachineName, daemonFullPath);
+            p.Start();
+
+            string output = p.StandardOutput.ReadToEnd();
+            string errormessage = p.StandardError.ReadToEnd();
+            p.WaitForExit();
+
+            MessageBox.Show("Output: " + output);
+
+
+            
+
+        }
+
+        #endregion
+
     }
 }

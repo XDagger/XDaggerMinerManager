@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.ObjectModel
 {
@@ -27,10 +28,11 @@ namespace XDaggerMinerManager.ObjectModel
             Unknown,
         }
 
-        public MinerClient(string machineName, string binaryPath, string version = "")
+        public MinerClient(string machineName, string deploymentFolder, string version = "")
         {
-            this.MachineName = machineName;
-            this.BinaryPath = binaryPath;
+            this.MachineName = machineName.Trim().ToUpper();
+            this.DeploymentFolder = deploymentFolder.Trim().ToLower();
+            this.BinaryPath = System.IO.Path.Combine(this.DeploymentFolder, WinMinerReleaseBinary.ProjectName);
             this.Version = version;
 
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
@@ -43,6 +45,11 @@ namespace XDaggerMinerManager.ObjectModel
         }
 
         public string BinaryPath
+        {
+            get; private set;
+        }
+
+        public string DeploymentFolder
         {
             get; private set;
         }
@@ -60,6 +67,36 @@ namespace XDaggerMinerManager.ObjectModel
         public string Version
         {
             get; private set;
+        }
+
+        public string GetRemoteDeploymentPath()
+        {
+            if (string.IsNullOrEmpty(MachineName) || string.IsNullOrEmpty(DeploymentFolder))
+            {
+                return string.Empty;
+            }
+
+            return string.Format("\\\\{0}\\{1}", this.MachineName, this.DeploymentFolder.Replace(":", "$"));
+        }
+
+        public string GetRemoteBinaryPath()
+        {
+            if (string.IsNullOrEmpty(MachineName) || string.IsNullOrEmpty(BinaryPath))
+            {
+                return string.Empty;
+            }
+
+            return string.Format("\\\\{0}\\{1}", this.MachineName, this.BinaryPath.Replace(":", "$"));
+        }
+
+        public string GetRemoteTempPath()
+        {
+            if (string.IsNullOrEmpty(MachineName))
+            {
+                return string.Empty;
+            }
+
+            return string.Format("\\\\{0}\\{1}", this.MachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
         }
 
         /// <summary>

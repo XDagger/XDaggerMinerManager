@@ -58,9 +58,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ObjectModel\DisplayedMinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
+    <Compile Include="Utils\NetworkShareAccessor.cs" />
+    <Compile Include="Utils\PathUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Forms\AddMinerWizardWindow.xaml">
@@ -109,6 +112,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="External\PsExec.exe" />
+    <Content Include="External\PsExec64.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
