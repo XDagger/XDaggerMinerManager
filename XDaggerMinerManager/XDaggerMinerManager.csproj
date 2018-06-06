@@ -34,11 +34,22 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Management.Automation.dll.10.0.10586.0\lib\net40\System.Management.Automation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,13 +69,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ObjectModel\DisplayedMinerDevice.cs" />
+    <Compile Include="ObjectModel\MinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\PathUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
+    <Compile Include="Utils\RemoteExecution.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Forms\AddMinerWizardWindow.xaml">
       <SubType>Designer</SubType>
@@ -104,6 +116,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

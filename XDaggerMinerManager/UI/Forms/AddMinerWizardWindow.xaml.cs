@@ -45,7 +45,19 @@ namespace XDaggerMinerManager.UI.Forms
 
         private WinMinerReleaseBinary winMinerBinary = null;
 
-        private List<DisplayedMinerDevice> displayedDeviceList = null;
+        private List<MinerDevice> displayedDeviceList = new List<MinerDevice>();
+        
+        private void OnMinerCreated(EventArgs e)
+        {
+            EventHandler handler = MinerCreated;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        public event EventHandler MinerCreated;
+
 
         public AddMinerWizardWindow()
         {
@@ -59,7 +71,6 @@ namespace XDaggerMinerManager.UI.Forms
                 return createdClient;
             }
         }
-
 
         private void addMinerWizard_Loaded(object sender, RoutedEventArgs e)
         {
@@ -94,22 +105,8 @@ namespace XDaggerMinerManager.UI.Forms
 
             // Check whether this target is already in Miner Manager Client list
 
-
             // Check the machine name and path is accessasible
             StepOne_ValidateTargetMachine();
-
-
-            
-
-
-
-            
-
-            // Download the package and unzip to the folder
-
-
-
-            
         }
 
         
@@ -121,7 +118,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepThreeNext_Click(object sender, RoutedEventArgs e)
         {
-            SwitchUIToStep(4);
+            // Choose the selected device and update the client config
+            StepThree_ConfigMiner();
         }
 
         private void btnStepTwoBack_Click(object sender, RoutedEventArgs e)
@@ -140,8 +138,10 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepFourFinish_Click(object sender, RoutedEventArgs e)
         {
-            wizardStatus = AddMinerWizardStatus.Finished;
-            this.Close();
+            // Config the miner and start
+            StepFour_SetupMiner();
+
+            
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace XDaggerMinerManager.UI.Forms
                     break;
             }
 
-            if (step ==3 && displayedDeviceList == null)
+            if (step ==3 && (displayedDeviceList == null || displayedDeviceList.Count == 0))
             {
                 StepThree_RetrieveDeviceList();
             }
@@ -315,10 +315,22 @@ namespace XDaggerMinerManager.UI.Forms
         private void StepTwo_DownloadPackage()
         {
             string version = this.cBxTargetVersion.Text;
+            if (string.IsNullOrEmpty(version))
+            {
+                MessageBox.Show("请选择一个版本");
+                return;
+            }
+
             winMinerBinary = new WinMinerReleaseBinary(version);
 
             try
             {
+                // Update UI
+                btnStepTwoNext.IsEnabled = false;
+                btnStepTwoBack.IsEnabled = false;
+                lblProgressMessage.Content = "正在下载安装包......";
+                prbIndicator.IsIndeterminate = true;
+
                 winMinerBinary.DownloadPackage(StepTwo_DownloadPackage_Completed);
             }
             catch (WebException webEx)
@@ -336,50 +348,166 @@ namespace XDaggerMinerManager.UI.Forms
             if (eventArg.Cancelled)
             {
                 MessageBox.Show("Download Cancelled.");
-                btnStepOneNext.IsEnabled = true;
+                btnStepTwoNext.IsEnabled = true;
+                btnStepTwoBack.IsEnabled = true;
+                lblProgressMessage.Content = "下载失败";
+                prbIndicator.IsIndeterminate = false;
                 return;
             }
 
             if (eventArg.Error != null)
             {
                 MessageBox.Show("Download Failed:" + eventArg.Error);
-                btnStepOneNext.IsEnabled = true;
+                btnStepTwoNext.IsEnabled = true;
+                btnStepTwoBack.IsEnabled = true;
+                lblProgressMessage.Content = "下载失败";
+                prbIndicator.IsIndeterminate = false;
                 return;
             }
+
+            lblProgressMessage.Content = "";
+            prbIndicator.IsIndeterminate = false;
 
             winMinerBinary.ExtractPackage();
 
             ////
-            //// winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+            winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
 
+            createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
+
+            displayedDeviceList.Clear();
             SwitchUIToStep(3);
         }
 
         private void StepThree_RetrieveDeviceList()
         {
+            RemoteExecution remote = new RemoteExecution(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+
+            try
+            {
+                List<DeviceOutput> devices = remote.ExecuteCommand<List<DeviceOutput>>(daemonFullPath + " -l");
+
+                if (devices == null || devices.Count == 0)
+                {
+                    MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
+                    return;
+                }
+
+                cBxTargetDevice.Items.Clear();
+
+                foreach (DeviceOutput deviceOut in devices)
+                {
+                    MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName);
+                    displayedDeviceList.Add(device);
+                    cBxTargetDevice.Items.Add(device.DisplayName);
+                }
+
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return;
+            }
+            finally
+            {
+                btnStepThreeBack.IsEnabled = true;
+                btnStepThreeNext.IsEnabled = true;
+            }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void StepThree_ConfigMiner()
+        {
+            btnStepThreeBack.IsEnabled = false;
+            btnStepThreeNext.IsEnabled = false;
+
+            // Set the selected device to the client config file
+
+            MinerDevice selectedDevice = (cBxTargetDevice.SelectedIndex >= 0) ? displayedDeviceList.ElementAt(cBxTargetDevice.SelectedIndex) : null;
+            if (selectedDevice == null)
+            {
+                MessageBox.Show("请选择一个硬件设备");
+                return;
+            }
+
+            RemoteExecution remote = new RemoteExecution(createdClient.MachineName);
+            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+
+            try
+            {
+                remote.ExecuteCommand(daemonFullPath + string.Format(" -d {0}", selectedDevice.DeviceId));
+
+                SwitchUIToStep(4);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return;
+            }
+            finally
+            {
+                btnStepThreeBack.IsEnabled = true;
+                btnStepThreeNext.IsEnabled = true;
+            }
             
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.FileName = @"D:\Toney\Personal\Git\xdagger\XDaggerMinerManager\XDaggerMinerManager\External\PsExec64.exe";
-            p.StartInfo.Arguments = string.Format(@"\\{0} {1} -l", createdClient.MachineName, daemonFullPath);
-            p.Start();
+        }
 
-            string output = p.StandardOutput.ReadToEnd();
-            string errormessage = p.StandardError.ReadToEnd();
-            p.WaitForExit();
+        private void StepFour_SetupMiner()
+        {
+            // Install the Service
+            RemoteExecution remote = new RemoteExecution(createdClient.MachineName);
+            string daemonScriptFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonScriptFileName);
+            try
+            {
+                remote.ExecuteCommand(daemonScriptFullPath + " -Operation InstallService");
 
-            MessageBox.Show("Output: " + output);
+                createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Ready;
+                createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
 
+                StepFour_Finish();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return;
+            }
+            finally
+            {
+                btnStepFourBack.IsEnabled = true;
+                btnStepFourFinish.IsEnabled = true;
+            }
 
-            
+        }
 
+        private void StepFour_Finish()
+        {
+            MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClient);
+            this.OnMinerCreated(ev);
+
+            wizardStatus = AddMinerWizardStatus.Finished;
+            this.Close();
         }
 
         #endregion
 
     }
+
+
+    public class MinerCreatedEventArgs : EventArgs
+    {
+        public MinerClient CreatedMiner
+        {
+            get; private set;
+        }
+
+        public MinerCreatedEventArgs(MinerClient client)
+        {
+            this.CreatedMiner = client;
+        }
+    }
+
 }

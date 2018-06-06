@@ -30,6 +30,14 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
+        public static string DaemonScriptFileName
+        {
+            get
+            {
+                return "DaemonScript.ps1";
+            }
+        }
+
         public static string DaemonExecutionFileName
         {
             get

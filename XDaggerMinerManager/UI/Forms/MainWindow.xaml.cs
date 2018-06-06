@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using XDaggerMinerManager.ObjectModel;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -20,16 +21,42 @@ namespace XDaggerMinerManager.UI.Forms
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MinerManager minerManager = null;
+
+
+
         public MainWindow()
         {
             InitializeComponent();
+
+            minerManager = MinerManager.GetInstance();
         }
 
         private void btnAddMiner_Click(object sender, RoutedEventArgs e)
         {
             AddMinerWizardWindow addMinerWizard = new AddMinerWizardWindow();
+            addMinerWizard.MinerCreated += OnMinerCreated;
             addMinerWizard.ShowDialog();
 
+        }
+
+        public void OnMinerCreated(object sender, EventArgs e)
+        {
+            MinerCreatedEventArgs args = e as MinerCreatedEventArgs;
+
+            if (args == null || args.CreatedMiner == null)
+            {
+                return;
+            }
+
+            minerManager.ClientList.Add(args.CreatedMiner);
+            RefreshMinerList();
+
+        }
+
+        private void RefreshMinerList()
+        {
+            minerListGrid.ItemsSource = minerManager?.ClientList;
         }
     }
 }

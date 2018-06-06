@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace XDaggerMinerManager.ObjectModel
 {
-    public class DisplayedMinerDevice
+    public class MinerDevice
     {
-        public DisplayedMinerDevice(long deviceId, string displayName)
+        public MinerDevice(long deviceId, string displayName)
         {
             this.DeviceId = deviceId;
             this.DisplayName = displayName;

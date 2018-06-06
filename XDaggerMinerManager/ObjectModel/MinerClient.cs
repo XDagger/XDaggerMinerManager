@@ -56,12 +56,12 @@ namespace XDaggerMinerManager.ObjectModel
 
         public DeploymentStatus CurrentDeploymentStatus
         {
-            get; private set;
+            get; set;
         }
 
         public ServiceStatus CurrentServiceStatus
         {
-            get; private set;
+            get; set;
         }
 
         public string Version
