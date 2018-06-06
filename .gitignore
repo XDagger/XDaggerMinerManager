@@ -4,10 +4,10 @@ packages
 
 # Built files
 
-XDaggerMinerManager\bin
-XDaggerMinerManager\obj
-Updater\bin
-Updater\obj
+XDaggerMinerManager/bin
+XDaggerMinerManager/obj
+Updater/bin
+Updater/obj
 
 # Service
 
@@ -15,5 +15,3 @@ InstallUtil.InstallLog
 
 
 
-Updater/obj/
-XDaggerMinerManager/obj/
