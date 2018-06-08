@@ -381,12 +381,12 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepThree_RetrieveDeviceList()
         {
-            RemoteExecution remote = new RemoteExecution(createdClient.MachineName);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             try
             {
-                List<DeviceOutput> devices = remote.ExecuteCommand<List<DeviceOutput>>(daemonFullPath + " -l");
+                List<DeviceOutput> devices = executor.ExecuteCommand<List<DeviceOutput>>(daemonFullPath, "-l");
 
                 if (devices == null || devices.Count == 0)
                 {
@@ -434,12 +434,12 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            RemoteExecution remote = new RemoteExecution(createdClient.MachineName);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             try
             {
-                remote.ExecuteCommand(daemonFullPath + string.Format(" -d {0}", selectedDevice.DeviceId));
+                executor.ExecuteCommand(daemonFullPath, string.Format(" -d {0}", selectedDevice.DeviceId));
 
                 SwitchUIToStep(4);
             }
@@ -459,7 +459,7 @@ namespace XDaggerMinerManager.UI.Forms
         private void StepFour_SetupMiner()
         {
             // Install the Service
-            RemoteExecution remote = new RemoteExecution(createdClient.MachineName);
+            RemoteExecutor remote = new RemoteExecutor(createdClient.MachineName);
             string daemonScriptFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonScriptFileName);
             try
             {

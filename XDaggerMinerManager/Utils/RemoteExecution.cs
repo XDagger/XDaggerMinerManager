@@ -5,15 +5,14 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 
 namespace XDaggerMinerManager.Utils
 {
-    public class RemoteExecution
+    public class RemoteExecutor : TargetMachineExecutor
     {
 
-        public RemoteExecution(string machineName)
+        public RemoteExecutor(string machineName)
         {
             this.MachineName = machineName;
         }
@@ -29,7 +28,7 @@ namespace XDaggerMinerManager.Utils
         /// </summary>
         /// <param name="commandFullLine"></param>
         /// <returns></returns>
-        public string ExecuteCommand(string commandFullLine)
+        public override string ExecuteCommand(string commandFullLine, string arguments = "")
         {
             StringBuilder outputString = new StringBuilder();
 
@@ -59,45 +58,7 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
-        /// <summary>
-        /// Execute the command and deserialize the string as JSON to the T object.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="commandFullLine"></param>
-        /// <returns></returns>
-        public T ExecuteCommand<T>(string commandFullLine)
-        {
-            string resultString = ExecuteCommand(commandFullLine);
-
-            try
-            {
-                T result = JsonConvert.DeserializeObject<T>(resultString);
-                return result;
-            }
-            catch (FormatException ex)
-            {
-                throw new Exception("The output for command is not a valid Json format.", ex);
-            }
-        }
     }
 
-    public class DeviceOutput
-    {
-        public DeviceOutput()
-        {
-
-        }
-
-        public long DeviceId
-        {
-            get; set;
-        }
-
-        public string DisplayName
-        {
-            get; set;
-        }
-
-    }
 
 }
