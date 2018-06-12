@@ -371,7 +371,7 @@ namespace XDaggerMinerManager.UI.Forms
             winMinerBinary.ExtractPackage();
 
             ////
-            winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+            //// winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
 
             createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
 
@@ -386,7 +386,9 @@ namespace XDaggerMinerManager.UI.Forms
 
             try
             {
-                List<DeviceOutput> devices = executor.ExecuteCommand<List<DeviceOutput>>(daemonFullPath, "-l");
+                ExecutionResult<List<DeviceOutput>> getDevicesResult = executor.ExecuteCommand<List<DeviceOutput>>(daemonFullPath, "-l");
+
+                List<DeviceOutput> devices = getDevicesResult.Data;
 
                 if (devices == null || devices.Count == 0)
                 {
@@ -398,7 +400,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                 foreach (DeviceOutput deviceOut in devices)
                 {
-                    MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName);
+                    MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
                     displayedDeviceList.Add(device);
                     cBxTargetDevice.Items.Add(device.DisplayName);
                 }

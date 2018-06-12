@@ -8,13 +8,15 @@ namespace XDaggerMinerManager.ObjectModel
 {
     public class MinerDevice
     {
-        public MinerDevice(long deviceId, string displayName)
+        public MinerDevice(string deviceId, string displayName, string deviceVersion, string driverVersion)
         {
             this.DeviceId = deviceId;
             this.DisplayName = displayName;
+            this.DeviceVersion = deviceVersion;
+            this.DriverVersion = driverVersion;
         }
 
-        public long DeviceId
+        public string DeviceId
         {
             get; private set;
         }
@@ -24,6 +26,15 @@ namespace XDaggerMinerManager.ObjectModel
             get; private set;
         }
 
+        public string DeviceVersion
+        {
+            get; private set;
+        }
+
+        public string DriverVersion
+        {
+            get; private set;
+        }
 
     }
 }

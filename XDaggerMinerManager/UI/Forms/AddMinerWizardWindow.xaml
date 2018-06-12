@@ -19,7 +19,7 @@
             <TextBox x:Name="txtMachineName" HorizontalAlignment="Left" Height="23" Margin="112,29,0,0" TextWrapping="Wrap" Text="Localhost" VerticalAlignment="Top" Width="252"/>
             <Label x:Name="label" Content="机器名称：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
             <Label x:Name="label1" Content="安装路径：" HorizontalAlignment="Left" Margin="29,160,0,0" VerticalAlignment="Top" Width="78"/>
-            <TextBox x:Name="txtTargetPath" HorizontalAlignment="Left" Height="23" Margin="112,163,0,0" TextWrapping="Wrap" Text="D:\Temp\XDagger" VerticalAlignment="Top" Width="252"/>
+            <TextBox x:Name="txtTargetPath" HorizontalAlignment="Left" Height="23" Margin="112,163,0,0" TextWrapping="Wrap" Text="C:\Temp\XDagger" VerticalAlignment="Top" Width="252"/>
             <Label x:Name="label2" Content="登录用户名：" HorizontalAlignment="Left" Margin="29,67,0,0" VerticalAlignment="Top" Width="78"/>
             <TextBox x:Name="txtTargetUserName" HorizontalAlignment="Left" Height="23" Margin="112,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252"/>
             <Label x:Name="label2_Copy" Content="登录密码：" HorizontalAlignment="Left" Margin="29,109,0,0" VerticalAlignment="Top" Width="78"/>

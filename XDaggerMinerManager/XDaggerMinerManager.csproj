@@ -88,13 +88,13 @@
     <Compile Include="ObjectModel\MinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
-    <Compile Include="Utils\LocalExecution.cs" />
+    <Compile Include="Utils\LocalExecutor.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\PathUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
-    <Compile Include="Utils\RemoteExecution.cs" />
-    <Compile Include="Utils\TargetMachineExecution.cs" />
+    <Compile Include="Utils\RemoteExecutor.cs" />
+    <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Forms\AddMinerWizardWindow.xaml">
       <SubType>Designer</SubType>
