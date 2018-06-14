@@ -88,6 +88,7 @@
     <Compile Include="ObjectModel\MinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
+    <Compile Include="UI\MinerDataCell.cs" />
     <Compile Include="Utils\LocalExecutor.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />

@@ -64,6 +64,11 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
+        public MinerDevice Device
+        {
+            get; set;
+        }
+
         public string Version
         {
             get; private set;

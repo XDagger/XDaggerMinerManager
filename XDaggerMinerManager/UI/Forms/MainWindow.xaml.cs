@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,13 +26,21 @@ namespace XDaggerMinerManager.UI.Forms
     {
         private MinerManager minerManager = null;
 
-
+        private ObservableCollection<MinerDataCell> minerListGridData = null;
 
         public MainWindow()
         {
             InitializeComponent();
 
             minerManager = MinerManager.GetInstance();
+            
+            
+            //// clients.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(dataChangedEvent);
+        }
+
+        private void dataChangedEvent(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            MessageBox.Show("Added item!");
         }
 
         private void btnAddMiner_Click(object sender, RoutedEventArgs e)
@@ -50,13 +61,35 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             minerManager.ClientList.Add(args.CreatedMiner);
-            RefreshMinerList();
-
+            minerListGridData.Add(new MinerDataCell(args.CreatedMiner));
         }
 
-        private void RefreshMinerList()
+        private void btnOperateMiner_Click(object sender, RoutedEventArgs e)
         {
-            minerListGrid.ItemsSource = minerManager?.ClientList;
+        }
+
+        private void minerListGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            minerListGridData = new ObservableCollection<MinerDataCell>();
+            minerListGrid.ItemsSource = minerListGridData;
+            minerListGrid.AllowDrop = false;
+            minerListGrid.CanUserAddRows = false;
+            minerListGrid.CanUserDeleteRows = false;
+            minerListGrid.CanUserResizeRows = false;
+
+
+            foreach (DataGridColumn col in minerListGrid.Columns)
+            {
+                col.Header = MinerDataCell.TranslateHeaderName(col.Header.ToString());
+                col.IsReadOnly = true;
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
+
+    
 }

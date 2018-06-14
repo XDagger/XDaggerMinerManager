@@ -314,6 +314,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepTwo_DownloadPackage()
         {
+            
             string version = this.cBxTargetVersion.Text;
             if (string.IsNullOrEmpty(version))
             {
@@ -371,7 +372,7 @@ namespace XDaggerMinerManager.UI.Forms
             winMinerBinary.ExtractPackage();
 
             ////
-            //// winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+            winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
 
             createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
 
@@ -404,7 +405,6 @@ namespace XDaggerMinerManager.UI.Forms
                     displayedDeviceList.Add(device);
                     cBxTargetDevice.Items.Add(device.DisplayName);
                 }
-
             }
             catch(Exception ex)
             {
@@ -416,7 +416,6 @@ namespace XDaggerMinerManager.UI.Forms
                 btnStepThreeBack.IsEnabled = true;
                 btnStepThreeNext.IsEnabled = true;
             }
-
         }
 
         /// <summary>
@@ -443,6 +442,8 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 executor.ExecuteCommand(daemonFullPath, string.Format(" -d {0}", selectedDevice.DeviceId));
 
+                createdClient.Device = selectedDevice;
+
                 SwitchUIToStep(4);
             }
             catch (Exception ex)
@@ -461,14 +462,19 @@ namespace XDaggerMinerManager.UI.Forms
         private void StepFour_SetupMiner()
         {
             // Install the Service
-            RemoteExecutor remote = new RemoteExecutor(createdClient.MachineName);
-            string daemonScriptFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonScriptFileName);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
+            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+
             try
             {
-                remote.ExecuteCommand(daemonScriptFullPath + " -Operation InstallService");
-
+                executor.ExecuteCommand(daemonFullPath, "--Service Install");
                 createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Ready;
-                createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+
+                if (cKbSetStartTarget.IsChecked ?? false)
+                {
+                    executor.ExecuteCommand(daemonFullPath, "--Service Start");
+                    createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+                }
 
                 StepFour_Finish();
             }

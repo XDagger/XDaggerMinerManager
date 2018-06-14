@@ -50,7 +50,7 @@ namespace XDaggerMinerManager.Utils
         {
             get
             {
-                return string.Format("XDaggerMinerWin-v{0}-x64.zip", this.Version);
+                return string.Format("XDaggerMinerWin-{0}-x64.zip", this.Version);
             }
         }
 
@@ -97,6 +97,14 @@ namespace XDaggerMinerManager.Utils
             if (!Directory.Exists(TempDownloadFolder))
             {
                 Directory.CreateDirectory(TempDownloadFolder);
+            }
+
+            if (File.Exists(fullPath))
+            {
+                // Binary Already exists, skip the downloading
+                AsyncCompletedEventArgs args = new AsyncCompletedEventArgs(null, false, null);
+                eventHander(this, args);
+                return;
             }
 
             try
