@@ -21,6 +21,7 @@ namespace XDaggerMinerManager.Utils
             ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
             startInfo.RedirectStandardOutput = true;
 
             startInfo.FileName = commandFullLine;
