@@ -46,7 +46,9 @@ namespace XDaggerMinerManager.UI.Forms
         private WinMinerReleaseBinary winMinerBinary = null;
 
         private List<MinerDevice> displayedDeviceList = new List<MinerDevice>();
-        
+
+        private List<Control> freezedControlList = new List<Control>();
+
         private void OnMinerCreated(EventArgs e)
         {
             EventHandler handler = MinerCreated;
@@ -206,74 +208,44 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            btnStepOneNext.IsEnabled = false;
+            BackgroundWork<PingReply>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在连接目标机器......", btnStepOneNext);
+                },
+                () => {
+                    Ping pingSender = new Ping();
+                    AutoResetEvent waiter = new AutoResetEvent(false);
+                    
+                    string data = "test";
+                    byte[] buffer = Encoding.ASCII.GetBytes(data);
+                    int timeout = 10000;
 
-            Ping pingSender = new Ping();
-            AutoResetEvent waiter = new AutoResetEvent(false);
+                    // Set options for transmission:
+                    // The data can go through 64 gateways or routers
+                    // before it is destroyed, and the data packet
+                    // cannot be fragmented.
+                    PingOptions options = new PingOptions(64, true);
 
-            // When the PingCompleted event is raised,
-            // the PingCompletedCallback method is called.
-            pingSender.PingCompleted += new PingCompletedEventHandler(StepOne_ValidateTargetMachine_Completed);
+                    // Send the ping asynchronously.
+                    // Use the waiter as the user token.
+                    // When the callback completes, it can wake up this thread.
+                    return pingSender.Send(createdClient.MachineName, timeout, buffer, options);
+                },
+                (taskResult) => {
 
-            // Create a buffer of 32 bytes of data to be transmitted.
-            string data = "test";
-            byte[] buffer = Encoding.ASCII.GetBytes(data);
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("无法连接到目标机器:" + createdClient.MachineName + taskResult.Exception.ToString());
+                        return;
+                    }
 
-            // Wait 10 seconds for a reply.
-            int timeout = 10000;
+                    PingReply reply = taskResult.Result;
 
-            // Set options for transmission:
-            // The data can go through 64 gateways or routers
-            // before it is destroyed, and the data packet
-            // cannot be fragmented.
-            PingOptions options = new PingOptions(64, true);
-
-            Console.WriteLine("Time to live: {0}", options.Ttl);
-            Console.WriteLine("Don't fragment: {0}", options.DontFragment);
-
-            // Send the ping asynchronously.
-            // Use the waiter as the user token.
-            // When the callback completes, it can wake up this thread.
-            pingSender.SendAsync(createdClient.MachineName, timeout, buffer, options, waiter);
-        }
-
-        private void StepOne_ValidateTargetMachine_Completed(object sender, PingCompletedEventArgs e)
-        {
-            // If the operation was canceled, display a message to the user.
-            if (e.Cancelled)
-            {
-                Console.WriteLine("Ping canceled.");
-                MessageBox.Show("无法连接到目标机器:" + createdClient.MachineName);
-
-                // Let the main thread resume. 
-                // UserToken is the AutoResetEvent object that the main thread 
-                // is waiting for.
-                ((AutoResetEvent)e.UserState).Set();
-                btnStepOneNext.IsEnabled = true;
-                return;
-            }
-
-            // If an error occurred, display the exception to the user.
-            if (e.Error != null)
-            {
-                Console.WriteLine("Ping failed:");
-                Console.WriteLine(e.Error.ToString());
-                MessageBox.Show("无法连接到目标机器:" + createdClient.MachineName);
-                btnStepOneNext.IsEnabled = true;
-
-                // Let the main thread resume. 
-                ((AutoResetEvent)e.UserState).Set();
-                return;
-            }
-
-            PingReply reply = e.Reply;
-            
-            StepOne_ValidateTargetPath();
-
-
-
-            // Enable the UI
-            btnStepOneNext.IsEnabled = true;
+                    StepOne_ValidateTargetPath();
+                }
+            ).Execute();
         }
 
         /// <summary>
@@ -290,6 +262,10 @@ namespace XDaggerMinerManager.UI.Forms
                 catch (UnauthorizedAccessException unauthException)
                 {
                     // TODO Handle Exception
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("目标路径错误：" + ex.ToString());
                 }
             }
 
@@ -314,7 +290,6 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepTwo_DownloadPackage()
         {
-            
             string version = this.cBxTargetVersion.Text;
             if (string.IsNullOrEmpty(version))
             {
@@ -324,60 +299,82 @@ namespace XDaggerMinerManager.UI.Forms
 
             winMinerBinary = new WinMinerReleaseBinary(version);
 
-            try
-            {
-                // Update UI
-                btnStepTwoNext.IsEnabled = false;
-                btnStepTwoBack.IsEnabled = false;
-                lblProgressMessage.Content = "正在下载安装包......";
-                prbIndicator.IsIndeterminate = true;
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在下载安装包......", btnStepTwoNext, btnStepTwoBack);
+                },
+                () => {
+                    winMinerBinary.DownloadPackage();
+                    return 0;
+                },
+                (taskResult) => {
 
-                winMinerBinary.DownloadPackage(StepTwo_DownloadPackage_Completed);
-            }
-            catch (WebException webEx)
-            {
-                // TODO: Add handler
-            }
-            catch (InvalidOperationException invalidOper)
-            {
-                // TODO: Add handler
-            }
+                    if (taskResult.HasError)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("下载过程出现错误: " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        StepTwo_ExtractPackage();
+                    }
+                }
+            ).Execute();
         }
 
-        private void StepTwo_DownloadPackage_Completed(object sender, AsyncCompletedEventArgs eventArg)
+        private void StepTwo_ExtractPackage()
         {
-            if (eventArg.Cancelled)
-            {
-                MessageBox.Show("Download Cancelled.");
-                btnStepTwoNext.IsEnabled = true;
-                btnStepTwoBack.IsEnabled = true;
-                lblProgressMessage.Content = "下载失败";
-                prbIndicator.IsIndeterminate = false;
-                return;
-            }
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在解压缩安装包......", btnStepTwoNext, btnStepTwoBack);
+                },
+                () => {
+                    winMinerBinary.ExtractPackage();
+                    return 0;
+                },
+                (taskResult) => {
 
-            if (eventArg.Error != null)
-            {
-                MessageBox.Show("Download Failed:" + eventArg.Error);
-                btnStepTwoNext.IsEnabled = true;
-                btnStepTwoBack.IsEnabled = true;
-                lblProgressMessage.Content = "下载失败";
-                prbIndicator.IsIndeterminate = false;
-                return;
-            }
+                    if (taskResult.HasError)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        StepTwo_CopyBinary();
+                    }
+                }
+            ).Execute();
+        }
 
-            lblProgressMessage.Content = "";
-            prbIndicator.IsIndeterminate = false;
+        private void StepTwo_CopyBinary()
+        {
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在拷贝文件到目标目录......", btnStepTwoNext, btnStepTwoBack);
+                },
+                () => {
+                    winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+                    return 0;
+                },
+                (taskResult) => {
 
-            winMinerBinary.ExtractPackage();
-
-            ////
-            winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
-
-            createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
-
-            displayedDeviceList.Clear();
-            SwitchUIToStep(3);
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("拷贝过程出现错误: " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
+                        displayedDeviceList.Clear();
+                        SwitchUIToStep(3);
+                    }
+                }
+            ).Execute();
         }
 
         private void StepThree_RetrieveDeviceList()
@@ -385,37 +382,40 @@ namespace XDaggerMinerManager.UI.Forms
             TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
-            try
-            {
-                ExecutionResult<List<DeviceOutput>> getDevicesResult = executor.ExecuteCommand<List<DeviceOutput>>(daemonFullPath, "-l");
+            BackgroundWork<List<DeviceOutput>>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
+                },
+                () => {
+                    ExecutionResult<List<DeviceOutput>> getDevicesResult = executor.ExecuteCommand<List<DeviceOutput>>(daemonFullPath, "-l");
+                    return getDevicesResult.Data;
+                },
+                (taskResult) => {
 
-                List<DeviceOutput> devices = getDevicesResult.Data;
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
+                        return;
+                    }
+                    List<DeviceOutput> devices = taskResult.Result;
 
-                if (devices == null || devices.Count == 0)
-                {
-                    MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
-                    return;
+                    if (devices == null || devices.Count == 0)
+                    {
+                        MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
+                        return;
+                    }
+
+                    cBxTargetDevice.Items.Clear();
+                    foreach (DeviceOutput deviceOut in devices)
+                    {
+                        MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
+                        displayedDeviceList.Add(device);
+                        cBxTargetDevice.Items.Add(device.DisplayName);
+                    }
                 }
-
-                cBxTargetDevice.Items.Clear();
-
-                foreach (DeviceOutput deviceOut in devices)
-                {
-                    MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
-                    displayedDeviceList.Add(device);
-                    cBxTargetDevice.Items.Add(device.DisplayName);
-                }
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                return;
-            }
-            finally
-            {
-                btnStepThreeBack.IsEnabled = true;
-                btnStepThreeNext.IsEnabled = true;
-            }
+                ).Execute();
         }
 
         /// <summary>
@@ -423,11 +423,6 @@ namespace XDaggerMinerManager.UI.Forms
         /// </summary>
         private void StepThree_ConfigMiner()
         {
-            btnStepThreeBack.IsEnabled = false;
-            btnStepThreeNext.IsEnabled = false;
-
-            // Set the selected device to the client config file
-
             MinerDevice selectedDevice = (cBxTargetDevice.SelectedIndex >= 0) ? displayedDeviceList.ElementAt(cBxTargetDevice.SelectedIndex) : null;
             if (selectedDevice == null)
             {
@@ -438,25 +433,37 @@ namespace XDaggerMinerManager.UI.Forms
             TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
-            try
-            {
-                executor.ExecuteCommand(daemonFullPath, string.Format(" -d {0}", selectedDevice.DeviceId));
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在配置矿机", btnStepThreeNext, btnStepThreeBack);
+                },
+                () => {
+                    ExecutionResult<OKResult> exeResult = executor.ExecuteCommand<OKResult>(daemonFullPath, string.Format(" -c \"{{ 'DeviceId':'{0}' }}\"", selectedDevice.DeviceId));
 
-                createdClient.Device = selectedDevice;
+                    if (exeResult.HasError)
+                    {
+                        throw new InvalidOperationException(exeResult.ErrorMessage);
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                },
+                (taskResult) => {
 
-                SwitchUIToStep(4);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                return;
-            }
-            finally
-            {
-                btnStepThreeBack.IsEnabled = true;
-                btnStepThreeNext.IsEnabled = true;
-            }
-            
+                    HideProgressIndicator();
+
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
+                        return;
+                    }
+
+                    createdClient.Device = selectedDevice;
+                    SwitchUIToStep(4);
+                }
+                ).Execute();
         }
 
         private void StepFour_SetupMiner()
@@ -465,30 +472,79 @@ namespace XDaggerMinerManager.UI.Forms
             TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
-            try
-            {
-                executor.ExecuteCommand(daemonFullPath, "--Service Install");
-                createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Ready;
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在安装矿机服务", btnStepFourFinish, btnStepFourBack);
+                },
+                () => {
+                    ExecutionResult<OKResult> exeResult = executor.ExecuteCommand<OKResult>(daemonFullPath, "-s Install");
 
-                if (cKbSetStartTarget.IsChecked ?? false)
-                {
-                    executor.ExecuteCommand(daemonFullPath, "--Service Start");
-                    createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+                    if (exeResult.HasError)
+                    {
+                        throw new InvalidOperationException(exeResult.ErrorMessage);
+                    }
+
+                    return 0;
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("安装矿机出现错误：" + taskResult.Exception.ToString());
+                        return;
+                    }
+
+                    createdClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Ready;
+
+                    if (cKbSetStartTarget.IsChecked ?? false)
+                    {
+                        StepFour_StartMiner();
+                    }
+                    else
+                    {
+                        StepFour_Finish();
+                    }
                 }
+            ).Execute();
+        }
 
-                StepFour_Finish();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                return;
-            }
-            finally
-            {
-                btnStepFourBack.IsEnabled = true;
-                btnStepFourFinish.IsEnabled = true;
-            }
+        private void StepFour_StartMiner()
+        {
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
+            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在启动矿机服务", btnStepFourFinish, btnStepFourBack);
+                },
+                () => {
+                    ExecutionResult<OKResult> exeResult = executor.ExecuteCommand<OKResult>(daemonFullPath, "-s Start");
+
+                    if (exeResult.HasError)
+                    {
+                        throw new InvalidOperationException(exeResult.ErrorMessage);
+                    }
+
+                    return 0;
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("启动矿机出现错误：" + taskResult.Exception.ToString());
+                        return;
+                    }
+
+                    createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+                    StepFour_Finish();
+                }
+            ).Execute();
         }
 
         private void StepFour_Finish()
@@ -498,6 +554,37 @@ namespace XDaggerMinerManager.UI.Forms
 
             wizardStatus = AddMinerWizardStatus.Finished;
             this.Close();
+        }
+
+        private void ShowProgressIndicator(string progressMesage, params Control[] controlList)
+        {
+            lblProgressMessage.Content = progressMesage;
+            prbIndicator.IsIndeterminate = true;
+
+            // Freeze the controls
+            if (controlList != null)
+            {
+                freezedControlList.AddRange(controlList.ToArray());
+
+                foreach (Control control in freezedControlList)
+                {
+                    control.IsEnabled = false;
+                }
+            }
+        }
+
+        private void HideProgressIndicator()
+        {
+            lblProgressMessage.Content = string.Empty;
+            prbIndicator.IsIndeterminate = false;
+
+            // Defreeze the controls
+            foreach (Control control in freezedControlList)
+            {
+                control.IsEnabled = true;
+            }
+
+            freezedControlList.Clear();
         }
 
         #endregion

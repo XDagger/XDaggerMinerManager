@@ -89,6 +89,14 @@ namespace XDaggerMinerManager.Utils
 
         }
 
+        public bool HasError
+        {
+            get
+            {
+                return (this.Code != 0) || !string.IsNullOrEmpty(this.ErrorMessage);
+            }
+        }
+
         public string ErrorMessage
         {
             get; private set;

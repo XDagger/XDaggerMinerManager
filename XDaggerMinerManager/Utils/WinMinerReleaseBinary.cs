@@ -84,7 +84,7 @@ namespace XDaggerMinerManager.Utils
             return null;
         }
 
-        public void DownloadPackage(AsyncCompletedEventHandler eventHander)
+        public void DownloadPackage()
         {
             // Setup the download properties to support HTTPS protocol
             ServicePointManager.Expect100Continue = true;
@@ -102,8 +102,8 @@ namespace XDaggerMinerManager.Utils
             if (File.Exists(fullPath))
             {
                 // Binary Already exists, skip the downloading
-                AsyncCompletedEventArgs args = new AsyncCompletedEventArgs(null, false, null);
-                eventHander(this, args);
+                // AsyncCompletedEventArgs args = new AsyncCompletedEventArgs(null, false, null);
+                /// eventHander(this, args);
                 return;
             }
 
@@ -111,8 +111,9 @@ namespace XDaggerMinerManager.Utils
             {
                 using (var client = new WebClient())
                 {
-                    client.DownloadFileCompleted += eventHander;
-                    client.DownloadFileAsync(uri, fullPath);
+                    client.DownloadFile(uri, fullPath);
+                    ///client.DownloadFileCompleted += eventHander;
+                    ///client.DownloadFileAsync(uri, fullPath);
                 }
             }
             catch(WebException webExcetion)
