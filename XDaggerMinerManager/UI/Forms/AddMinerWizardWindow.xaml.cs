@@ -49,6 +49,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private List<Control> freezedControlList = new List<Control>();
 
+        private ManagerConfig managerConfig = ManagerConfig.Current;
+
         private void OnMinerCreated(EventArgs e)
         {
             EventHandler handler = MinerCreated;
@@ -64,6 +66,10 @@ namespace XDaggerMinerManager.UI.Forms
         public AddMinerWizardWindow()
         {
             InitializeComponent();
+            
+            this.txtTargetPath.Text = managerConfig.DefaultInstallationPath;
+            this.txtTargetUserName.Text = managerConfig.DefaultUserName;
+            this.txtTargetUserPassword.Text = managerConfig.DefaultPassword;
         }
 
         public MinerClient CreatedClient

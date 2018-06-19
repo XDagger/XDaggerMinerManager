@@ -30,14 +30,6 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
-        public static string DaemonScriptFileName
-        {
-            get
-            {
-                return "DaemonScript.ps1";
-            }
-        }
-
         public static string DaemonExecutionFileName
         {
             get
@@ -50,15 +42,15 @@ namespace XDaggerMinerManager.Utils
         {
             get
             {
-                return string.Format("XDaggerMinerWin-{0}-x64.zip", this.Version);
+                return string.Format(ManagerConfig.Current.MinerPackageName, this.Version);
             }
         }
 
-        public string ReleaseDownloadUrl
+        public string DownloadUrl
         {
             get
             {
-                return string.Format("https://github.com/Toneyisnow/XDaggerMinerWin/releases/download/{0}/", this.Version);
+                return string.Format(ManagerConfig.Current.MinerDownloadUrlPath, this.Version);
             }
         }
 
@@ -91,7 +83,7 @@ namespace XDaggerMinerManager.Utils
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
-            Uri uri = new Uri(this.ReleaseDownloadUrl + this.PackageName);
+            Uri uri = new Uri(this.DownloadUrl + this.PackageName);
             string fullPath = Path.Combine(TempDownloadFolder, this.PackageName);
 
             if (!Directory.Exists(TempDownloadFolder))

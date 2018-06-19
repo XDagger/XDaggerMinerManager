@@ -94,6 +94,7 @@
     <Compile Include="UI\MinerDataCell.cs" />
     <Compile Include="Utils\BackgroundWork.cs" />
     <Compile Include="Utils\LocalExecutor.cs" />
+    <Compile Include="Utils\ManagerConfig.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\PathUtils.cs" />
@@ -141,6 +142,9 @@
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="manager-config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
