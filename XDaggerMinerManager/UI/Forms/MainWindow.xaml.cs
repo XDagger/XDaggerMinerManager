@@ -1,4 +1,5 @@
 ﻿using System;
+using Collection = System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -26,14 +27,15 @@ namespace XDaggerMinerManager.UI.Forms
     {
         private MinerManager minerManager = null;
 
-        private ObservableCollection<MinerDataCell> minerListGridData = null;
+        private ObservableCollection<MinerDataCell> minerListGridData = new ObservableCollection<MinerDataCell>();
 
         public MainWindow()
         {
             InitializeComponent();
 
             minerManager = MinerManager.GetInstance();
-            
+
+            InitializeUIData();
             
             //// clients.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(dataChangedEvent);
         }
@@ -48,7 +50,6 @@ namespace XDaggerMinerManager.UI.Forms
             AddMinerWizardWindow addMinerWizard = new AddMinerWizardWindow();
             addMinerWizard.MinerCreated += OnMinerCreated;
             addMinerWizard.ShowDialog();
-
         }
 
         public void OnMinerCreated(object sender, EventArgs e)
@@ -60,7 +61,7 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            minerManager.ClientList.Add(args.CreatedMiner);
+            minerManager.AddClient(args.CreatedMiner);
             minerListGridData.Add(new MinerDataCell(args.CreatedMiner));
         }
 
@@ -68,18 +69,29 @@ namespace XDaggerMinerManager.UI.Forms
         {
         }
 
+        private void InitializeUIData()
+        {
+            foreach(MinerClient client in minerManager.ClientList)
+            {
+                minerListGridData.Add(new MinerDataCell(client));
+            }
+        }
+
         private void minerListGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            minerListGridData = new ObservableCollection<MinerDataCell>();
             minerListGrid.ItemsSource = minerListGridData;
             minerListGrid.AllowDrop = false;
             minerListGrid.CanUserAddRows = false;
             minerListGrid.CanUserDeleteRows = false;
             minerListGrid.CanUserResizeRows = false;
-
-
+            
             foreach (DataGridColumn col in minerListGrid.Columns)
             {
+                if (col.Header.ToString() == "MinerName")
+                {
+                    col.Visibility = Visibility.Collapsed;
+                }
+
                 col.Header = MinerDataCell.TranslateHeaderName(col.Header.ToString());
                 col.IsReadOnly = true;
             }
@@ -89,7 +101,63 @@ namespace XDaggerMinerManager.UI.Forms
         {
             
         }
+
+        private void menuStartMiner_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        private void menuStopMiner_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void menuUninstallMiner_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void minerListGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+
+            bool containsStartedMiner = false;
+            bool containsStoppedMiner = false;
+
+            foreach(MinerClient client in selectedClients)
+            {
+                containsStartedMiner |= (client.CurrentServiceStatus == MinerClient.ServiceStatus.Started);
+                containsStoppedMiner |= (client.CurrentServiceStatus == MinerClient.ServiceStatus.Stopped);
+            }
+
+            this.menuStopMiner.IsEnabled = containsStartedMiner;
+            this.menuStartMiner.IsEnabled = containsStoppedMiner;
+        }
+
+        private List<MinerClient> GetSelectedClientsInDataGrid()
+        {
+            List<MinerClient> selectedClients = new List<MinerClient>();
+            Collection.IList selectedItems = this.minerListGrid.SelectedItems;
+            
+            foreach (object obj in selectedItems)
+            {
+                MinerDataCell cell = (MinerDataCell)obj;
+                if (cell == null)
+                {
+                    continue;
+                }
+
+                MinerClient client = minerManager.ClientList.FirstOrDefault((c) => { return (c.MachineName == cell.MinerName); });
+                if (client != null)
+                {
+                    selectedClients.Add(client);
+                }
+            }
+
+            return selectedClients;
+        }
     }
+
 
     
 }

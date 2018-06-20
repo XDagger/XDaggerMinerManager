@@ -15,7 +15,15 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <DataGrid x:Name="minerListGrid" Margin="0,59,10,0" VerticalAlignment="Top" Height="373" HorizontalAlignment="Right" Width="883" Loaded="minerListGrid_Loaded">
+                    <DataGrid x:Name="minerListGrid" Margin="0,59,10,0" VerticalAlignment="Top" Height="373" HorizontalAlignment="Right" Width="883" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="menuStartMiner" Header="启动" Click="menuStartMiner_Click"></MenuItem>
+                                <MenuItem x:Name="menuStopMiner" Header="停止" Click="menuStopMiner_Click"></MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="menuUninstallMiner" Header="卸载" Click="menuUninstallMiner_Click"></MenuItem>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="选择" HeaderStringFormat=""/>
                             <!--

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XDaggerMinerManager.Utils;
+using Newtonsoft.Json;
 
 namespace XDaggerMinerManager.ObjectModel
 {
@@ -28,47 +29,77 @@ namespace XDaggerMinerManager.ObjectModel
             Unknown,
         }
 
-        public MinerClient(string machineName, string deploymentFolder, string version = "")
+        public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
         {
             this.MachineName = machineName.Trim().ToUpper();
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
-            this.BinaryPath = System.IO.Path.Combine(this.DeploymentFolder, WinMinerReleaseBinary.ProjectName);
             this.Version = version;
+            this.InstanceName = instanceName;
 
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
+        
+        public string Name
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.InstanceName))
+                {
+                    return this.MachineName;
+                }
+                else
+                {
+                    return string.Format("{0}_{1}", this.MachineName, this.InstanceName);
+                }
+            }
+        }
 
+        [JsonProperty(PropertyName = "machine_name")]
         public string MachineName
         {
-            get; private set;
+            get; set;
         }
 
+        [JsonProperty(PropertyName = "instance_name")]
+        public string InstanceName
+        {
+            get; set;
+        }
+        
         public string BinaryPath
         {
-            get; private set;
+            get
+            {
+                return System.IO.Path.Combine(this.DeploymentFolder, WinMinerReleaseBinary.ProjectName);
+            }
         }
 
+        [JsonProperty(PropertyName = "deployment_folder")]
         public string DeploymentFolder
         {
             get; private set;
         }
 
+        [JsonProperty(PropertyName = "current_deployment_status")]
         public DeploymentStatus CurrentDeploymentStatus
         {
             get; set;
         }
 
+        [JsonProperty(PropertyName = "current_service_status")]
         public ServiceStatus CurrentServiceStatus
         {
             get; set;
         }
 
+        [JsonProperty(PropertyName = "device")]
         public MinerDevice Device
         {
             get; set;
         }
 
+        [JsonProperty(PropertyName = "version")]
         public string Version
         {
             get; private set;
@@ -102,17 +133,6 @@ namespace XDaggerMinerManager.ObjectModel
             }
 
             return string.Format("\\\\{0}\\{1}", this.MachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
-        }
-
-        /// <summary>
-        /// Deploy the full client.
-        ///     1. Validate paramters
-        ///     2. 
-        /// </summary>
-        /// <param name="progressHandler"></param>
-        public void Deploy(Func<int, string, int> progressHandler)
-        {
-
         }
 
         #region Private Methods

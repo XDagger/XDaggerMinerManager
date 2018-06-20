@@ -95,6 +95,7 @@
     <Compile Include="Utils\BackgroundWork.cs" />
     <Compile Include="Utils\LocalExecutor.cs" />
     <Compile Include="Utils\ManagerConfig.cs" />
+    <Compile Include="Utils\ManagerInfo.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\PathUtils.cs" />
@@ -146,6 +147,9 @@
     </None>
     <None Include="manager-config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="manager-info.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
