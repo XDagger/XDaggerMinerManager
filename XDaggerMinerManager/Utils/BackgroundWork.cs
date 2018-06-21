@@ -7,15 +7,31 @@ using System.Windows;
 
 namespace XDaggerMinerManager.Utils
 {
+    public class BackgroundWork : BackgroundWork<int>
+    {
+        public static BackgroundWork CreateWork(Window window, Action begin, Action func, Action<BackgroundWorkResult> end)
+        {
+            BackgroundWork work = new BackgroundWork();
+
+            work.Window = window;
+            work.BeginAction = begin;
+            work.WorkFunction = new Func<int>(() => { func(); return 0; } );
+            work.EndAction = new Action<BackgroundWorkResult<int>>(
+                (result) => { BackgroundWorkResult newResult = new BackgroundWorkResult(result); end(newResult); });
+
+            return work;
+        }
+    }
+
     public class BackgroundWork<T>
     {
-        private Window Window = null;
+        protected Window Window = null;
 
-        private Action BeginAction = null;
+        protected Action BeginAction = null;
 
-        private Func<T> WorkFunction = null;
+        protected Func<T> WorkFunction = null;
 
-        private Action<BackgroundWorkResult<T>> EndAction = null;
+        protected Action<BackgroundWorkResult<T>> EndAction = null;
 
         public static BackgroundWork<T> CreateWork(Window window, Action begin, Func<T> func, Action<BackgroundWorkResult<T>> end)
         {
@@ -23,8 +39,8 @@ namespace XDaggerMinerManager.Utils
 
             work.Window = window;
             work.BeginAction = begin;
-            work.EndAction = end;
             work.WorkFunction = func;
+            work.EndAction = end;
 
             return work;
         }
@@ -80,12 +96,12 @@ namespace XDaggerMinerManager.Utils
     {
         public T Result
         {
-            get; private set;
+            get; protected set;
         }
 
         public Exception Exception
         {
-            get; private set;
+            get; protected set;
         }
 
         public BackgroundWorkResult()
@@ -116,6 +132,24 @@ namespace XDaggerMinerManager.Utils
         }
     }
 
+    public class BackgroundWorkResult : BackgroundWorkResult<int>
+    {
+        public BackgroundWorkResult()
+        {
 
+        }
+
+        public BackgroundWorkResult(BackgroundWorkResult<int> result)
+        {
+            this.Result = result.Result;
+            this.Exception = result.Exception;
+        }
+
+        public static BackgroundWorkResult CreateResult()
+        {
+            BackgroundWorkResult result = new BackgroundWorkResult();
+            return result;
+        }
+    }
 
 }

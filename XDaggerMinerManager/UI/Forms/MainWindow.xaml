@@ -25,7 +25,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Header="选择" HeaderStringFormat=""/>
+                            <!--<DataGridCheckBoxColumn Header="选择" HeaderStringFormat=""/>-->
                             <!--
                             <DataGridTextColumn Header="矿机名称" Binding="{Binding MinerName, Converter={StaticResource conv}}" MinWidth="80"/>
                             <DataGridTextColumn HeaderStringFormat="矿机名称" Header="矿机名称" Binding="{Binding MinerName}" MinWidth="80"/>

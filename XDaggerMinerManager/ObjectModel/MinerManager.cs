@@ -82,5 +82,11 @@ namespace XDaggerMinerManager.ObjectModel
             this.ClientList.Add(client);
             this.SaveCurrentInfo();
         }
+
+        public void RemoveClient(MinerClient client)
+        {
+            this.ClientList.Remove(client);
+            this.SaveCurrentInfo();
+        }
     }
 }

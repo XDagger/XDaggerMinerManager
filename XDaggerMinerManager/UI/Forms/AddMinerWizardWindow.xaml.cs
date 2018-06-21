@@ -436,16 +436,13 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
-            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
-
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在配置矿机", btnStepThreeNext, btnStepThreeBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = executor.ExecuteCommand<OKResult>(daemonFullPath, string.Format(" -c \"{{ 'DeviceId':'{0}' }}\"", selectedDevice.DeviceId));
+                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(string.Format(" -c \"{{ 'DeviceId':'{0}' }}\"", selectedDevice.DeviceId));
 
                     if (exeResult.HasError)
                     {
@@ -475,16 +472,13 @@ namespace XDaggerMinerManager.UI.Forms
         private void StepFour_SetupMiner()
         {
             // Install the Service
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
-            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
-
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在安装矿机服务", btnStepFourFinish, btnStepFourBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = executor.ExecuteCommand<OKResult>(daemonFullPath, "-s Install");
+                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>("-s Install");
 
                     if (exeResult.HasError)
                     {
@@ -519,16 +513,13 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepFour_StartMiner()
         {
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
-            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
-
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在启动矿机服务", btnStepFourFinish, btnStepFourBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = executor.ExecuteCommand<OKResult>(daemonFullPath, "-s Start");
+                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>("-s Start");
 
                     if (exeResult.HasError)
                     {

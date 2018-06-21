@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
+using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -62,7 +63,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             minerManager.AddClient(args.CreatedMiner);
-            minerListGridData.Add(new MinerDataCell(args.CreatedMiner));
+            RefreshMinerListGrid();
         }
 
         private void btnOperateMiner_Click(object sender, RoutedEventArgs e)
@@ -71,7 +72,13 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void InitializeUIData()
         {
-            foreach(MinerClient client in minerManager.ClientList)
+            RefreshMinerListGrid();
+        }
+
+        private void RefreshMinerListGrid()
+        {
+            minerListGridData.Clear();
+            foreach (MinerClient client in minerManager.ClientList)
             {
                 minerListGridData.Add(new MinerDataCell(client));
             }
@@ -104,17 +111,106 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void menuStartMiner_Click(object sender, RoutedEventArgs e)
         {
-            
+            List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+            ProgressWindow progress = new ProgressWindow("正在启动矿机...",
+                () => {
+                    MinerClient c = selectedClients.FirstOrDefault();
+                    if (c != null)
+                    {
+                        ExecutionResult<OKResult> r = c.ExecuteDaemon<OKResult>("-s start");
+
+                        if (!r.HasError)
+                        {
+                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+                        }
+                        else
+                        {
+                            /// throw new Exception(r.Code + "|" + r.ErrorMessage);
+                        }
+                    }
+                },
+                (result) => {
+                    if (result.HasError)
+                    {
+                        MessageBox.Show("错误：" + result.Exception.ToString());
+                    }
+
+                    this.RefreshMinerListGrid();
+                }
+                );
+            progress.ShowDialog();
         }
 
         private void menuStopMiner_Click(object sender, RoutedEventArgs e)
         {
+            List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+            ProgressWindow progress = new ProgressWindow("正在停止矿机...",
+                () => {
+                    MinerClient c = selectedClients.FirstOrDefault();
+                    if (c != null)
+                    {
+                        ExecutionResult<OKResult> r = c.ExecuteDaemon<OKResult>("-s stop");
 
+                        if (!r.HasError)
+                        {
+                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
+                        }
+                        else
+                        {
+                            /// throw new Exception(r.Code + "|" + r.ErrorMessage);
+                        }
+                    }
+                },
+                (result) => {
+                    if (result.HasError)
+                    {
+                        MessageBox.Show("错误：" + result.Exception.ToString());
+                    }
+
+                    this.RefreshMinerListGrid();
+                }
+                );
+            progress.ShowDialog();
         }
 
         private void menuUninstallMiner_Click(object sender, RoutedEventArgs e)
         {
+            if (MessageBox.Show("确定要卸载选定的矿机吗？", "确认", MessageBoxButton.YesNo) == MessageBoxResult.No)
+            {
+                return;
+            }
 
+            List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+            ProgressWindow progress = new ProgressWindow("正在卸载矿机...",
+                () => {
+                    MinerClient c = selectedClients.FirstOrDefault();
+                    if (c != null)
+                    {
+                        ExecutionResult<OKResult> r = c.ExecuteDaemon<OKResult>("-s uninstall");
+
+                        if (!r.HasError)
+                        {
+                            c.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
+                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
+                        }
+                        else
+                        {
+                            /// throw new Exception(r.Code + "|" + r.ErrorMessage);
+                        }
+
+                        c.DeleteBinaries();
+                        minerManager.RemoveClient(c);
+                    }
+                },
+                (result) => {
+                    if (result.HasError)
+                    {
+                        MessageBox.Show("错误：" + result.Exception.ToString());
+                    }
+
+                    this.RefreshMinerListGrid(); }
+                );
+            progress.ShowDialog();
         }
 
         private void minerListGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -123,15 +219,17 @@ namespace XDaggerMinerManager.UI.Forms
 
             bool containsStartedMiner = false;
             bool containsStoppedMiner = false;
+            bool containsNotReadyMiner = false;
 
             foreach(MinerClient client in selectedClients)
             {
                 containsStartedMiner |= (client.CurrentServiceStatus == MinerClient.ServiceStatus.Started);
                 containsStoppedMiner |= (client.CurrentServiceStatus == MinerClient.ServiceStatus.Stopped);
+                containsNotReadyMiner |= (client.CurrentDeploymentStatus != MinerClient.DeploymentStatus.Ready);
             }
 
-            this.menuStopMiner.IsEnabled = containsStartedMiner;
-            this.menuStartMiner.IsEnabled = containsStoppedMiner;
+            this.menuStopMiner.IsEnabled = !containsNotReadyMiner && containsStartedMiner;
+            this.menuStartMiner.IsEnabled = !containsNotReadyMiner && containsStoppedMiner;
         }
 
         private List<MinerClient> GetSelectedClientsInDataGrid()

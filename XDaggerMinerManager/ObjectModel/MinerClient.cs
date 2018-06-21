@@ -15,18 +15,18 @@ namespace XDaggerMinerManager.ObjectModel
     {
         public enum DeploymentStatus
         {
-            NotExist,
-            Downloaded,
-            PrerequisitesInstalled,
-            Ready,
-            Unknown,
+            Unknown = -1,
+            NotExist = 1,
+            Downloaded = 2,
+            PrerequisitesInstalled = 3,
+            Ready = 4,
         }
 
         public enum ServiceStatus
         {
-            Started,
-            Stopped,
-            Unknown,
+            Unknown = -1,
+            Stopped = 0,
+            Started = 1,
         }
 
         public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
@@ -133,6 +133,40 @@ namespace XDaggerMinerManager.ObjectModel
             }
 
             return string.Format("\\\\{0}\\{1}", this.MachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
+        }
+
+        public ExecutionResult<T> ExecuteDaemon<T>(string parameters)
+        {
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.MachineName);
+            string daemonFullPath = System.IO.Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+
+            return executor.ExecuteCommand<T>(daemonFullPath, parameters);
+        }
+
+        public void DeleteBinaries()
+        {
+            if (this.CurrentDeploymentStatus < DeploymentStatus.Downloaded)
+            {
+                // There should not be binaries, just ignore
+                this.CurrentDeploymentStatus = DeploymentStatus.NotExist;
+                return;
+            }
+
+            try
+            {
+                string binariesPath = GetRemoteBinaryPath();
+
+                if (!string.IsNullOrEmpty(binariesPath))
+                {
+                    System.IO.Directory.Delete(binariesPath, true);
+                }
+
+                this.CurrentDeploymentStatus = MinerClient.DeploymentStatus.NotExist;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
         #region Private Methods
