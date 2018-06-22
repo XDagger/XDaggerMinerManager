@@ -30,6 +30,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private ObservableCollection<MinerDataCell> minerListGridData = new ObservableCollection<MinerDataCell>();
 
+        private static readonly string MinerStatisticsSummaryTemplate = @"当前矿机数：{0}台  上线：{1}台  下线：{2}台  主算力：{3}Mps";
         public MainWindow()
         {
             InitializeComponent();
@@ -72,6 +73,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void InitializeUIData()
         {
+            this.Title = string.Format("XDagger Miner Manager Platform ({0})", minerManager.Version);
+
             RefreshMinerListGrid();
         }
 
@@ -82,6 +85,12 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 minerListGridData.Add(new MinerDataCell(client));
             }
+
+            int totalClient = minerManager.ClientList.Count;
+            int runningClient = minerManager.ClientList.Count((client) => { return client.CurrentServiceStatus == MinerClient.ServiceStatus.Started; });
+            int stoppedClient = totalClient - runningClient;
+
+            this.tBxClientStatisticsSummary.Text = string.Format(MinerStatisticsSummaryTemplate, totalClient, runningClient, stoppedClient, 0);
         }
 
         private void minerListGrid_Loaded(object sender, RoutedEventArgs e)

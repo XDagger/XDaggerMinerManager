@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="添加矿机" Height="387.22" Width="444" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize" Closing="onClosing" Loaded="addMinerWizard_Loaded">
+        Title="添加矿机" Height="388" Width="444" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize" Closing="onClosing" Loaded="addMinerWizard_Loaded">
     <Grid Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="287*"/>
@@ -14,7 +14,7 @@
         <Label x:Name="lblStepTwo" Content="2. 部署矿机" HorizontalAlignment="Left" Margin="123,10,0,0" VerticalAlignment="Top" Width="98" FontSize="16" BorderThickness="2"/>
         <Label x:Name="lblStepThree" Content="3. 配置环境" HorizontalAlignment="Left" Margin="230,10,0,0" VerticalAlignment="Top" Width="105" FontSize="16" BorderThickness="2" Grid.ColumnSpan="2"/>
         <Label x:Name="lblStepFour" Content="4. 启动" Margin="0,10,15,0" VerticalAlignment="Top" FontSize="16" BorderThickness="2" Grid.Column="1" HorizontalAlignment="Right" Width="86"/>
-        <Grid x:Name="grdStepOne" HorizontalAlignment="Left" Height="241" Margin="10,50,0,0" VerticalAlignment="Top" Width="416" Background="#FFE8E5E5" Grid.ColumnSpan="2">
+        <Grid x:Name="grdStepOne" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
             <Button x:Name="btnStepOneNext" Content="下一步" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepOneNext_Click"/>
             <TextBox x:Name="txtMachineName" HorizontalAlignment="Left" Height="23" Margin="112,29,0,0" TextWrapping="Wrap" Text="Localhost" VerticalAlignment="Top" Width="252"/>
             <Label x:Name="label" Content="机器名称：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
@@ -25,25 +25,23 @@
             <Label x:Name="label2_Copy" Content="登录密码：" HorizontalAlignment="Left" Margin="29,109,0,0" VerticalAlignment="Top" Width="78"/>
             <TextBox x:Name="txtTargetUserPassword" HorizontalAlignment="Left" Height="23" Margin="112,112,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252"/>
         </Grid>
-        <Grid x:Name="grdStepTwo" Height="246" Margin="10,50,10,0" VerticalAlignment="Top" Background="#FFE8E5E5">
+        <Grid x:Name="grdStepTwo" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
             <Label x:Name="label22" Content="选择版本：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
             <Button x:Name="btnStepTwoNext" Content="下一步" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepTwoNext_Click"/>
             <Button x:Name="btnStepTwoBack" Content="后退" Margin="0,0,143,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepTwoBack_Click"/>
             <ComboBox x:Name="cBxTargetVersion" Margin="112,30,52,0" VerticalAlignment="Top" IsReadOnly="True" SelectedIndex="0">
+                <ComboBoxItem Content="v0.1.0622.0"/>
                 <ComboBoxItem Content="v0.1.0619.0"/>
-                <ComboBoxItem Content="v0.1.0613.0"/>
-                <ComboBoxItem Content="v0.1.0608.0"/>
-                <ComboBoxItem Content="v0.1.0605.0"/>
             </ComboBox>
         </Grid>
-        <Grid x:Name="grdStepThree" HorizontalAlignment="Left" Height="246" Margin="10,50,0,0" VerticalAlignment="Top" Width="416" Background="#FFE8E5E5" Grid.ColumnSpan="2">
+        <Grid x:Name="grdStepThree" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
             <Label x:Name="label32" Content="选择硬件：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
             <ComboBox x:Name="cBxTargetDevice" Margin="112,30,52,0" VerticalAlignment="Top" IsReadOnly="True" />
-            
+
             <Button x:Name="btnStepThreeNext" Content="下一步" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeNext_Click"/>
             <Button x:Name="btnStepThreeBack" Content="后退" Margin="0,0,143,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeBack_Click"/>
         </Grid>
-        <Grid x:Name="grdStepFour" HorizontalAlignment="Left" Height="246" Margin="10,50,0,0" VerticalAlignment="Top" Width="416" Background="#FFE8E5E5" Grid.ColumnSpan="2">
+        <Grid x:Name="grdStepFour" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
             <Button x:Name="btnStepFourFinish" Content="完成" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourFinish_Click"/>
             <Button x:Name="btnStepFourBack" Content="后退" Margin="0,0,143,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourBack_Click"/>
             <CheckBox x:Name="cKbSetStartTarget" Content="启动矿机" HorizontalAlignment="Left" Margin="118,40,0,0" VerticalAlignment="Top" Width="113" IsChecked="True"/>
