@@ -263,6 +263,27 @@ namespace XDaggerMinerManager.UI.Forms
 
             return selectedClients;
         }
+
+        private void btnLockScreen_Click(object sender, RoutedEventArgs e)
+        {
+            ManagerInfo info = ManagerInfo.Current;
+            if (!info.HasLockPassword())
+            {
+                SetPasswordWindow passwordWindow = new SetPasswordWindow();
+
+                passwordWindow.ShowDialog();
+
+                if (string.IsNullOrWhiteSpace(passwordWindow.PasswordValue))
+                {
+                    return;
+                }
+
+                info.SetLockPassword(passwordWindow.PasswordValue);
+            }
+
+            LockWindow lockWindow = new LockWindow(this);
+            lockWindow.Show();
+        }
     }
 
 
