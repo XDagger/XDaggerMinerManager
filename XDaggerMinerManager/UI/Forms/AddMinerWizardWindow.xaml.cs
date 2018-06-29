@@ -538,7 +538,7 @@ namespace XDaggerMinerManager.UI.Forms
                         return;
                     }
 
-                    createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+                    createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
                     StepFour_Finish();
                 }
             ).Execute();

@@ -15,6 +15,8 @@ namespace XDaggerMinerManager.ObjectModel
 
         private static MinerManager instance = null;
 
+        public event EventHandler ClientStatusChanged;
+
         public static MinerManager GetInstance()
         {
             if (instance == null)
@@ -79,6 +81,7 @@ namespace XDaggerMinerManager.ObjectModel
                 throw new ArgumentNullException("New Client should not be null");
             }
 
+            client.StatusChanged += ClientStatusChanged;
             this.ClientList.Add(client);
             this.SaveCurrentInfo();
         }

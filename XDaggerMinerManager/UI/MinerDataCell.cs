@@ -21,6 +21,7 @@ namespace XDaggerMinerManager.UI
                 case "DeploymentStatus": return "安装状态";
                 case "ServiceStatus": return "运行状态";
                 case "DeviceName": return "矿卡";
+                case "HashRate": return "当前算力";
                 default:
                     return headerName;
             }
@@ -51,6 +52,11 @@ namespace XDaggerMinerManager.UI
             get; set;
         }
 
+        public string HashRate
+        {
+            get; set;
+        }
+
         public MinerDataCell()
         {
 
@@ -61,6 +67,7 @@ namespace XDaggerMinerManager.UI
             this.MachineName = clientObject.MachineName;
             this.MinerName = clientObject.MachineName;
             this.DeviceName = clientObject.Device?.DisplayName;
+            this.HashRate = string.Format("{0}Mhps", clientObject.CurrentHashRate);
 
             switch(clientObject.CurrentDeploymentStatus)
             {
@@ -77,17 +84,26 @@ namespace XDaggerMinerManager.UI
             
             switch(clientObject.CurrentServiceStatus)
             {
-                case MinerClient.ServiceStatus.Started:
+                case MinerClient.ServiceStatus.Mining:
                     this.ServiceStatus = "运行中";
+                    break;
+                case MinerClient.ServiceStatus.Connected:
+                    this.ServiceStatus = "已连接矿池";
+                    break;
+                case MinerClient.ServiceStatus.Disconnected:
+                    this.ServiceStatus = "未连接矿池";
                     break;
                 case MinerClient.ServiceStatus.Stopped:
                     this.ServiceStatus = "停止";
                     break;
+                case MinerClient.ServiceStatus.NotInstalled:
+                    this.ServiceStatus = "未安装";
+                    break;
                 case MinerClient.ServiceStatus.Unknown:
-                    this.ServiceStatus = "未连接";
+                    this.ServiceStatus = "未知";
                     break;
                 default:
-                    this.ServiceStatus = "未连接";
+                    this.ServiceStatus = "未知";
                     break;
             }
         }

@@ -24,11 +24,16 @@ namespace XDaggerMinerManager.ObjectModel
 
         public enum ServiceStatus
         {
-            Unknown = -1,
-            Stopped = 0,
-            Started = 1,
+            Unknown = 0,
+            NotInstalled = 1,
+            Stopped = 2,
+            Disconnected = 3,
+            Connected = 4,
+            Mining = 5
         }
 
+        public event EventHandler StatusChanged;
+        
         public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
         {
             this.MachineName = machineName.Trim().ToUpper();
@@ -54,7 +59,7 @@ namespace XDaggerMinerManager.ObjectModel
                 }
             }
         }
-
+        
         [JsonProperty(PropertyName = "machine_name")]
         public string MachineName
         {
@@ -75,22 +80,84 @@ namespace XDaggerMinerManager.ObjectModel
             }
         }
 
+        public bool IsServiceStatusRunning()
+        {
+            return this.CurrentServiceStatus > ServiceStatus.Stopped;
+        }
+
         [JsonProperty(PropertyName = "deployment_folder")]
         public string DeploymentFolder
         {
             get; private set;
         }
 
+        private DeploymentStatus currentDeploymentStatus = DeploymentStatus.Unknown;
+
         [JsonProperty(PropertyName = "current_deployment_status")]
         public DeploymentStatus CurrentDeploymentStatus
         {
-            get; set;
+            get
+            {
+                return this.currentDeploymentStatus;
+            }
+            set
+            {
+                if (value != this.currentDeploymentStatus)
+                {
+                    this.currentDeploymentStatus = value;
+                    this.OnStatusChanged(EventArgs.Empty);
+                }
+                else
+                {
+                    this.currentDeploymentStatus = value;
+                }
+            }
         }
+
+        public ServiceStatus currentServiceStatus;
 
         [JsonProperty(PropertyName = "current_service_status")]
         public ServiceStatus CurrentServiceStatus
         {
-            get; set;
+            get
+            {
+                return this.currentServiceStatus;
+            }
+
+            set
+            {
+                if (value != this.currentServiceStatus)
+                {
+                    this.currentServiceStatus = value;
+                    this.OnStatusChanged(EventArgs.Empty);
+                }
+                else
+                {
+                    this.currentServiceStatus = value;
+                }
+            }
+        }
+
+        private double currentHashRate = 0;
+
+        public double CurrentHashRate
+        {
+            get
+            {
+                return currentHashRate;
+            }
+            private set
+            {
+                if (value != this.currentHashRate)
+                {
+                    this.currentHashRate = value;
+                    this.OnStatusChanged(EventArgs.Empty);
+                }
+                else
+                {
+                    this.currentHashRate = value;
+                }
+            }
         }
 
         [JsonProperty(PropertyName = "device")]
@@ -169,6 +236,31 @@ namespace XDaggerMinerManager.ObjectModel
             }
         }
 
+        /// <summary>
+        /// Update the current deployment status and service status
+        /// </summary>
+        public void RefreshStatus()
+        {
+            ExecutionResult<ReportOutput> exeResult = this.ExecuteDaemon<ReportOutput>("-r");
+            if (exeResult.HasError || exeResult.Data == null)
+            {
+                return;
+            }
+
+            ReportOutput report = exeResult.Data;
+
+            this.CurrentServiceStatus = (ServiceStatus)report.Status;
+            
+            if (this.CurrentServiceStatus == ServiceStatus.Mining)
+            {
+                this.CurrentHashRate = report.HashRate;
+            }
+            else
+            {
+                this.CurrentHashRate = 0;
+            }
+        }
+
         #region Private Methods
 
         /// <summary>
@@ -181,6 +273,11 @@ namespace XDaggerMinerManager.ObjectModel
         private void Validate()
         {
 
+        }
+
+        private void OnStatusChanged(EventArgs e)
+        {
+            StatusChanged?.Invoke(this, e);
         }
 
         #endregion

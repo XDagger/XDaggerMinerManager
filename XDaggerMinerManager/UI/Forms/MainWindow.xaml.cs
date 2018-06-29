@@ -18,6 +18,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.Utils;
+using System.Timers;
+
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -30,13 +32,15 @@ namespace XDaggerMinerManager.UI.Forms
 
         private ObservableCollection<MinerDataCell> minerListGridData = new ObservableCollection<MinerDataCell>();
 
+        private bool isTimerRefreshingBusy = false;
+
         private static readonly string MinerStatisticsSummaryTemplate = @"当前矿机数：{0}台  上线：{1}台  下线：{2}台  主算力：{3}Mps";
         public MainWindow()
         {
             InitializeComponent();
 
             minerManager = MinerManager.GetInstance();
-
+            
             InitializeUIData();
             
             //// clients.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(dataChangedEvent);
@@ -87,7 +91,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             int totalClient = minerManager.ClientList.Count;
-            int runningClient = minerManager.ClientList.Count((client) => { return client.CurrentServiceStatus == MinerClient.ServiceStatus.Started; });
+            int runningClient = minerManager.ClientList.Count((client) => { return client.CurrentServiceStatus == MinerClient.ServiceStatus.Mining; });
             int stoppedClient = totalClient - runningClient;
 
             this.tBxClientStatisticsSummary.Text = string.Format(MinerStatisticsSummaryTemplate, totalClient, runningClient, stoppedClient, 0);
@@ -111,11 +115,40 @@ namespace XDaggerMinerManager.UI.Forms
                 col.Header = MinerDataCell.TranslateHeaderName(col.Header.ToString());
                 col.IsReadOnly = true;
             }
+
+            minerManager.ClientStatusChanged += MinerListGrid_StatusChanged;
+        }
+
+        private void MinerListGrid_StatusChanged(object sender, EventArgs e)
+        {
+            this.Dispatcher.Invoke(() => RefreshMinerListGrid() );
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            
+            // Set up a timer to trigger every second.  
+            Timer timer = new Timer();
+            timer.Interval = 1000;
+            timer.Elapsed += new ElapsedEventHandler(this.OnTimerRefresh);
+            timer.Start();
+            isTimerRefreshingBusy = false;
+        }
+
+        private void OnTimerRefresh(object sender, ElapsedEventArgs e)
+        {
+            if(isTimerRefreshingBusy)
+            {
+                return;
+            }
+
+            isTimerRefreshingBusy = true;
+
+            foreach(MinerClient client in this.minerManager.ClientList)
+            {
+                client.RefreshStatus();
+            }
+
+            isTimerRefreshingBusy = false;
         }
 
         private void menuStartMiner_Click(object sender, RoutedEventArgs e)
@@ -130,7 +163,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                         if (!r.HasError)
                         {
-                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Started;
+                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
                         }
                         else
                         {
@@ -232,8 +265,8 @@ namespace XDaggerMinerManager.UI.Forms
 
             foreach(MinerClient client in selectedClients)
             {
-                containsStartedMiner |= (client.CurrentServiceStatus == MinerClient.ServiceStatus.Started);
-                containsStoppedMiner |= (client.CurrentServiceStatus == MinerClient.ServiceStatus.Stopped);
+                containsStartedMiner |= client.IsServiceStatusRunning();
+                containsStoppedMiner |= !client.IsServiceStatusRunning();
                 containsNotReadyMiner |= (client.CurrentDeploymentStatus != MinerClient.DeploymentStatus.Ready);
             }
 
