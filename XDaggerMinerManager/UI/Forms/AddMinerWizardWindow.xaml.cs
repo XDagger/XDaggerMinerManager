@@ -277,14 +277,49 @@ namespace XDaggerMinerManager.UI.Forms
 
             if (System.IO.Directory.Exists(createdClient.GetRemoteBinaryPath()))
             {
-                MessageBox.Show("目标路径下已经存在矿机，请先删除");
+                MessageBox.Show("目标路径下已经存在矿机，请删除或更新");
+
                 // Enable the UI
                 btnStepOneNext.IsEnabled = true;
                 return;
             }
 
-            btnStepOneNext.IsEnabled = true;
-            SwitchUIToStep(2);
+            BackgroundWork<string>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在扫描已存在矿机", btnStepOneNext);
+                },
+                () => {
+                    return ServiceUtils.DetectAvailableInstanceId(createdClient.MachineName);
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("扫描目标机器错误：" + taskResult.Exception.ToString());
+                        return;
+                    }
+                    string instanceName = taskResult.Result;
+
+                    if (!string.IsNullOrEmpty(instanceName))
+                    {
+                        MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
+                        if (result == MessageBoxResult.No)
+                        {
+                            btnStepOneNext.IsEnabled = true;
+                            return;
+                        }
+
+                        createdClient.InstanceName = instanceName;
+                    }
+
+                    btnStepOneNext.IsEnabled = true;
+                    SwitchUIToStep(2);
+                }
+                ).Execute();
+
+            
         }
 
         private void StepTwo_QueryMinerVersions()
@@ -442,7 +477,7 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在配置矿机", btnStepThreeNext, btnStepThreeBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(string.Format(" -c \"{{ 'DeviceId':'{0}' }}\"", selectedDevice.DeviceId));
+                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}' }}\"", selectedDevice.DeviceId, createdClient.InstanceName));
 
                     if (exeResult.HasError)
                     {

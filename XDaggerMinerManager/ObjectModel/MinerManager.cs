@@ -11,8 +11,6 @@ namespace XDaggerMinerManager.ObjectModel
 {
     public class MinerManager
     {
-        private static readonly string defaultInfoFileName = @"manager-info.json";
-
         private static MinerManager instance = null;
 
         public event EventHandler ClientStatusChanged;
@@ -31,6 +29,7 @@ namespace XDaggerMinerManager.ObjectModel
         private MinerManager()
         {
             ClientList = new List<MinerClient>();
+            this.Version = ManagerConfig.Current.Version;
         }
 
         public string Version
@@ -45,22 +44,30 @@ namespace XDaggerMinerManager.ObjectModel
 
         public void SaveCurrentInfo()
         {
+            ManagerInfo.Current.Clients = this.ClientList;
+            ManagerInfo.Current.SaveToFile();
+
+            /*
             var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var directoryPath = Path.GetDirectoryName(location);
 
             using (StreamWriter sw = new StreamWriter(Path.Combine(directoryPath, defaultInfoFileName)))
             {
                 ManagerInfo info = new ManagerInfo();
-                info.Version = this.Version;
                 info.Clients = this.ClientList;
 
                 string content = JsonConvert.SerializeObject(info, Formatting.Indented);
                 sw.Write(content);
             }
+            */
         }
 
         public void LoadCurrentInfo()
         {
+            ManagerInfo info = ManagerInfo.Load();
+            this.ClientList = info.Clients;
+
+            /*
             var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var directoryPath = Path.GetDirectoryName(location);
 
@@ -69,9 +76,9 @@ namespace XDaggerMinerManager.ObjectModel
                 string jsonString = sr.ReadToEnd();
                 ManagerInfo info = JsonConvert.DeserializeObject<ManagerInfo>(jsonString);
 
-                this.Version = info.Version;
                 this.ClientList = info.Clients;
             }
+            */
         }
 
         public void AddClient(MinerClient client)

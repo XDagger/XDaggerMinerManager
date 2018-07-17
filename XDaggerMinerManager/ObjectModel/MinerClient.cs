@@ -13,6 +13,8 @@ namespace XDaggerMinerManager.ObjectModel
     /// </summary>
     public class MinerClient
     {
+        private bool hasStatusChanged = false;
+
         public enum DeploymentStatus
         {
             Unknown = -1,
@@ -34,6 +36,11 @@ namespace XDaggerMinerManager.ObjectModel
 
         public event EventHandler StatusChanged;
         
+        public void ResetStatusChanged()
+        {
+            this.hasStatusChanged = false;
+        }
+
         public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
         {
             this.MachineName = machineName.Trim().ToUpper();
@@ -105,6 +112,7 @@ namespace XDaggerMinerManager.ObjectModel
                 if (value != this.currentDeploymentStatus)
                 {
                     this.currentDeploymentStatus = value;
+                    hasStatusChanged = true;
                     this.OnStatusChanged(EventArgs.Empty);
                 }
                 else
@@ -129,6 +137,7 @@ namespace XDaggerMinerManager.ObjectModel
                 if (value != this.currentServiceStatus)
                 {
                     this.currentServiceStatus = value;
+                    hasStatusChanged = true;
                     this.OnStatusChanged(EventArgs.Empty);
                 }
                 else
@@ -151,6 +160,7 @@ namespace XDaggerMinerManager.ObjectModel
                 if (value != this.currentHashRate)
                 {
                     this.currentHashRate = value;
+                    hasStatusChanged = true;
                     this.OnStatusChanged(EventArgs.Empty);
                 }
                 else
@@ -239,12 +249,20 @@ namespace XDaggerMinerManager.ObjectModel
         /// <summary>
         /// Update the current deployment status and service status
         /// </summary>
-        public void RefreshStatus()
+        public bool RefreshStatus()
         {
             ExecutionResult<ReportOutput> exeResult = this.ExecuteDaemon<ReportOutput>("-r");
             if (exeResult.HasError || exeResult.Data == null)
             {
-                return;
+                if (hasStatusChanged)
+                {
+                    return false;
+                }
+                else
+                {
+                    hasStatusChanged = true;
+                    return true;
+                }
             }
 
             ReportOutput report = exeResult.Data;
@@ -259,21 +277,14 @@ namespace XDaggerMinerManager.ObjectModel
             {
                 this.CurrentHashRate = 0;
             }
+
+            hasStatusChanged = true;
+
+            return hasStatusChanged;
         }
 
         #region Private Methods
-
-        /// <summary>
-        /// Validate the parameters before the installation:
-        ///     1. Check the machine name is good and accessisable;
-        ///     2. Check the binary path is valid and accessisable;
-        ///     3. Check the version is valid and network is good;
-        ///     4. Reset the status and ready for deploy.
-        /// </summary>
-        private void Validate()
-        {
-
-        }
+        
 
         private void OnStatusChanged(EventArgs e)
         {

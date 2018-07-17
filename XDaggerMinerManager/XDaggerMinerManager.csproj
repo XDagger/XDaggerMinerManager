@@ -74,6 +74,7 @@
       <HintPath>..\packages\System.Management.Automation.dll.10.0.10586.0\lib\net40\System.Management.Automation.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -115,6 +116,7 @@
     <Compile Include="Utils\PathUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
     <Compile Include="Utils\RemoteExecutor.cs" />
+    <Compile Include="Utils\ServiceUtils.cs" />
     <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Forms\AddMinerWizardWindow.xaml">
@@ -173,9 +175,6 @@
     </None>
     <None Include="manager-config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="manager-info.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

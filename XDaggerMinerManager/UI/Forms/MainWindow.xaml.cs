@@ -20,7 +20,6 @@ using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.Utils;
 using System.Timers;
 
-
 namespace XDaggerMinerManager.UI.Forms
 {
     /// <summary>
@@ -34,7 +33,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private bool isTimerRefreshingBusy = false;
 
-        private static readonly string MinerStatisticsSummaryTemplate = @"当前矿机数：{0}台  上线：{1}台  下线：{2}台  主算力：{3}Mps";
+        private static readonly string MinerStatisticsSummaryTemplate = @"当前矿机数：{0}台  上线：{1}台  下线：{2}台  主算力：{3:0.000} Mps";
         public MainWindow()
         {
             InitializeComponent();
@@ -85,8 +84,11 @@ namespace XDaggerMinerManager.UI.Forms
         private void RefreshMinerListGrid()
         {
             minerListGridData.Clear();
+
+            double totalHashrate = 0;
             foreach (MinerClient client in minerManager.ClientList)
             {
+                totalHashrate += client.CurrentHashRate;
                 minerListGridData.Add(new MinerDataCell(client));
             }
 
@@ -94,7 +96,7 @@ namespace XDaggerMinerManager.UI.Forms
             int runningClient = minerManager.ClientList.Count((client) => { return client.CurrentServiceStatus == MinerClient.ServiceStatus.Mining; });
             int stoppedClient = totalClient - runningClient;
 
-            this.tBxClientStatisticsSummary.Text = string.Format(MinerStatisticsSummaryTemplate, totalClient, runningClient, stoppedClient, 0);
+            this.tBxClientStatisticsSummary.Text = string.Format(MinerStatisticsSummaryTemplate, totalClient, runningClient, stoppedClient, totalHashrate / 1000000.0f);
         }
 
         private void minerListGrid_Loaded(object sender, RoutedEventArgs e)
@@ -143,12 +145,28 @@ namespace XDaggerMinerManager.UI.Forms
 
             isTimerRefreshingBusy = true;
 
-            foreach(MinerClient client in this.minerManager.ClientList)
+            try
             {
-                client.RefreshStatus();
-            }
+                bool shouldRefreshUI = false;
+                foreach (MinerClient client in this.minerManager.ClientList)
+                {
+                    shouldRefreshUI |= client.RefreshStatus();
+                    client.ResetStatusChanged();
+                }
 
-            isTimerRefreshingBusy = false;
+                if (shouldRefreshUI)
+                {
+                    this.Dispatcher.Invoke(() => RefreshMinerListGrid());
+                }
+            }
+            catch(Exception ex)
+            {
+
+            }
+            finally
+            {
+                isTimerRefreshingBusy = false;
+            }
         }
 
         private void menuStartMiner_Click(object sender, RoutedEventArgs e)
@@ -240,6 +258,9 @@ namespace XDaggerMinerManager.UI.Forms
                             /// throw new Exception(r.Code + "|" + r.ErrorMessage);
                         }
 
+                        // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
+                        System.Threading.Thread.Sleep(3000);
+
                         c.DeleteBinaries();
                         minerManager.RemoveClient(c);
                     }
@@ -287,7 +308,7 @@ namespace XDaggerMinerManager.UI.Forms
                     continue;
                 }
 
-                MinerClient client = minerManager.ClientList.FirstOrDefault((c) => { return (c.MachineName == cell.MinerName); });
+                MinerClient client = minerManager.ClientList.FirstOrDefault((c) => { return (c.MachineName + c.InstanceName == cell.MinerName); });
                 if (client != null)
                 {
                     selectedClients.Add(client);

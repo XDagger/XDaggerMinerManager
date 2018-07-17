@@ -151,6 +151,19 @@ namespace XDaggerMinerManager.Utils
 
     }
 
+    public class MessageOutput
+    {
+        public MessageOutput()
+        {
+
+        }
+
+        public string Message
+        {
+            get; set;
+        }
+    }
+
     public class ReportOutput
     {
         public ReportOutput()

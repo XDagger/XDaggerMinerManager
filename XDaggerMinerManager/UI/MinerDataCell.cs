@@ -65,9 +65,9 @@ namespace XDaggerMinerManager.UI
         public MinerDataCell(MinerClient clientObject)
         {
             this.MachineName = clientObject.MachineName;
-            this.MinerName = clientObject.MachineName;
+            this.MinerName = clientObject.MachineName + clientObject.InstanceName;
             this.DeviceName = clientObject.Device?.DisplayName;
-            this.HashRate = string.Format("{0}Mhps", clientObject.CurrentHashRate);
+            this.HashRate = string.Format("{0:0.000} Mhps", clientObject.CurrentHashRate / 1000000.0f);
 
             switch(clientObject.CurrentDeploymentStatus)
             {

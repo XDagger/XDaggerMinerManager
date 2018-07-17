@@ -63,15 +63,8 @@ namespace XDaggerMinerManager.Utils
 
         public ManagerInfo()
         {
-            this.Version = string.Empty;
             this.LockPasswordHash = string.Empty;
             this.Clients = new List<MinerClient>();
-        }
-
-        [JsonProperty( PropertyName = "version")]
-        public string Version
-        {
-            get; set;
         }
 
         [JsonProperty(PropertyName = "lock_password")]
