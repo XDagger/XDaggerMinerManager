@@ -81,7 +81,7 @@ namespace XDaggerMinerManager.Utils
             get; set;
         }
 
-        [JsonProperty(PropertyName = "default_user_name")]
+        [JsonProperty(PropertyName = "default_username")]
         public string DefaultUserName
         {
             get; set;
@@ -89,6 +89,12 @@ namespace XDaggerMinerManager.Utils
 
         [JsonProperty(PropertyName = "default_password")]
         public string DefaultPassword
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_wallet")]
+        public string DefaultWallet
         {
             get; set;
         }

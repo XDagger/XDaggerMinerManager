@@ -73,6 +73,12 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
+        [JsonProperty(PropertyName = "wallet_address")]
+        public string WalletAddress
+        {
+            get; set;
+        }
+
         [JsonProperty(PropertyName = "instance_name")]
         public string InstanceName
         {

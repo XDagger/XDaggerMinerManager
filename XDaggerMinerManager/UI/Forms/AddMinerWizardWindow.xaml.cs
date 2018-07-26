@@ -420,6 +420,9 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepThree_RetrieveDeviceList()
         {
+            txtWalletAddress.Text = ManagerConfig.Current.DefaultWallet;
+
+
             TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
@@ -471,13 +474,35 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
+            string walletAddress = txtWalletAddress.Text;
+
+            if (string.IsNullOrWhiteSpace(walletAddress))
+            {
+                MessageBox.Show("请输入钱包地址");
+                return;
+            }
+
+            walletAddress = walletAddress.Trim();
+            if (walletAddress.Length != 32)
+            {
+                MessageBox.Show("钱包必须为长度32位的字母与数字组合");
+                return;
+            }
+
+            
+
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在配置矿机", btnStepThreeNext, btnStepThreeBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}' }}\"", selectedDevice.DeviceId, createdClient.InstanceName));
+
+                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'Wallet':'{2}' }}\"", 
+                        selectedDevice.DeviceId, 
+                        createdClient.InstanceName,
+                        walletAddress);
+                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
 
                     if (exeResult.HasError)
                     {
@@ -498,7 +523,16 @@ namespace XDaggerMinerManager.UI.Forms
                         return;
                     }
 
+                    // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
+                    createdClient.WalletAddress = walletAddress;
+                    
+                    if (cKbWalletSaveToDefault.IsChecked ?? false)
+                    {
+                        ManagerConfig.Current.DefaultWallet = walletAddress;
+                        ManagerConfig.Current.SaveToFile();
+                    }
+
                     SwitchUIToStep(4);
                 }
                 ).Execute();
