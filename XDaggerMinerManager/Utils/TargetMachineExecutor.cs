@@ -39,14 +39,30 @@ namespace XDaggerMinerManager.Utils
         /// <returns></returns>
         public ExecutionResult<T> ExecuteCommand<T>(string commandFullLine, string arguments = "")
         {
-            string resultString = ExecuteCommand(commandFullLine, arguments);
+            try
+            {
+                string resultString = ExecuteCommand(commandFullLine, arguments);
 
-            return ExecutionResult<T>.Parse(resultString);
+                return ExecutionResult<T>.Parse(resultString);
+            }
+            catch(Exception ex)
+            {
+                return ExecutionResult<T>.ErrorResult(30000, ex.Message);
+            }
         }
     }
 
     public class ExecutionResult<T>
     {
+        public static ExecutionResult<T> ErrorResult(int code, string message)
+        {
+            ExecutionResult<T> result = new ExecutionResult<T>();
+            result.Code = code;
+            result.ErrorMessage = message;
+
+            return result;
+        }
+
         public static ExecutionResult<T> Parse(string rawOutput)
         {
             string[] resultStrings = rawOutput.Split(new string[] { "||" }, StringSplitOptions.None);

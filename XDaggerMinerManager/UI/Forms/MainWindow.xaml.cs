@@ -19,6 +19,7 @@ using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.Utils;
 using System.Timers;
+using System.IO;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -83,6 +84,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void RefreshMinerListGrid()
         {
+            int savedSelectedIndex = minerListGrid.SelectedIndex;
+
             minerListGridData.Clear();
 
             double totalHashrate = 0;
@@ -90,6 +93,11 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 totalHashrate += client.CurrentHashRate;
                 minerListGridData.Add(new MinerDataCell(client));
+            }
+
+            if (savedSelectedIndex >= 0)
+            {
+                minerListGrid.SelectedIndex = savedSelectedIndex;
             }
 
             int totalClient = minerManager.ClientList.Count;
@@ -255,24 +263,35 @@ namespace XDaggerMinerManager.UI.Forms
                         }
                         else
                         {
+                            c.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Unknown;
+                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Unknown;
                             /// throw new Exception(r.Code + "|" + r.ErrorMessage);
                         }
 
                         // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
                         System.Threading.Thread.Sleep(3000);
 
-                        c.DeleteBinaries();
+                        // Removing client from ObjectModel first, and then Delete binaries might throw IO exception which should be ignored
                         minerManager.RemoveClient(c);
+                        
+                        c.DeleteBinaries();
                     }
                 },
                 (result) => {
                     if (result.HasError)
                     {
-                        MessageBox.Show("错误：" + result.Exception.ToString());
+                        if (result.Exception is IOException)
+                        {
+                            MessageBox.Show("删除矿机目录错误，请到矿机目录下手动删除矿机文件。详细信息：" + result.Exception.ToString());
+                        }
+                        else
+                        {
+                            MessageBox.Show("错误：" + result.Exception.ToString());
+                        }
                     }
 
-                    this.RefreshMinerListGrid(); }
-                );
+                    this.RefreshMinerListGrid();
+                });
             progress.ShowDialog();
         }
 

@@ -37,7 +37,7 @@ namespace XDaggerMinerManager.Utils
             }
             catch(Exception ex)
             {
-                return string.Format("{{ 'error':'{0}' }}", ex.Message);
+                throw ex;
             }
         }
     }
