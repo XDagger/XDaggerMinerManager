@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.ComponentModel;
 using System.IO.Compression;
+using Newtonsoft.Json;
 
 namespace XDaggerMinerManager.Utils
 {
@@ -14,6 +15,11 @@ namespace XDaggerMinerManager.Utils
     {
         public WinMinerReleaseBinary(string version)
         {
+            // Setup the download properties to support HTTPS protocol
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
             this.Version = version;
         }
 
@@ -30,6 +36,14 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
+        public static string PackagerVersionFileName
+        {
+            get
+            {
+                return "XDaggerMinerWin.ver";
+            }
+        }
+
         public static string DaemonExecutionFileName
         {
             get
@@ -43,6 +57,14 @@ namespace XDaggerMinerManager.Utils
             get
             {
                 return string.Format(ManagerConfig.Current.MinerPackageName, this.Version);
+            }
+        }
+
+        public static string DownloadBaseUrl
+        {
+            get
+            {
+                return ManagerConfig.Current.MinerDownloadUrlPath;
             }
         }
 
@@ -66,23 +88,75 @@ namespace XDaggerMinerManager.Utils
         /// Get all version list from the Release Website
         /// </summary>
         /// <returns></returns>
-        public static List<string> GetVersions()
+        public static WinMinerReleaseVersions GetVersionInfo()
         {
-            return null;
-        }
+            //Download the version file
+            Uri uri = new Uri(DownloadBaseUrl + PackagerVersionFileName);
 
-        public static string GetLastestVersion()
-        {
-            return null;
+            Random random = new Random();
+            string targetFullPath = Path.Combine(Path.GetTempPath(), PackagerVersionFileName + "." + random.Next().ToString());
+            
+            if (File.Exists(targetFullPath))
+            {
+                // Delete the conflict one if exists
+                try
+                {
+                    File.Delete(targetFullPath);
+                }
+                catch (IOException)
+                {
+                }
+            }
+
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(uri, targetFullPath);
+                }
+            }
+            catch (WebException webExcetion)
+            {
+            }
+            catch (InvalidOperationException invalidException)
+            {
+            }
+
+            if (!File.Exists(targetFullPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                using (StreamReader sr = new StreamReader(targetFullPath))
+                {
+                    string jsonString = sr.ReadToEnd();
+                    WinMinerReleaseVersions info = JsonConvert.DeserializeObject<WinMinerReleaseVersions>(jsonString);
+                    info.Validate();
+
+                    return info;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                // Delete the temp file
+                try
+                {
+                    File.Delete(targetFullPath);
+                }
+                catch (IOException)
+                {
+                }
+            }
         }
 
         public void DownloadPackage()
         {
-            // Setup the download properties to support HTTPS protocol
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
             Uri uri = new Uri(this.DownloadUrl + this.PackageName);
             string fullPath = Path.Combine(TempDownloadFolder, this.PackageName);
 
@@ -161,6 +235,32 @@ namespace XDaggerMinerManager.Utils
                 throw ex;
             }
 
+        }
+    }
+
+    /// <summary>
+    /// This is the format for the XDaggerMinerWin.ver file in JSON.
+    /// </summary>
+    public class WinMinerReleaseVersions
+    {
+        [JsonProperty(PropertyName = "latest")]
+        public string Latest
+        {
+            get;set;
+        }
+
+        [JsonProperty(PropertyName = "available_versions")]
+        public List<string> AvailableVersions
+        {
+            get; set;
+        }
+
+        public void Validate()
+        {
+            if (!AvailableVersions.Contains(Latest))
+            {
+                throw new FormatException("The Latest version is not contained in Available version list.");
+            }
         }
     }
 }

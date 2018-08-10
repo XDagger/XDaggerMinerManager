@@ -29,10 +29,10 @@
             <Label x:Name="label22" Content="选择版本：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
             <Button x:Name="btnStepTwoNext" Content="下一步" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepTwoNext_Click"/>
             <Button x:Name="btnStepTwoBack" Content="后退" Margin="0,0,143,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepTwoBack_Click"/>
-            <ComboBox x:Name="cBxTargetVersion" Margin="112,30,52,0" VerticalAlignment="Top" IsReadOnly="True" SelectedIndex="0">
-                <ComboBoxItem Content="v0.1.0730.0"/>
+            <ComboBox x:Name="cBxTargetVersion" Margin="112,30,52,0" VerticalAlignment="Top" IsReadOnly="True">
+                <!--<ComboBoxItem Content="v0.1.0730.0"/>
                 <ComboBoxItem Content="v0.1.0717.2"/>
-                <ComboBoxItem Content="v0.1.0629.0"/>
+                <ComboBoxItem Content="v0.1.0629.0"/>-->
             </ComboBox>
         </Grid>
         <Grid x:Name="grdStepFour" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">

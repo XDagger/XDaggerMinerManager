@@ -46,7 +46,7 @@ namespace XDaggerMinerManager.UI.Forms
         private WinMinerReleaseBinary winMinerBinary = null;
 
         private List<MinerDevice> displayedDeviceList = new List<MinerDevice>();
-
+        
         private List<Control> freezedControlList = new List<Control>();
 
         private ManagerConfig managerConfig = ManagerConfig.Current;
@@ -120,8 +120,7 @@ namespace XDaggerMinerManager.UI.Forms
         
         private void btnStepTwoNext_Click(object sender, RoutedEventArgs e)
         {
-            // Should Check all of the versions first and then select LATEST by default
-            StepTwo_QueryMinerVersions();
+            StepTwo_DownloadPackage();
         }
 
         private void btnStepThreeNext_Click(object sender, RoutedEventArgs e)
@@ -198,6 +197,10 @@ namespace XDaggerMinerManager.UI.Forms
                     break;
             }
 
+            if (step == 2)
+            {
+                StepTwo_RetrieveMinerVersions();
+            }
             if (step ==3 && (displayedDeviceList == null || displayedDeviceList.Count == 0))
             {
                 StepThree_RetrieveDeviceList();
@@ -322,11 +325,41 @@ namespace XDaggerMinerManager.UI.Forms
             
         }
 
-        private void StepTwo_QueryMinerVersions()
+        private void StepTwo_RetrieveMinerVersions()
         {
-            // TODO: Check all Versions
+            WinMinerReleaseVersions releaseVersions = null;
 
-            StepTwo_DownloadPackage();
+            // Check all Versions
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在查询矿机版本信息......", btnStepTwoNext, btnStepTwoBack);
+                },
+                () => {
+                    releaseVersions = WinMinerReleaseBinary.GetVersionInfo();
+                    return 0;
+                },
+                (taskResult) => {
+
+                    if (taskResult.HasError || releaseVersions == null)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.ToString());
+                        return;
+                    }
+
+                    // Update the version list
+                    cBxTargetVersion.Items.Clear();
+                    foreach(string availableVersion in releaseVersions.AvailableVersions)
+                    {
+                        cBxTargetVersion.Items.Add(availableVersion);
+                    }
+
+                    cBxTargetVersion.SelectedValue = releaseVersions.Latest;
+
+                    HideProgressIndicator();
+                }
+            ).Execute();
         }
 
         private void StepTwo_DownloadPackage()
