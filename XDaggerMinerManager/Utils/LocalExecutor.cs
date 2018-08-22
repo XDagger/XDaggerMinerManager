@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.IO;
 
 namespace XDaggerMinerManager.Utils
 {
@@ -38,6 +39,39 @@ namespace XDaggerMinerManager.Utils
             catch(Exception ex)
             {
                 throw ex;
+            }
+            finally
+            {
+                process.Kill();
+            }
+        }
+
+        public StreamReader ExecuteCommandWithStreamOutput(string commandFullLine, string arguments = "")
+        {
+            Process process = new System.Diagnostics.Process();
+            ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardOutput = true;
+
+            startInfo.FileName = commandFullLine;
+            startInfo.Arguments = arguments;
+            process.StartInfo = startInfo;
+
+            try
+            {
+                process.Start();
+
+                return process.StandardOutput;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                process.Kill();
             }
         }
     }
