@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager"
         xmlns:utils="clr-namespace:XDaggerMinerManager.Utils"
-        xmlns:local1="clr-namespace:XDaggerMinerManager.UI.Forms" x:Class="XDaggerMinerManager.UI.Forms.MainWindow"
+        xmlns:local1="clr-namespace:XDaggerMinerManager.UI.Forms"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" x:Class="XDaggerMinerManager.UI.Forms.MainWindow"
         mc:Ignorable="d"
         Title="XDagger Miner Management Platform" Height="545.7" Width="924.667" Loaded="Window_Loaded">
     <Grid>
@@ -15,7 +16,12 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <DataGrid x:Name="minerListGrid" Margin="0,59,10,0" VerticalAlignment="Top" Height="373" HorizontalAlignment="Right" Width="883" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="300" />
+                        <RowDefinition Height="2" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="0,59,10.333,10.333" HorizontalAlignment="Right" Width="883" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening">
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Name="menuStartMiner" Header="启动" Click="menuStartMiner_Click"></MenuItem>
@@ -25,17 +31,27 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <!--<DataGridCheckBoxColumn Header="选择" HeaderStringFormat=""/>-->
-                            <!--
-                            <DataGridTextColumn Header="矿机名称" Binding="{Binding MinerName, Converter={StaticResource conv}}" MinWidth="80"/>
-                            <DataGridTextColumn HeaderStringFormat="矿机名称" Header="矿机名称" Binding="{Binding MinerName}" MinWidth="80"/>
-                            <DataGridTextColumn Header="安装状态" Binding="{Binding DeploymentStatus}"/>
-                            <DataGridTextColumn Header="运行状态" Binding="{Binding ServiceStatus}" ClipboardContentBinding="{x:Null}" MinWidth="50"/>
-                            <DataGridTextColumn Header="矿卡" Binding="{Binding DeviceName}" MinWidth="60"/>
-                            -->
                         </DataGrid.Columns>
                     </DataGrid>
-                    <Button x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="10,23,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
+                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="10,23,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
+                    <GridSplitter Height="2" Grid.Row="1" />
+                    <TabControl Grid.Row="2" Margin="10,10,10.333,10" >
+                        <TabItem Name="tabMinerDescription" Header="描述" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
+                            <Grid Background="#FFE5E5E5"/>
+                        </TabItem>
+                        <TabItem Name="tabMinerMonitor" Header="监控" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
+                            <Grid Background="#FFE5E5E5"/>
+                        </TabItem>
+                    </TabControl>
+                    <xctk:SplitButton Name="btnMinerOperation" Content="操作矿机" Height="20" Width="95" Margin="128,23,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Opened="btnMinerOperation_Opened">
+                        <xctk:SplitButton.DropDownContent>
+                            <Grid>
+                                <Button Name="operStartMiner" Content="启动" Height="20" Width="95" Margin="0,0,0,0" VerticalAlignment="Top" Click="operStartMiner_Click" />
+                                <Button Name="operStopMiner" Content="停止" Height="20" Width="95" Margin="0,20,0,0" VerticalAlignment="Top" Click="operStopMiner_Click"/>
+                                <Button Name="operUninstallMiner" Content="卸载" Height="20" Width="95" Margin="0,40,0,0" Click="operUninstallMiner_Click"/>
+                            </Grid>
+                        </xctk:SplitButton.DropDownContent>
+                    </xctk:SplitButton>
                 </Grid>
             </TabItem>
             <TabItem x:Name="mainTab2" Header="设置与工具" Margin="8,0,-12,0">
