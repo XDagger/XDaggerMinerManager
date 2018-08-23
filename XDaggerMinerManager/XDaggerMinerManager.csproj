@@ -116,6 +116,9 @@
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerMachine.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
+    <Compile Include="UI\Forms\BrowseNetworkWindow.xaml.cs">
+      <DependentUpon>BrowseNetworkWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Forms\LockWindow.xaml.cs">
       <DependentUpon>LockWindow.xaml</DependentUpon>
     </Compile>
@@ -140,6 +143,10 @@
     <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Forms\AddMinerWizardWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Forms\BrowseNetworkWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

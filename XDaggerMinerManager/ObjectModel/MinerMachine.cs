@@ -11,6 +11,16 @@ namespace XDaggerMinerManager.ObjectModel
     /// </summary>
     public class MinerMachine
     {
+        public static string TranslateHeaderName(string header)
+        {
+            switch(header)
+            {
+                case "FullMachineName": return "机器名称";
+                case "IpAddressV4": return "地址";
+                default: return string.Empty;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -23,13 +33,6 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; set;
         }
-
-        public string PhysicalAddress
-        {
-            get; set;
-        }
-
-
 
     }
 }

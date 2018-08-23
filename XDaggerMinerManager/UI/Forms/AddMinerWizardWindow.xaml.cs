@@ -147,8 +147,16 @@ namespace XDaggerMinerManager.UI.Forms
         {
             // Config the miner and start
             StepFour_SetupMiner();
+        }
 
-            
+        private void btnStepOneBrowse_Click(object sender, RoutedEventArgs e)
+        {
+            BrowseNetworkWindow browseNetworkWindow = new BrowseNetworkWindow();
+            browseNetworkWindow.SetResultHandler(minerMachine =>
+                { this.txtMachineName.Text = minerMachine?.FullMachineName; });
+
+            browseNetworkWindow.ShowDialog();
+
         }
 
         /// <summary>
@@ -688,6 +696,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         #endregion
 
+        
     }
 
 

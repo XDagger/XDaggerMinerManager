@@ -12,38 +12,78 @@ namespace XDaggerMinerManager.Utils
     {
         public static List<MinerMachine> DetectMachinesInLocalNetwork()
         {
+            List<MinerMachine> machineList = new List<MinerMachine>();
 
+            List<string> ipAddressList = GetLocalNetworkIPs();
+
+            foreach(string ipAddress in ipAddressList)
+            {
+                if (ipAddress.EndsWith(".1") || ipAddress.EndsWith(".255"))
+                {
+                    continue;
+                }
+
+                string name = GetMachineName(ipAddress);
+                if (string.IsNullOrEmpty(name))
+                {
+                    continue;
+                }
+
+                MinerMachine machine = new MinerMachine() { FullMachineName = name, IpAddressV4 = ipAddress };
+                machineList.Add(machine);
+            }
+
+            return machineList;
         }
-
-
+        
         private static List<string> GetLocalNetworkIPs()
         {
             List<string> result = new List<string>();
 
             LocalExecutor executor = new LocalExecutor();
-            StreamReader sr = executor.ExecuteCommandWithStreamOutput("arp.exe", "-a");
-
-            string line = string.Empty;
-            while((line = sr.ReadLine()) != null)
-            {
-                if (line.StartsWith("  "))
+            executor.ExecuteCommandWithStreamOutput("arp.exe", "-a",
+                (reader) =>
                 {
-                    var items = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (items.Length == 3)
+                    string line = string.Empty;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        result.Add(items[0]);
+                        if (line.StartsWith("  "))
+                        {
+                            var items = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (items.Length == 3)
+                            {
+                                result.Add(items[0]);
+                            }
+                        }
                     }
-                }
-            }
 
-            sr.Close();
+                    return string.Empty;
+                });
 
             return result;
         }
 
         private static string GetMachineName(string ipAddress)
         {
+            LocalExecutor executor = new LocalExecutor();
+            return executor.ExecuteCommandWithStreamOutput("nslookup", ipAddress,
+                (reader) =>
+                {
+                    string line = string.Empty;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.StartsWith("Name:"))
+                        {
+                            var items = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (items.Length == 2)
+                            {
+                                return items[1];
+                            }
+                        }
+                    }
 
+                    return string.Empty;
+                });
         }
 
     }

@@ -18,35 +18,18 @@ namespace XDaggerMinerManager.Utils
         /// <returns></returns>
         public override string ExecuteCommand(string commandFullLine, string arguments = "")
         {
-            Process process = new System.Diagnostics.Process();
-            ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
-            startInfo.RedirectStandardOutput = true;
-
-            startInfo.FileName = commandFullLine;
-            startInfo.Arguments = arguments;
-            process.StartInfo = startInfo;
-
-            try
-            {
-                process.Start();
-
-                string output = process.StandardOutput.ReadToEnd();
-                return output;
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                process.Kill();
-            }
+            return ExecuteCommandWithStreamOutput(commandFullLine, arguments,
+                (reader) => { return (reader == null) ? null : reader.ReadToEnd(); });
         }
 
-        public StreamReader ExecuteCommandWithStreamOutput(string commandFullLine, string arguments = "")
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandFullLine"></param>
+        /// <param name="arguments"></param>
+        /// <param name="streamHandler"></param>
+        /// <returns></returns>
+        public string ExecuteCommandWithStreamOutput(string commandFullLine, string arguments, Func<StreamReader, string> streamHandler)
         {
             Process process = new System.Diagnostics.Process();
             ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
@@ -63,7 +46,7 @@ namespace XDaggerMinerManager.Utils
             {
                 process.Start();
 
-                return process.StandardOutput;
+                return streamHandler(process.StandardOutput);
             }
             catch (Exception ex)
             {
@@ -71,7 +54,18 @@ namespace XDaggerMinerManager.Utils
             }
             finally
             {
-                process.Kill();
+                if (!process.HasExited)
+                {
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch(Exception)
+                    {
+                        // Swallow exception
+                    }
+                }
+                
             }
         }
     }
