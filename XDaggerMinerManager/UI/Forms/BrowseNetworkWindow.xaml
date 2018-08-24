@@ -9,7 +9,7 @@
     <Grid>
         <Button Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="20,0,0,25.667" Width="134" Click="btnConfirm_Click" Height="29" VerticalAlignment="Bottom" IsEnabled="False"/>
         <Button Name="btnCancel" Content="取消" Margin="0,0,23,25.667" HorizontalAlignment="Right" Width="139" Click="btnCancel_Click" Height="29" VerticalAlignment="Bottom"/>
-        <DataGrid Name="dataGridMachineList" Margin="10,10,10,72.667" SelectedCellsChanged="dataGridMachineList_SelectedCellsChanged" SelectionChanged="dataGridMachineList_SelectionChanged"/>
+        <DataGrid Name="dataGridMachineList" Margin="10,10,10,72.667" SelectedCellsChanged="dataGridMachineList_SelectedCellsChanged" SelectionChanged="dataGridMachineList_SelectionChanged" MouseDoubleClick="dataGridMachineList_MouseDoubleClick"/>
         <ProgressBar x:Name="prbIndicator" Margin="10,0,10,9.667" Height="3" VerticalAlignment="Bottom" Visibility="Hidden"/>
 
 

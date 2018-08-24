@@ -55,9 +55,8 @@ namespace XDaggerMinerManager.UI.Forms
             if (this.dataGridMachineList.SelectedItem != null)
             {
                 this.resultHandler?.Invoke(this.dataGridMachineList.SelectedItem as MinerMachine);
+                this.Close();
             }
-
-            this.Close();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -105,6 +104,17 @@ namespace XDaggerMinerManager.UI.Forms
         private void dataGridMachineList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+        }
+
+        private void dataGridMachineList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (this.dataGridMachineList.SelectedItem != null)
+            {
+                this.resultHandler?.Invoke(this.dataGridMachineList.SelectedItem as MinerMachine);
+                this.Close();
+            }
+
+           
         }
     }
 }
