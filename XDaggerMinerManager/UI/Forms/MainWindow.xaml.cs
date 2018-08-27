@@ -200,8 +200,8 @@ namespace XDaggerMinerManager.UI.Forms
                 containsNotReadyMiner |= (client.CurrentDeploymentStatus != MinerClient.DeploymentStatus.Ready);
             }
 
-            this.operStartMiner.IsEnabled = !containsNotReadyMiner && containsStartedMiner;
-            this.operStopMiner.IsEnabled = !containsNotReadyMiner && containsStoppedMiner;
+            this.operStartMiner.IsEnabled = !containsNotReadyMiner && containsStoppedMiner;
+            this.operStopMiner.IsEnabled = !containsNotReadyMiner && containsStartedMiner;
             this.operUninstallMiner.IsEnabled = true;
         }
 
