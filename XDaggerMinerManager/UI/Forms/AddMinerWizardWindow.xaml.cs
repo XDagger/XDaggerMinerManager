@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -70,6 +71,8 @@ namespace XDaggerMinerManager.UI.Forms
             this.txtTargetPath.Text = managerConfig.DefaultInstallationPath;
             this.txtTargetUserName.Text = managerConfig.DefaultUserName;
             this.txtTargetUserPassword.Text = managerConfig.DefaultPassword;
+
+            InitializeEthPoolAddresses();
         }
 
         public MinerClient CreatedClient
@@ -123,16 +126,23 @@ namespace XDaggerMinerManager.UI.Forms
             StepTwo_DownloadPackage();
         }
 
-        private void btnStepThreeNext_Click(object sender, RoutedEventArgs e)
+        private void btnStepThreeXDaggerNext_Click(object sender, RoutedEventArgs e)
         {
             // Choose the selected device and update the client config
-            StepThree_ConfigMiner();
+            StepThree_ConfigXDaggerMiner();
+        }
+
+        private void btnStepThreeEthNext_Click(object sender, RoutedEventArgs e)
+        {
+            // Choose the selected device and update the client config
+            StepThree_ConfigEthMiner();
         }
 
         private void btnStepTwoBack_Click(object sender, RoutedEventArgs e)
         {
             SwitchUIToStep(1);
         }
+
         private void btnStepThreeBack_Click(object sender, RoutedEventArgs e)
         {
             SwitchUIToStep(2);
@@ -159,6 +169,31 @@ namespace XDaggerMinerManager.UI.Forms
 
         }
 
+        private void cBxTargetEthPool_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            cBxTargetEthPoolHost.Items.Clear();
+            if (cBxTargetEthPool.SelectedIndex < 0 || cBxTargetEthPool.SelectedIndex >= EthMinerPoolHelper.PoolHostUrls.Count)
+            {
+                return;
+            }
+
+            foreach (string ethPoolHost in EthMinerPoolHelper.PoolHostUrls[cBxTargetEthPool.SelectedIndex])
+            {
+                cBxTargetEthPoolHost.Items.Add(ethPoolHost);
+            }
+        }
+
+        private void InitializeEthPoolAddresses()
+        {
+            cBxTargetEthPool.Items.Clear();
+            foreach(string ethPoolName in EthMinerPoolHelper.PoolDisplayNames)
+            {
+                cBxTargetEthPool.Items.Add(ethPoolName);
+            }
+
+            cBxTargetEthPoolHost.Items.Clear();
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -167,7 +202,8 @@ namespace XDaggerMinerManager.UI.Forms
         {
             grdStepOne.Visibility = Visibility.Hidden;
             grdStepTwo.Visibility = Visibility.Hidden;
-            grdStepThree.Visibility = Visibility.Hidden;
+            grdStepThreeXDagger.Visibility = Visibility.Hidden;
+            grdStepThreeEth.Visibility = Visibility.Hidden;
             grdStepFour.Visibility = Visibility.Hidden;
 
             lblStepOne.Background = null;
@@ -193,7 +229,15 @@ namespace XDaggerMinerManager.UI.Forms
                     lblStepTwo.FontWeight = FontWeights.ExtraBold;
                     break;
                 case 3:
-                    grdStepThree.Visibility = Visibility.Visible;
+                    if (createdClient?.InstanceType == "XDagger")
+                    {
+                        grdStepThreeXDagger.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        grdStepThreeEth.Visibility = Visibility.Visible;
+                    }
+                    
                     lblStepThree.Background = (SolidColorBrush)Application.Current.FindResource("WizardStepButton");
                     lblStepThree.FontWeight = FontWeights.ExtraBold;
                     break;
@@ -379,6 +423,9 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
+            createdClient.Version = version;
+            createdClient.InstanceType = this.cBxTargetInstanceType.Text;
+
             winMinerBinary = new WinMinerReleaseBinary(version);
 
             BackgroundWork<int>.CreateWork(
@@ -439,7 +486,11 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在拷贝文件到目标目录......", btnStepTwoNext, btnStepTwoBack);
                 },
                 () => {
-                    winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+                    if (!Directory.Exists(createdClient.GetRemoteBinaryPath()))
+                    {
+                        winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+                    }
+
                     return 0;
                 },
                 (taskResult) => {
@@ -461,8 +512,18 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepThree_RetrieveDeviceList()
         {
-            txtWalletAddress.Text = ManagerConfig.Current.DefaultWallet;
-
+            txtWalletAddress.Text = ManagerConfig.Current.DefaultXDaggerWallet;
+            txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEthWallet;
+            txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEthEmail;
+            txtEthWorkerName.Text = ManagerConfig.Current.DefaultEthWorkerName;
+            if (ManagerConfig.Current.DefaultEthPoolIndex != null)
+            {
+                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEthPoolIndex.Value;
+            }
+            if (ManagerConfig.Current.DefaultEthPoolHostIndex != null)
+            {
+                cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEthPoolHostIndex.Value;
+            }
 
             TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
@@ -493,20 +554,22 @@ namespace XDaggerMinerManager.UI.Forms
                     }
 
                     cBxTargetDevice.Items.Clear();
+                    cBxTargetDeviceEth.Items.Clear();
                     foreach (DeviceOutput deviceOut in devices)
                     {
                         MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
                         displayedDeviceList.Add(device);
                         cBxTargetDevice.Items.Add(device.DisplayName);
+                        cBxTargetDeviceEth.Items.Add(device.DisplayName);
                     }
                 }
-                ).Execute();
+            ).Execute();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void StepThree_ConfigMiner()
+        private void StepThree_ConfigXDaggerMiner()
         {
             MinerDevice selectedDevice = (cBxTargetDevice.SelectedIndex >= 0) ? displayedDeviceList.ElementAt(cBxTargetDevice.SelectedIndex) : null;
             if (selectedDevice == null)
@@ -530,8 +593,6 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            
-
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
@@ -539,7 +600,7 @@ namespace XDaggerMinerManager.UI.Forms
                 },
                 () => {
 
-                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'Wallet':'{2}' }}\"", 
+                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'XDaggerWallet':'{2}' }}\"", 
                         selectedDevice.DeviceId, 
                         createdClient.InstanceName,
                         walletAddress);
@@ -566,11 +627,122 @@ namespace XDaggerMinerManager.UI.Forms
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
-                    createdClient.WalletAddress = walletAddress;
+                    createdClient.XDaggerWalletAddress = walletAddress;
                     
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
-                        ManagerConfig.Current.DefaultWallet = walletAddress;
+                        ManagerConfig.Current.DefaultXDaggerWallet = walletAddress;
+                        ManagerConfig.Current.SaveToFile();
+                    }
+
+                    SwitchUIToStep(4);
+                }
+                ).Execute();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void StepThree_ConfigEthMiner()
+        {
+            MinerDevice selectedDevice = (cBxTargetDeviceEth.SelectedIndex >= 0) ? displayedDeviceList.ElementAt(cBxTargetDeviceEth.SelectedIndex) : null;
+            if (selectedDevice == null)
+            {
+                MessageBox.Show("请选择一个硬件设备");
+                return;
+            }
+
+            string ethWalletAddress = txtWalletAddressEth.Text;
+            ethWalletAddress = ethWalletAddress.Trim();
+
+            if (string.IsNullOrWhiteSpace(ethWalletAddress))
+            {
+                MessageBox.Show("请输入钱包地址");
+                return;
+            }
+
+            if (!ethWalletAddress.StartsWith("0x"))
+            {
+                MessageBox.Show("钱包必须是以0x开头的32位字符串");
+                return;
+            }
+            
+            if (cBxTargetEthPool.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择一个ETH矿池");
+                return;
+            }
+
+            if (cBxTargetEthPoolHost.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择一个ETH矿池地址");
+                return;
+            }
+
+            EthMinerPoolHelper ethPoolHelper = new EthMinerPoolHelper();
+            ethPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)cBxTargetEthPool.SelectedIndex;
+            ethPoolHelper.HostIndex = cBxTargetEthPoolHost.SelectedIndex;
+            ethPoolHelper.EthWalletAddress = txtWalletAddressEth.Text;
+            ethPoolHelper.EmailAddress = txtEmailAddressEth.Text;
+            ethPoolHelper.WorkerName = txtEthWorkerName.Text;
+
+            string ethPoolAddress = string.Empty;
+
+            try
+            {
+                ethPoolAddress = ethPoolHelper.GeneratePoolAddress();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("配置矿机出现错误：" + ex.ToString());
+                return;
+            }
+
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在配置矿机", btnStepThreeNext, btnStepThreeBack);
+                },
+                () => {
+
+                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'EthPoolAddress':'{2}' }}\"",
+                        selectedDevice.DeviceId,
+                        createdClient.InstanceName,
+                        ethPoolAddress);
+                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
+
+                    if (exeResult.HasError)
+                    {
+                        throw new InvalidOperationException(exeResult.ErrorMessage);
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
+                        return;
+                    }
+
+                    // Save the currnet config into cache.
+                    createdClient.Device = selectedDevice;
+                    createdClient.EthPoolAddress = ethPoolAddress;
+
+                    if (cKbWalletSaveToDefault.IsChecked ?? false)
+                    {
+                        ManagerConfig.Current.DefaultEthPoolIndex = ethPoolHelper.Index.GetHashCode();
+                        ManagerConfig.Current.DefaultEthPoolHostIndex = ethPoolHelper.HostIndex;
+                        ManagerConfig.Current.DefaultEthWallet = ethPoolHelper.EthWalletAddress;
+                        ManagerConfig.Current.DefaultEthWorkerName = ethPoolHelper.WorkerName;
+                        ManagerConfig.Current.DefaultEthWorkerPassword = ethPoolHelper.WorkerPassword;
+                        ManagerConfig.Current.DefaultEthEmail = ethPoolHelper.EmailAddress;
+
                         ManagerConfig.Current.SaveToFile();
                     }
 
@@ -693,6 +865,7 @@ namespace XDaggerMinerManager.UI.Forms
 
             freezedControlList.Clear();
         }
+
 
         #endregion
 

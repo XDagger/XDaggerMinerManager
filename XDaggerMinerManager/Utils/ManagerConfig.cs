@@ -93,8 +93,44 @@ namespace XDaggerMinerManager.Utils
             get; set;
         }
 
-        [JsonProperty(PropertyName = "default_wallet")]
-        public string DefaultWallet
+        [JsonProperty(PropertyName = "default_xdagger_wallet")]
+        public string DefaultXDaggerWallet
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth_wallet")]
+        public string DefaultEthWallet
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth_email")]
+        public string DefaultEthEmail
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth_worker_name")]
+        public string DefaultEthWorkerName
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth_worker_password")]
+        public string DefaultEthWorkerPassword
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth_pool_index")]
+        public int? DefaultEthPoolIndex
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth_pool_address_index")]
+        public int? DefaultEthPoolHostIndex
         {
             get; set;
         }

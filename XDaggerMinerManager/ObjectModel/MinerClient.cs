@@ -73,8 +73,14 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
-        [JsonProperty(PropertyName = "wallet_address")]
-        public string WalletAddress
+        [JsonProperty(PropertyName = "xdagger_wallet_address")]
+        public string XDaggerWalletAddress
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "eth_pool_address")]
+        public string EthPoolAddress
         {
             get; set;
         }
@@ -84,7 +90,13 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; set;
         }
-        
+
+        [JsonProperty(PropertyName = "instance_type")]
+        public string InstanceType
+        {
+            get; set;
+        }
+
         public string BinaryPath
         {
             get
@@ -185,9 +197,10 @@ namespace XDaggerMinerManager.ObjectModel
         [JsonProperty(PropertyName = "version")]
         public string Version
         {
-            get; private set;
+            get; set;
         }
 
+        
         public string GetRemoteDeploymentPath()
         {
             if (string.IsNullOrEmpty(MachineName) || string.IsNullOrEmpty(DeploymentFolder))

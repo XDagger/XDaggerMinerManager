@@ -73,7 +73,7 @@ namespace XDaggerMinerManager.UI
             this.MachineName = clientObject.MachineName;
             this.MinerName = clientObject.MachineName + clientObject.InstanceName;
             this.DeviceName = clientObject.Device?.DisplayName;
-            this.WalletAddress = clientObject.WalletAddress;
+            this.WalletAddress = clientObject.XDaggerWalletAddress;
 
             this.HashRate = string.Format("{0:0.000} Mhps", clientObject.CurrentHashRate / 1000000.0f);
             
