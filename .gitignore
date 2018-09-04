@@ -3,12 +3,16 @@
 packages
 bin
 
+
 # Built files
 
 XDaggerMinerManager/bin
 XDaggerMinerManager/obj
 Updater/bin
 Updater/obj
+Nuke/bin
+Nuke/obj
+
 
 # Service
 

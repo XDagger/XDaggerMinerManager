@@ -21,7 +21,8 @@ namespace XDaggerMinerManager.Utils
             if (machineName.Equals("LOCALHOST", StringComparison.InvariantCultureIgnoreCase)
                 || machineName.Equals(currentMachineName, StringComparison.InvariantCultureIgnoreCase))
             {
-                return new LocalExecutor();
+                return new RemoteExecutor(machineName);
+                //// return new LocalExecutor();
             }
             else
             {
