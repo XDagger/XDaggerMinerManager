@@ -4,6 +4,7 @@ using System.Configuration.Install;
 using System.Linq;
 using System.ServiceProcess;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -108,6 +109,8 @@ namespace XDaggerMinerNuke
             {
                 ManagedInstallerClass.InstallHelper(new string[] { "/u", serviceBinaryFullPath });
             }
+
+            Thread.Sleep(3000);
 
             // Try deleting the files
             System.IO.Directory.Delete(folderFullPath, true);
