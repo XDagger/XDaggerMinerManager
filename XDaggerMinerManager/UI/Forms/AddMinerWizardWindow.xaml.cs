@@ -70,7 +70,7 @@ namespace XDaggerMinerManager.UI.Forms
             
             this.txtTargetPath.Text = managerConfig.DefaultInstallationPath;
             this.txtTargetUserName.Text = managerConfig.DefaultUserName;
-            this.txtTargetUserPassword.Text = managerConfig.DefaultPassword;
+            this.txtTargetUserPassword.Password = managerConfig.DefaultPassword;
 
             InitializeEthPoolAddresses();
         }
@@ -113,7 +113,7 @@ namespace XDaggerMinerManager.UI.Forms
             string targetMachineName = txtMachineName.Text?.Trim();
             string targetMachinePath = txtTargetPath.Text?.Trim();
             string targetMachineUserName = txtTargetUserName.Text?.Trim();
-            string targetMachinePassword = txtTargetUserPassword.Text?.Trim();
+            string targetMachinePassword = txtTargetUserPassword.Password?.Trim();
 
             MinerMachine machine = new MinerMachine() {
                 FullMachineName = targetMachineName,
@@ -543,8 +543,7 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
                 },
                 () => {
-                    ExecutionResult<List<DeviceOutput>> getDevicesResult = executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
-                    return getDevicesResult.Data;
+                    return executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
                 },
                 (taskResult) => {
 

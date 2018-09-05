@@ -432,40 +432,5 @@ namespace XDaggerMinerManager.UI.Forms
         }
 
         #endregion
-
-        private void btn_JustForTest_Click(object sender, RoutedEventArgs e)
-        {
-            var remoteComputer = new Uri(String.Format("http://{0}:5985/wsman", "LOCALHOST"));
-            string runasUsername = @"charlie_5899@hotmail.com";
-            string runasPassword = @"dj1ql+u";
-            SecureString ssRunasPassword = new SecureString();
-            foreach (char x in runasPassword)
-            {
-                ssRunasPassword.AppendChar(x);
-            }
-
-            PSCredential credentials = new PSCredential(runasUsername, ssRunasPassword);
-
-            var connection = new WSManConnectionInfo(remoteComputer, "", credentials);
-            using (Runspace runspace = RunspaceFactory.CreateRunspace(connection))
-            {
-                runspace.Open();
-
-                PowerShell psinstance = PowerShell.Create();
-                psinstance.Runspace = runspace;
-                psinstance.AddScript(@"C:\Toney\Git\xdagger\XDaggerMinerWin\x64\Release\XDaggerMinerDaemon.exe -l");
-
-                var results = psinstance.Invoke();
-
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append(results.Count + "??");
-                foreach (var result in results)
-                {
-                    stringBuilder.Append(result.ToString());
-                }
-                
-                MessageBox.Show(stringBuilder.ToString());
-            }
-        }
     }
 }

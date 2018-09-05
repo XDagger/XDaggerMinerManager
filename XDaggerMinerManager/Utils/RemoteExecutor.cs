@@ -66,6 +66,12 @@ namespace XDaggerMinerManager.Utils
                         // Access Denied, Credential Wrong
                         throw new TargetMachineException(TargetMachineErrorCode.LOGIN_ACCESS_DENIED, "远程机器登录失败，请检查用户名密码。");
                     }
+
+                    if (ex.ErrorCode == -2144108526)
+                    {
+                        // WinRM Service cannot be connected
+                        throw new TargetMachineException(TargetMachineErrorCode.WINRM_CONNECTION_FAILED, "远程机器连接失败，请检查目标机器上WinRM服务是否开启。");
+                    }
                     throw ex;
                 }
                 catch (Exception ex)

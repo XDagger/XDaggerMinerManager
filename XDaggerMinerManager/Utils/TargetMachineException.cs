@@ -72,5 +72,8 @@ namespace XDaggerMinerManager.Utils
         // Wrong Username and Password
         LOGIN_ACCESS_DENIED = 80001,
 
+        // WinRM Service Down
+        WINRM_CONNECTION_FAILED = 80002,
+
     }
 }

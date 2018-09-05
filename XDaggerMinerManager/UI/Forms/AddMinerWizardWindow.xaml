@@ -29,7 +29,7 @@
             <Label x:Name="label2" Content="登录用户名：" HorizontalAlignment="Left" Margin="29,67,0,0" VerticalAlignment="Top" Width="78"/>
             <TextBox x:Name="txtTargetUserName" Height="23" Margin="112,70,54.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
             <Label x:Name="label2_Copy" Content="登录密码：" HorizontalAlignment="Left" Margin="29,109,0,0" VerticalAlignment="Top" Width="78"/>
-            <TextBox x:Name="txtTargetUserPassword" Height="23" Margin="112,112,54.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+            <PasswordBox x:Name="txtTargetUserPassword" Height="23" Margin="112,112,54.667,0" VerticalAlignment="Top"/>
             <Button x:Name="btnStepOneBrowse" Content="..." Margin="0,31,54.667,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="26" Click="btnStepOneBrowse_Click"/>
         </Grid>
         <Grid x:Name="grdStepTwo" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
