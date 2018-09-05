@@ -41,9 +41,17 @@ namespace XDaggerMinerManager.ObjectModel
             this.hasStatusChanged = false;
         }
 
+        public MinerClient()
+        {
+
+        }
+
         public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
         {
-            this.MachineName = machineName.Trim().ToUpper();
+            this.Machine = new MinerMachine() {
+                FullMachineName = machineName.Trim().ToUpper()
+            };
+            
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
             this.Version = version;
             this.InstanceName = instanceName;
@@ -51,24 +59,36 @@ namespace XDaggerMinerManager.ObjectModel
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
-        
+
+        public MinerClient(MinerMachine machine, string deploymentFolder, string version = "", string instanceName = "")
+        {
+            this.Machine = machine;
+
+            this.DeploymentFolder = deploymentFolder.Trim().ToLower();
+            this.Version = version;
+            this.InstanceName = instanceName;
+
+            this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
+            this.CurrentServiceStatus = ServiceStatus.Unknown;
+        }
+
         public string Name
         {
             get
             {
                 if (string.IsNullOrEmpty(this.InstanceName))
                 {
-                    return this.MachineName;
+                    return this.Machine?.FullMachineName;
                 }
                 else
                 {
-                    return string.Format("{0}_{1}", this.MachineName, this.InstanceName);
+                    return string.Format("{0}_{1}", this.Machine?.FullMachineName, this.InstanceName);
                 }
             }
         }
         
-        [JsonProperty(PropertyName = "machine_name")]
-        public string MachineName
+        [JsonProperty(PropertyName = "machine")]
+        public MinerMachine Machine
         {
             get; set;
         }
@@ -203,37 +223,37 @@ namespace XDaggerMinerManager.ObjectModel
         
         public string GetRemoteDeploymentPath()
         {
-            if (string.IsNullOrEmpty(MachineName) || string.IsNullOrEmpty(DeploymentFolder))
+            if (string.IsNullOrEmpty(this.Machine?.FullMachineName) || string.IsNullOrEmpty(DeploymentFolder))
             {
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.MachineName, this.DeploymentFolder.Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, this.DeploymentFolder.Replace(":", "$"));
         }
 
         public string GetRemoteBinaryPath()
         {
-            if (string.IsNullOrEmpty(MachineName) || string.IsNullOrEmpty(BinaryPath))
+            if (string.IsNullOrEmpty(this.Machine?.FullMachineName) || string.IsNullOrEmpty(BinaryPath))
             {
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.MachineName, this.BinaryPath.Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, this.BinaryPath.Replace(":", "$"));
         }
 
         public string GetRemoteTempPath()
         {
-            if (string.IsNullOrEmpty(MachineName))
+            if (string.IsNullOrEmpty(this.Machine?.FullMachineName))
             {
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.MachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
         }
 
         public ExecutionResult<T> ExecuteDaemon<T>(string parameters)
         {
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.MachineName);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.Machine);
             string daemonFullPath = System.IO.Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             return executor.ExecuteCommand<T>(daemonFullPath, parameters);

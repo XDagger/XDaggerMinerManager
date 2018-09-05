@@ -70,8 +70,8 @@ namespace XDaggerMinerManager.UI
 
         public MinerDataCell(MinerClient clientObject)
         {
-            this.MachineName = clientObject.MachineName;
-            this.MinerName = clientObject.MachineName + clientObject.InstanceName;
+            this.MachineName = clientObject.Machine?.FullMachineName;
+            this.MinerName = clientObject.Machine?.FullMachineName + clientObject.InstanceName;
             this.DeviceName = clientObject.Device?.DisplayName;
             this.WalletAddress = clientObject.XDaggerWalletAddress;
 

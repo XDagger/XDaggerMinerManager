@@ -126,6 +126,7 @@
     <Compile Include="Utils\ReleasedBinary.cs" />
     <Compile Include="Utils\RemoteExecutor.cs" />
     <Compile Include="Utils\ServiceUtils.cs" />
+    <Compile Include="Utils\TargetMachineException.cs" />
     <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Forms\AddMinerWizardWindow.xaml">

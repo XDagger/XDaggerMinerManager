@@ -110,9 +110,18 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepOneNext_Click(object sender, RoutedEventArgs e)
         {
-            string targetMachineName = txtMachineName.Text;
-            string targetMachinePath = txtTargetPath.Text;
-            createdClient = new MinerClient(targetMachineName, targetMachinePath);
+            string targetMachineName = txtMachineName.Text?.Trim();
+            string targetMachinePath = txtTargetPath.Text?.Trim();
+            string targetMachineUserName = txtTargetUserName.Text?.Trim();
+            string targetMachinePassword = txtTargetUserPassword.Text?.Trim();
+
+            MinerMachine machine = new MinerMachine() {
+                FullMachineName = targetMachineName,
+                LoginUserName = targetMachineUserName
+            };
+
+            machine.SetLoginPassword(targetMachinePassword);
+            createdClient = new MinerClient(machine, targetMachinePath);
 
             // Check whether this target is already in Miner Manager Client list
 
@@ -291,14 +300,14 @@ namespace XDaggerMinerManager.UI.Forms
                     // Send the ping asynchronously.
                     // Use the waiter as the user token.
                     // When the callback completes, it can wake up this thread.
-                    return pingSender.Send(createdClient.MachineName, timeout, buffer, options);
+                    return pingSender.Send(createdClient.Machine?.FullMachineName, timeout, buffer, options);
                 },
                 (taskResult) => {
 
                     HideProgressIndicator();
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("无法连接到目标机器:" + createdClient.MachineName + taskResult.Exception.ToString());
+                        MessageBox.Show("无法连接到目标机器:" + createdClient.Machine?.FullMachineName + taskResult.Exception.ToString());
                         return;
                     }
 
@@ -345,7 +354,7 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在扫描已存在矿机", btnStepOneNext);
                 },
                 () => {
-                    return ServiceUtils.DetectAvailableInstanceId(createdClient.MachineName);
+                    return ServiceUtils.DetectAvailableInstanceId(createdClient.Machine?.FullMachineName);
                 },
                 (taskResult) => {
 
@@ -525,7 +534,7 @@ namespace XDaggerMinerManager.UI.Forms
                 cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEthPoolHostIndex.Value;
             }
 
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineName);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.Machine);
             string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             BackgroundWork<List<DeviceOutput>>.CreateWork(
@@ -534,7 +543,7 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
                 },
                 () => {
-                    ExecutionResult<List<DeviceOutput>> getDevicesResult = executor.ExecuteCommand<List<DeviceOutput>>(daemonFullPath, "-l");
+                    ExecutionResult<List<DeviceOutput>> getDevicesResult = executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
                     return getDevicesResult.Data;
                 },
                 (taskResult) => {
