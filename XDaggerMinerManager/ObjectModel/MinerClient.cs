@@ -27,11 +27,12 @@ namespace XDaggerMinerManager.ObjectModel
         public enum ServiceStatus
         {
             Unknown = 0,
-            NotInstalled = 1,
-            Stopped = 2,
-            Disconnected = 3,
-            Connected = 4,
-            Mining = 5
+            NotInstalled = 10,
+            Stopped = 20,
+            Initializing = 30,
+            Disconnected = 40,
+            Connected = 50,
+            Mining = 60,
         }
 
         public event EventHandler StatusChanged;

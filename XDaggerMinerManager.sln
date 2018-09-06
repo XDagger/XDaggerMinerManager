@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XDaggerMinerManager", "XDag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater.csproj", "{4981CFE2-0A90-48F9-94F8-DADA083EAC0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nuke", "Nuke\Nuke.csproj", "{477F940A-F0F8-483F-878A-FBDEBF1957BE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XDaggerMinerAssistant", "XDaggerMinerAssistant\XDaggerMinerAssistant.csproj", "{477F940A-F0F8-483F-878A-FBDEBF1957BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

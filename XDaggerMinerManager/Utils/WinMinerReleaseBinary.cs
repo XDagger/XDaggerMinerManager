@@ -40,7 +40,7 @@ namespace XDaggerMinerManager.Utils
         {
             get
             {
-                return "XDaggerMinerWin.ver";
+                return "xdaggerminer.ver";
             }
         }
 

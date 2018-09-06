@@ -1,6 +1,6 @@
 ﻿{
-    "version": "v0.1.0730.0",
-    "miner_url_path": "http://7mnmim.com1.z0.glb.clouddn.com/",
+    "version": "v0.1.0906.0",
+    "miner_url_path": "http://dreamprototype.qiniudn.com/",
     "miner_package_name": "XDaggerMinerWin-{0}-x64.zip",
     "default_install_path": "C:\\Temp\\xdagger\\",
     "default_user_name": "",

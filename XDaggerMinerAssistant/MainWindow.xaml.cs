@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration.Install;
 using System.Linq;
+using System.Management.Automation;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
@@ -16,7 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace XDaggerMinerNuke
+namespace XDaggerMinerAssistant
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -30,18 +31,57 @@ namespace XDaggerMinerNuke
 
         private void btn_Nuke_Click(object sender, RoutedEventArgs e)
         {
+            MessageBoxResult result = MessageBox.Show("确定要卸载本机上所有与XDagger相关的服务吗？", "确认", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.No)
+            {
+                return;
+            }
+
             try
             {
                 UninstallAllServices();
                 DeleteBinaryFiles();
 
-                MessageBox.Show("Finished!");
+                MessageBox.Show("卸载完成！");
             }
             catch (Exception ex)
             {
                 //Swallow anything
 
-                MessageBox.Show("Finished but something still need to cleanup!");
+                MessageBox.Show("卸载完成，但有些部分还需要自行清理。");
+            }
+        }
+        
+        private void btn_Prepare_Click(object sender, RoutedEventArgs e)
+        {
+            // Start the WinRM service
+            ServiceController service = new ServiceController("winrm");
+            TimeSpan timeout = TimeSpan.FromMilliseconds(5000);
+            
+            // Run Powershell with Enable-PSRemoting -force
+            PowerShell psinstance = PowerShell.Create();
+            psinstance.AddScript("Enable-PSRemoting -force");
+
+            try
+            {
+                if (service.Status != ServiceControllerStatus.Running && service.Status != ServiceControllerStatus.Stopped)
+                {
+                    service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
+                }
+
+                if (service.Status == ServiceControllerStatus.Stopped)
+                {
+                    service.Start();
+                    service.WaitForStatus(ServiceControllerStatus.Running, timeout);
+                }
+
+                psinstance.Invoke();
+
+                MessageBox.Show("本机设置完成！");
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("本机设置错误：" + ex.ToString());
             }
         }
 

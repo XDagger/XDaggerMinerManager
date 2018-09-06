@@ -1,0 +1,13 @@
+﻿<Window x:Class="XDaggerMinerAssistant.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XDaggerMinerAssistant"
+        mc:Ignorable="d"
+        Title="XDaggerMiner Assistant" Height="162.636" Width="350.092" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Button x:Name="btn_Nuke" Content="卸载本机上所有相关服务" Margin="54,79,51.667,16.667" FontSize="20" Click="btn_Nuke_Click"/>
+        <Button x:Name="btn_Prerequisite" Content="一键设置" Margin="54,22,51.667,0" FontSize="20" VerticalAlignment="Top" Height="39" Click="btn_Prepare_Click"/>
+    </Grid>
+</Window>

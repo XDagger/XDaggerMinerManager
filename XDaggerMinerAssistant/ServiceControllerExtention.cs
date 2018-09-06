@@ -6,7 +6,7 @@ using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerNuke
+namespace XDaggerMinerAssistant
 {
     
     public class ServiceController : System.ServiceProcess.ServiceController
