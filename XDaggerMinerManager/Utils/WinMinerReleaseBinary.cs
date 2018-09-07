@@ -40,7 +40,7 @@ namespace XDaggerMinerManager.Utils
         {
             get
             {
-                return "xdaggerminer.ver";
+                return "xdaggerminer_0907.version";
             }
         }
 
