@@ -348,13 +348,13 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            BackgroundWork<string>.CreateWork(
+            BackgroundWork<bool>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在扫描已存在矿机", btnStepOneNext);
                 },
                 () => {
-                    return ServiceUtils.DetectAvailableInstanceId(createdClient.Machine?.FullMachineName);
+                    return ServiceUtils.HasExistingService(createdClient.Machine?.FullMachineName);
                 },
                 (taskResult) => {
 
@@ -364,9 +364,9 @@ namespace XDaggerMinerManager.UI.Forms
                         MessageBox.Show("扫描目标机器错误：" + taskResult.Exception.ToString());
                         return;
                     }
-                    string instanceName = taskResult.Result;
+                    bool hasExistingService = taskResult.Result;
 
-                    if (!string.IsNullOrEmpty(instanceName))
+                    if (hasExistingService)
                     {
                         MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
                         if (result == MessageBoxResult.No)
@@ -374,8 +374,6 @@ namespace XDaggerMinerManager.UI.Forms
                             btnStepOneNext.IsEnabled = true;
                             return;
                         }
-
-                        createdClient.InstanceName = instanceName;
                     }
 
                     btnStepOneNext.IsEnabled = true;
@@ -601,27 +599,19 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            BackgroundWork<int>.CreateWork(
+            BackgroundWork<int?>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在配置矿机", btnStepThreeNext, btnStepThreeBack);
                 },
                 () => {
 
-                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'XDaggerWallet':'{2}' }}\"", 
+                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'XDaggerWallet':'{1}', 'AutoDecideInstanceId':true }}\"", 
                         selectedDevice.DeviceId, 
-                        createdClient.InstanceName,
                         walletAddress);
-                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
 
-                    if (exeResult.HasError)
-                    {
-                        throw new InvalidOperationException(exeResult.ErrorMessage);
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    ConfigureOutput exeResult = createdClient.ExecuteDaemon<ConfigureOutput>(commandParameters);
+                    return exeResult.InstanceId;
                 },
                 (taskResult) => {
 
@@ -632,6 +622,9 @@ namespace XDaggerMinerManager.UI.Forms
                         MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
                         return;
                     }
+
+                    int? instanceId = taskResult.Result;
+                    createdClient.InstanceName = instanceId?.ToString();
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
@@ -694,11 +687,11 @@ namespace XDaggerMinerManager.UI.Forms
             ethPoolHelper.EmailAddress = txtEmailAddressEth.Text;
             ethPoolHelper.WorkerName = txtEthWorkerName.Text;
 
-            string ethPoolAddress = string.Empty;
+            string ethFullPoolAddress = string.Empty;
 
             try
             {
-                ethPoolAddress = ethPoolHelper.GeneratePoolAddress();
+                ethFullPoolAddress = ethPoolHelper.GeneratePoolAddress();
             }
             catch (Exception ex)
             {
@@ -716,17 +709,9 @@ namespace XDaggerMinerManager.UI.Forms
                     string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'EthPoolAddress':'{2}' }}\"",
                         selectedDevice.DeviceId,
                         createdClient.InstanceName,
-                        ethPoolAddress);
-                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
-
-                    if (exeResult.HasError)
-                    {
-                        throw new InvalidOperationException(exeResult.ErrorMessage);
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                        ethFullPoolAddress);
+                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
+                    return 0;
                 },
                 (taskResult) => {
 
@@ -740,7 +725,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
-                    createdClient.EthPoolAddress = ethPoolAddress;
+                    createdClient.EthFullPoolAddress = ethFullPoolAddress;
 
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
@@ -768,13 +753,8 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在安装矿机服务", btnStepFourFinish, btnStepFourBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>("-s Install");
-
-                    if (exeResult.HasError)
-                    {
-                        throw new InvalidOperationException(exeResult.ErrorMessage);
-                    }
-
+                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>("-s Install");
+                    
                     return 0;
                 },
                 (taskResult) => {
@@ -809,13 +789,8 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在启动矿机服务", btnStepFourFinish, btnStepFourBack);
                 },
                 () => {
-                    ExecutionResult<OKResult> exeResult = createdClient.ExecuteDaemon<OKResult>("-s Start");
-
-                    if (exeResult.HasError)
-                    {
-                        throw new InvalidOperationException(exeResult.ErrorMessage);
-                    }
-
+                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>("-s Start");
+                    
                     return 0;
                 },
                 (taskResult) => {
@@ -824,11 +799,14 @@ namespace XDaggerMinerManager.UI.Forms
 
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("启动矿机出现错误：" + taskResult.Exception.ToString());
-                        return;
+                        MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.ToString());
+                        createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
+                    }
+                    else
+                    {
+                        createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
                     }
 
-                    createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
                     StepFour_Finish();
                 }
             ).Execute();

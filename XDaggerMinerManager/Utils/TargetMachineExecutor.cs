@@ -231,6 +231,18 @@ namespace XDaggerMinerManager.Utils
     {
     }
 
+    public class ConfigureOutput
+    {
+        public ConfigureOutput()
+        {
+        }
+
+        public int? InstanceId
+        {
+            get; set;
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -238,7 +250,6 @@ namespace XDaggerMinerManager.Utils
     {
         public DeviceOutput()
         {
-
         }
 
         public string DeviceId

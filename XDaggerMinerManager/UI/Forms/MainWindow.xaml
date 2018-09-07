@@ -10,7 +10,7 @@
         mc:Ignorable="d"
         Title="XDagger Miner Management Platform" Height="545.7" Width="924.667" Loaded="Window_Loaded">
     <Grid>
-        <TabControl x:Name="tabControl" HorizontalAlignment="Left" Height="470" VerticalAlignment="Top" Width="909">
+        <TabControl x:Name="tabControl" Margin="0,0,9,46.667">
             <TabItem x:Name="mainTab1" Header="矿机管理" Margin="-2,0,-6,0">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
@@ -21,7 +21,7 @@
                         <RowDefinition Height="2" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="0,59,10.333,10.333" HorizontalAlignment="Right" Width="883" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening">
+                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening">
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Name="menuStartMiner" Header="启动" Click="menuStartMiner_Click"></MenuItem>
@@ -81,8 +81,8 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <TextBox x:Name="tBxClientStatisticsSummary" HorizontalAlignment="Left" Margin="10,477,0,0" TextWrapping="Wrap" Text="当前矿机：0台  0台在线  0台下线  当前主算力：N/A" Width="778" FontSize="16" Height="23" VerticalAlignment="Top"/>
-        <Button x:Name="btnLockScreen" Content="锁屏离开" HorizontalAlignment="Left" Margin="797,477,0,0" VerticalAlignment="Top" Width="102" Height="23" Click="btnLockScreen_Click"/>
+        <TextBox x:Name="tBxClientStatisticsSummary" Margin="10,0,130,16.667" TextWrapping="Wrap" Text="当前矿机：0台  0台在线  0台下线  当前主算力：N/A" FontSize="16" Height="23" VerticalAlignment="Bottom"/>
+        <Button x:Name="btnLockScreen" Content="锁屏离开" Margin="0,0,19,16.667" Click="btnLockScreen_Click" HorizontalAlignment="Right" Width="102" Height="23" VerticalAlignment="Bottom"/>
 
     </Grid>
 </Window>

@@ -17,6 +17,7 @@ namespace XDaggerMinerManager.UI
             switch (headerName)
             {
                 case "MachineName": return "机器名";
+                case "InstanceType": return "矿机类别";
                 case "MinerName": return "矿机名称";
                 case "WalletAddress": return "钱包地址";
                 case "DeploymentStatus": return "安装状态";
@@ -29,6 +30,11 @@ namespace XDaggerMinerManager.UI
         }
 
         public string MachineName
+        {
+            get; set;
+        }
+
+        public string InstanceType
         {
             get; set;
         }
@@ -73,8 +79,10 @@ namespace XDaggerMinerManager.UI
             this.MachineName = clientObject.Machine?.FullMachineName;
             this.MinerName = clientObject.Machine?.FullMachineName + clientObject.InstanceName;
             this.DeviceName = clientObject.Device?.DisplayName;
-            this.WalletAddress = clientObject.XDaggerWalletAddress;
 
+            this.InstanceType = clientObject.InstanceType;
+            this.WalletAddress = (this.InstanceType == "Ethereum") ? clientObject.EthFullPoolAddress : clientObject.XDaggerWalletAddress;
+            
             this.HashRate = string.Format("{0:0.000} Mhps", clientObject.CurrentHashRate / 1000000.0f);
             
             switch(clientObject.CurrentDeploymentStatus)

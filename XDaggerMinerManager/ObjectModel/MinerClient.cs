@@ -100,8 +100,8 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
-        [JsonProperty(PropertyName = "eth_pool_address")]
-        public string EthPoolAddress
+        [JsonProperty(PropertyName = "eth_full_pool_address")]
+        public string EthFullPoolAddress
         {
             get; set;
         }
@@ -252,12 +252,12 @@ namespace XDaggerMinerManager.ObjectModel
             return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
         }
 
-        public ExecutionResult<T> ExecuteDaemon<T>(string parameters)
+        public T ExecuteDaemon<T>(string parameters)
         {
             TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.Machine);
             string daemonFullPath = System.IO.Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
-            return executor.ExecuteCommand<T>(daemonFullPath, parameters);
+            return executor.ExecuteCommandAndThrow<T>(daemonFullPath, parameters);
         }
 
         public void DeleteBinaries()
@@ -291,34 +291,39 @@ namespace XDaggerMinerManager.ObjectModel
         /// </summary>
         public bool RefreshStatus()
         {
-            ExecutionResult<ReportOutput> exeResult = this.ExecuteDaemon<ReportOutput>("-r");
-            if (exeResult.HasError || exeResult.Data == null)
+            try
             {
-                if (hasStatusChanged)
+                ReportOutput report = this.ExecuteDaemon<ReportOutput>("-r");
+                if (report == null)
                 {
-                    return false;
+                    if (hasStatusChanged)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        hasStatusChanged = true;
+                        return true;
+                    }
+                }
+
+                this.CurrentServiceStatus = (ServiceStatus)report.Status;
+
+                if (this.CurrentServiceStatus == ServiceStatus.Mining)
+                {
+                    this.CurrentHashRate = report.HashRate;
                 }
                 else
                 {
-                    hasStatusChanged = true;
-                    return true;
+                    this.CurrentHashRate = 0;
                 }
+
+                hasStatusChanged = true;
             }
-
-            ReportOutput report = exeResult.Data;
-
-            this.CurrentServiceStatus = (ServiceStatus)report.Status;
-            
-            if (this.CurrentServiceStatus == ServiceStatus.Mining)
+            catch(Exception ex)
             {
-                this.CurrentHashRate = report.HashRate;
+                hasStatusChanged = false;
             }
-            else
-            {
-                this.CurrentHashRate = 0;
-            }
-
-            hasStatusChanged = true;
 
             return hasStatusChanged;
         }

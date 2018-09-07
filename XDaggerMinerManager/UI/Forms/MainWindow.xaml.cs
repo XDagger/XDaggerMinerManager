@@ -298,16 +298,8 @@ namespace XDaggerMinerManager.UI.Forms
                     MinerClient c = selectedClients.FirstOrDefault();
                     if (c != null)
                     {
-                        ExecutionResult<OKResult> r = c.ExecuteDaemon<OKResult>("-s start");
-
-                        if (!r.HasError)
-                        {
-                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
-                        }
-                        else
-                        {
-                            /// throw new Exception(r.Code + "|" + r.ErrorMessage);
-                        }
+                        OKResult r = c.ExecuteDaemon<OKResult>("-s start");
+                        c.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
                     }
                 },
                 (result) => {
@@ -330,16 +322,8 @@ namespace XDaggerMinerManager.UI.Forms
                     MinerClient c = selectedClients.FirstOrDefault();
                     if (c != null)
                     {
-                        ExecutionResult<OKResult> r = c.ExecuteDaemon<OKResult>("-s stop");
-
-                        if (!r.HasError)
-                        {
-                            c.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
-                        }
-                        else
-                        {
-                            /// throw new Exception(r.Code + "|" + r.ErrorMessage);
-                        }
+                        OKResult r = c.ExecuteDaemon<OKResult>("-s stop");
+                        c.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                     }
                 },
                 (result) => {
@@ -367,27 +351,31 @@ namespace XDaggerMinerManager.UI.Forms
                     MinerClient c = selectedClients.FirstOrDefault();
                     if (c != null)
                     {
-                        ExecutionResult<OKResult> r = c.ExecuteDaemon<OKResult>("-s uninstall");
-
-                        if (!r.HasError)
+                        try
                         {
+                            OKResult r = c.ExecuteDaemon<OKResult>("-s uninstall");
+
+                            // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
+                            System.Threading.Thread.Sleep(3000);
+
                             c.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
                             c.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                         }
-                        else
+                        catch (Exception ex)
                         {
                             c.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Unknown;
                             c.CurrentServiceStatus = MinerClient.ServiceStatus.Unknown;
                             /// throw new Exception(r.Code + "|" + r.ErrorMessage);
+                            /// 
+                            throw;
                         }
+                        finally
+                        {
+                            // Removing client from ObjectModel first, and then Delete binaries might throw IO exception which should be ignored
+                            minerManager.RemoveClient(c);
 
-                        // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
-                        System.Threading.Thread.Sleep(3000);
-
-                        // Removing client from ObjectModel first, and then Delete binaries might throw IO exception which should be ignored
-                        minerManager.RemoveClient(c);
-
-                        c.DeleteBinaries();
+                            c.DeleteBinaries();
+                        }
                     }
                 },
                 (result) => {

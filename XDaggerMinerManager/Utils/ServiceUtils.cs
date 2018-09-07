@@ -12,6 +12,24 @@ namespace XDaggerMinerManager.Utils
         public static readonly string ServiceNameBase = @"XDaggerMinerService";
         public static readonly string ServiceBinaryName = @"XDaggerMinerService.exe";
 
+        public static readonly string ServiceNameEthBase = @"XDaggerMinerEthService";
+
+        public static bool HasExistingService(string machineName)
+        {
+            if (CheckServiceExist(ServiceNameBase, machineName))
+            {
+                return true;
+            }
+
+            int instanceNumber = 1;
+            while (CheckServiceExist(GetServiceName(instanceNumber.ToString()), machineName))
+            {
+                instanceNumber++;
+            }
+
+            return (instanceNumber > 1);
+        }
+
         public static string DetectAvailableInstanceId(string machineName)
         {
             if (!CheckServiceExist(ServiceNameBase, machineName))
