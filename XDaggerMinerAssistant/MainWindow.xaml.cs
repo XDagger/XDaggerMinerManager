@@ -88,26 +88,33 @@ namespace XDaggerMinerAssistant
         private void UninstallAllServices()
         {
             string[] serviceNames = new string[] { "XDaggerMinerService", "XDaggerEthMinerService" };
-            string[] serviceNameTemplates = new string[] { "XDaggerMinerService_{0}", "XDaggerEthMinerService_{0}" };
-
-            try
+            string[] serviceNameTemplates = new string[] { @"XDaggerMinerService_{0}", @"XDaggerEthMinerService_{0}" };
+            
+            foreach (string serviceName in serviceNames)
             {
-                foreach (string serviceName in serviceNames)
+                try
                 {
                     TryUninstallService(serviceName);
                 }
-
-                foreach (string serviceNameTemplate in serviceNameTemplates)
+                catch(Exception)
                 {
-                    for (int i = 0; i < 20; i++)
+
+                }
+            }
+
+            foreach (string serviceNameTemplate in serviceNameTemplates)
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    try
                     {
                         TryUninstallService(string.Format(serviceNameTemplate, i), i.ToString());
                     }
-                }
-            }
-            catch(Exception ex)
-            {
+                    catch (Exception)
+                    {
 
+                    }
+                }
             }
         }
 
