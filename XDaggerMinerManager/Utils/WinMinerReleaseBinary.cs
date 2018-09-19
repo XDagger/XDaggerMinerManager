@@ -40,7 +40,7 @@ namespace XDaggerMinerManager.Utils
         {
             get
             {
-                return "xdaggerminer_0907.version";
+                return "xdaggerminer-version.json";
             }
         }
 
@@ -108,12 +108,15 @@ namespace XDaggerMinerManager.Utils
                 }
             }
 
+            bool downloadSuceeded = false;
             try
             {
-                using (var client = new WebClient())
+                using (var client = new CustomWebClient(5))
                 {
                     client.DownloadFile(uri, targetFullPath);
                 }
+
+                downloadSuceeded = true;
             }
             catch (WebException webExcetion)
             {
@@ -121,10 +124,18 @@ namespace XDaggerMinerManager.Utils
             catch (InvalidOperationException invalidException)
             {
             }
-
-            if (!File.Exists(targetFullPath))
+            catch (TimeoutException)
             {
-                return null;
+
+            }
+
+            // If the file downloaded failed, just use the local one instead
+            if (!downloadSuceeded)
+            {
+                var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                var directoryPath = Path.GetDirectoryName(location);
+
+                targetFullPath = Path.Combine(directoryPath, PackagerVersionFileName);
             }
 
             try
@@ -227,6 +238,20 @@ namespace XDaggerMinerManager.Utils
                 {
                     string singleFileName = sourceFullFileName.Substring(sourceFullFileName.LastIndexOf("\\") + 1);
                     File.Copy(sourceFullFileName, Path.Combine(targetRemoteBinaryPath, singleFileName));
+                }
+
+                string[] directoryEntries = Directory.GetDirectories(sourceBinaryPath);
+                foreach(string dir in directoryEntries)
+                {
+                    string[] files = Directory.GetFiles(dir);
+                    string singleDir = dir.Substring(dir.LastIndexOf("\\") + 1);
+
+                    Directory.CreateDirectory(Path.Combine(targetRemoteBinaryPath, singleDir));
+                    foreach (string file in files)
+                    {
+                        string singleFileName = file.Substring(file.LastIndexOf("\\") + 1);
+                        File.Copy(file, Path.Combine(targetRemoteBinaryPath, singleDir, singleFileName));
+                    }
                 }
             }
             catch (Exception ex)

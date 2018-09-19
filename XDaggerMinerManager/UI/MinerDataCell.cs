@@ -115,6 +115,9 @@ namespace XDaggerMinerManager.UI
                 case MinerClient.ServiceStatus.NotInstalled:
                     this.ServiceStatus = "未安装";
                     break;
+                case MinerClient.ServiceStatus.Error:
+                    this.ServiceStatus = "错误";
+                    break;
                 case MinerClient.ServiceStatus.Unknown:
                     this.ServiceStatus = "未知";
                     break;

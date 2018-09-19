@@ -115,6 +115,9 @@
     </Compile>
     <Compile Include="UI\MinerDataCell.cs" />
     <Compile Include="Utils\BackgroundWork.cs" />
+    <Compile Include="Utils\CustomWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Utils\EthMinerPoolHelper.cs" />
     <Compile Include="Utils\LocalExecutor.cs" />
     <Compile Include="Utils\ManagerConfig.cs" />
@@ -189,6 +192,9 @@
     </None>
     <None Include="manager-config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="xdaggerminer-version.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

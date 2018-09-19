@@ -336,6 +336,10 @@ namespace XDaggerMinerManager.UI.Forms
                 catch (Exception ex)
                 {
                     MessageBox.Show("目标路径错误：" + ex.ToString());
+
+                    // Enable the UI
+                    btnStepOneNext.IsEnabled = true;
+                    return;
                 }
             }
 

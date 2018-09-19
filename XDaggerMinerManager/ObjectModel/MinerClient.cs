@@ -33,6 +33,7 @@ namespace XDaggerMinerManager.ObjectModel
             Disconnected = 40,
             Connected = 50,
             Mining = 60,
+            Error = 99,
         }
 
         public event EventHandler StatusChanged;
@@ -161,7 +162,7 @@ namespace XDaggerMinerManager.ObjectModel
             }
         }
 
-        public ServiceStatus currentServiceStatus;
+        private ServiceStatus currentServiceStatus;
 
         [JsonProperty(PropertyName = "current_service_status")]
         public ServiceStatus CurrentServiceStatus
@@ -182,6 +183,31 @@ namespace XDaggerMinerManager.ObjectModel
                 else
                 {
                     this.currentServiceStatus = value;
+                }
+            }
+        }
+
+        private string currentServiceErrorDetails = string.Empty;
+
+        [JsonProperty(PropertyName = "current_service_error_details")]
+        public string CurrentServiceErrorDetails
+        {
+            get
+            {
+                return this.currentServiceErrorDetails;
+            }
+
+            set
+            {
+                if (value != this.currentServiceErrorDetails)
+                {
+                    this.currentServiceErrorDetails = value;
+                    hasStatusChanged = true;
+                    this.OnStatusChanged(EventArgs.Empty);
+                }
+                else
+                {
+                    this.currentServiceErrorDetails = value;
                 }
             }
         }
@@ -308,14 +334,11 @@ namespace XDaggerMinerManager.ObjectModel
                 }
 
                 this.CurrentServiceStatus = (ServiceStatus)report.Status;
+                this.CurrentHashRate = report.HashRate;
 
-                if (this.CurrentServiceStatus == ServiceStatus.Mining)
+                if (this.CurrentServiceStatus == ServiceStatus.Error)
                 {
-                    this.CurrentHashRate = report.HashRate;
-                }
-                else
-                {
-                    this.CurrentHashRate = 0;
+                    this.CurrentServiceErrorDetails = report.Details;
                 }
 
                 hasStatusChanged = true;

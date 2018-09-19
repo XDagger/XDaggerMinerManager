@@ -320,6 +320,11 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
+        public string Details
+        {
+            get; set;
+        }
+
         /// <summary>
         /// Unit: Mhash per second
         /// </summary>
