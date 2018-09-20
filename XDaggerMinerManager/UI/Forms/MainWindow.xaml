@@ -21,7 +21,7 @@
                         <RowDefinition Height="2" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening">
+                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" Loaded="minerListGrid_Loaded" ContextMenuOpening="minerListGrid_ContextMenuOpening" SelectedCellsChanged="minerListGrid_SelectedCellsChanged">
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Name="menuStartMiner" Header="启动" Click="menuStartMiner_Click"></MenuItem>
@@ -31,19 +31,33 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, Mode=TwoWay}" />
+                            <DataGridTextColumn Header="机器名" Binding="{Binding MachineName, Mode=OneWay}" />
+                            <DataGridTextColumn Header="矿机类别" Binding="{Binding InstanceType, Mode=OneWay}" />
+                            <DataGridTextColumn Header="矿机名称" Binding="{Binding MinerName, Mode=OneWay}" />
+                            <DataGridTextColumn Header="钱包地址" Binding="{Binding WalletAddress, Mode=OneWay}" />
+                            <DataGridTextColumn Header="安装状态" Binding="{Binding DeploymentStatus, Mode=OneWay}" />
+                            <DataGridTextColumn Header="运行状态" Binding="{Binding ServiceStatus, Mode=OneWay}" />
+                            <DataGridTextColumn Header="矿卡" Binding="{Binding DeviceName, Mode=OneWay}" />
+                            <DataGridTextColumn Header="当前算力" Binding="{Binding HashRate, Mode=OneWay}" />
+
+                            <!--<DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay}" /> -->
                         </DataGrid.Columns>
                     </DataGrid>
-                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="10,23,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
+                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="211,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
+                    <CheckBox x:Name="cbxSelectMiners" Content="全选" HorizontalAlignment="Left" Height="20" Margin="10,31,0,0" VerticalAlignment="Top" Width="54" IsThreeState="True" Checked="cbxSelectMiners_Checked" Unchecked="cbxSelectMiners_Unchecked"/>
                     <GridSplitter Height="2" Grid.Row="1" HorizontalAlignment="Stretch" Margin="0,0,0.333,0" ResizeDirection="Rows" />
                     <TabControl Grid.Row="2" Margin="10,10,10.333,10" >
                         <TabItem Name="tabMinerDescription" Header="描述" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
-                            <Grid Background="#FFE5E5E5"/>
+                            <Grid Background="#FFE5E5E5">
+                                <TextBox x:Name="txtTempOutput" Margin="10,0,10.333,10" TextWrapping="Wrap" Text="TextBox" Height="23" VerticalAlignment="Bottom"/>
+                            </Grid>
                         </TabItem>
                         <TabItem Name="tabMinerMonitor" Header="监控" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
                             <Grid Background="#FFE5E5E5"/>
                         </TabItem>
                     </TabControl>
-                    <xctk:SplitButton Name="btnMinerOperation" Content="操作矿机" Height="20" Width="95" Margin="128,23,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Opened="btnMinerOperation_Opened">
+                    <xctk:SplitButton Name="btnMinerOperation" Content="操作矿机" Height="20" Width="95" Margin="89,27,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Opened="btnMinerOperation_Opened">
                         <xctk:SplitButton.DropDownContent>
                             <Grid>
                                 <Button Name="operStartMiner" Content="启动" Height="20" Width="95" Margin="0,0,0,0" VerticalAlignment="Top" Click="operStartMiner_Click" />

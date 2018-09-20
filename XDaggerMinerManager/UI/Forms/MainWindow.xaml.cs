@@ -35,7 +35,9 @@ namespace XDaggerMinerManager.UI.Forms
 
         private MinerManager minerManager = null;
 
-        private ObservableCollection<MinerDataCell> minerListGridData = new ObservableCollection<MinerDataCell>();
+        private List<MinerDataCell> minerListGridData = new List<MinerDataCell>();
+
+        private ObservableCollection<MinerDataCell> minerListGridData2 = new ObservableCollection<MinerDataCell>();
 
         private bool isTimerRefreshingBusy = false;
 
@@ -64,29 +66,17 @@ namespace XDaggerMinerManager.UI.Forms
             addMinerWizard.ShowDialog();
         }
 
-        private void btnOperateMiner_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private void minerListGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            minerListGrid.ItemsSource = minerListGridData;
+            minerListGrid.AutoGenerateColumns = false;
             minerListGrid.AllowDrop = false;
             minerListGrid.CanUserAddRows = false;
             minerListGrid.CanUserDeleteRows = false;
             minerListGrid.CanUserResizeRows = false;
+            minerListGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
+            minerListGrid.ItemsSource = minerListGridData2;
+
             
-            foreach (DataGridColumn col in minerListGrid.Columns)
-            {
-                if (col.Header.ToString() == "MinerName")
-                {
-                    col.Visibility = Visibility.Collapsed;
-                }
-
-                col.Header = MinerDataCell.TranslateHeaderName(col.Header.ToString());
-                col.IsReadOnly = true;
-            }
-
             minerManager.ClientStatusChanged += MinerListGrid_StatusChanged;
         }
 
@@ -139,7 +129,7 @@ namespace XDaggerMinerManager.UI.Forms
         {
             UninstallSelectedMiner();
         }
-
+        
         private void btnLockScreen_Click(object sender, RoutedEventArgs e)
         {
             ManagerInfo info = ManagerInfo.Current;
@@ -163,7 +153,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void minerListGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+            List<MinerDataCell> selectedRows = GetSelectedRowsInDataGrid();
+            IEnumerable<MinerClient> selectedClients = selectedRows.Select(row => { return row.Client; });
 
             bool containsStartedMiner = false;
             bool containsStoppedMiner = false;
@@ -216,25 +207,49 @@ namespace XDaggerMinerManager.UI.Forms
         {
             this.Title = string.Format("XDagger Miner Manager Platform ({0})", minerManager.Version);
 
+            foreach (MinerClient client in minerManager.ClientList)
+            {
+                minerListGridData.Add(new MinerDataCell(client));
+                minerListGridData2.Add(new MinerDataCell(client));
+            }
+
             RefreshMinerListGrid();
+            RefreshMinerOperationButtonState();
+
         }
 
         private void RefreshMinerListGrid()
         {
+            // Ensure to bind the data
+            if (minerListGridData.Count > 0 && minerListGrid.ItemsSource == null)
+            {
+                //minerListGrid.ItemsSource = minerListGridData;
+            }
+            
+            minerListGrid.Items.Refresh();
+
+            /*
             int savedSelectedIndex = minerListGrid.SelectedIndex;
 
             minerListGridData.Clear();
+            //// minerListGrid.Items.Clear();
 
-            double totalHashrate = 0;
             foreach (MinerClient client in minerManager.ClientList)
             {
                 totalHashrate += client.CurrentHashRate;
                 minerListGridData.Add(new MinerDataCell(client));
+                //// minerListGrid.Items.Add(new MinerDataCell(client));
             }
-
+            
             if (savedSelectedIndex >= 0)
             {
                 minerListGrid.SelectedIndex = savedSelectedIndex;
+            }
+            */
+            double totalHashrate = 0;
+            foreach (MinerClient client in minerManager.ClientList)
+            {
+                totalHashrate += client.CurrentHashRate;
             }
 
             int totalClient = minerManager.ClientList.Count;
@@ -254,6 +269,8 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             minerManager.AddClient(args.CreatedMiner);
+            minerListGridData.Add(new MinerDataCell(args.CreatedMiner));
+
             RefreshMinerListGrid();
         }
 
@@ -268,16 +285,19 @@ namespace XDaggerMinerManager.UI.Forms
 
             try
             {
-                bool shouldRefreshUI = false;
-                foreach (MinerClient client in this.minerManager.ClientList)
-                {
-                    shouldRefreshUI |= client.RefreshStatus();
-                    client.ResetStatusChanged();
-                }
+                    bool shouldRefreshUI = false;
+                    foreach (MinerClient client in this.minerManager.ClientList)
+                    {
+                        shouldRefreshUI |= client.RefreshStatus();
+                        client.ResetStatusChanged();
+                    }
 
                 if (shouldRefreshUI)
                 {
-                    this.Dispatcher.Invoke(() => RefreshMinerListGrid());
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        RefreshMinerListGrid();
+                    });
                 }
             }
             catch (Exception ex)
@@ -345,18 +365,18 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+            //List<MinerClient> selectedClients = GetSelectedClientsInDataGrid();
+            List<MinerDataCell> selectedRows = GetSelectedRowsInDataGrid();
+
             ProgressWindow progress = new ProgressWindow("正在卸载矿机...",
                 () => {
-                    MinerClient c = selectedClients.FirstOrDefault();
+                    MinerDataCell row = selectedRows.FirstOrDefault();
+                    MinerClient c = row?.Client;
                     if (c != null)
                     {
                         try
                         {
                             OKResult r = c.ExecuteDaemon<OKResult>("-s uninstall");
-
-                            // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
-                            System.Threading.Thread.Sleep(3000);
 
                             c.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
                             c.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
@@ -371,8 +391,12 @@ namespace XDaggerMinerManager.UI.Forms
                         }
                         finally
                         {
+                            // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
+                            System.Threading.Thread.Sleep(5000);
+
                             // Removing client from ObjectModel first, and then Delete binaries might throw IO exception which should be ignored
                             minerManager.RemoveClient(c);
+                            minerListGridData.Remove(row);
 
                             c.DeleteBinaries();
                         }
@@ -395,7 +419,44 @@ namespace XDaggerMinerManager.UI.Forms
                 });
             progress.ShowDialog();
         }
-        
+
+
+        private void RefreshMinerOperationButtonState()
+        {
+            List<MinerDataCell> selectedRows = GetSelectedRowsInDataGrid();
+
+            this.btnMinerOperation.IsEnabled = (selectedRows.Count > 0);
+            this.operUninstallMiner.IsEnabled = (selectedRows.Count > 0);
+
+            if (selectedRows.Count <= 0)
+            {
+                this.operStartMiner.IsEnabled = false;
+                this.operStopMiner.IsEnabled = false;
+                return;
+            }
+            
+            bool containsStartedMiner = false;
+            bool containsStoppedMiner = false;
+            bool containsNotReadyMiner = false;
+
+            foreach (MinerClient client in selectedRows.Select(row => row.Client))
+            {
+                containsStartedMiner |= client.IsServiceStatusRunning();
+                containsStoppedMiner |= !client.IsServiceStatusRunning();
+                containsNotReadyMiner |= (client.CurrentDeploymentStatus != MinerClient.DeploymentStatus.Ready);
+            }
+
+            this.operStartMiner.IsEnabled = !containsNotReadyMiner && containsStoppedMiner;
+            this.operStopMiner.IsEnabled = !containsNotReadyMiner && containsStartedMiner;
+            
+
+        }
+
+        private List<MinerDataCell> GetSelectedRowsInDataGrid()
+        {
+            return this.minerListGridData2.Where(row => row.IsSelected).ToList();
+        }
+
         private List<MinerClient> GetSelectedClientsInDataGrid()
         {
             List<MinerClient> selectedClients = new List<MinerClient>();
@@ -420,5 +481,32 @@ namespace XDaggerMinerManager.UI.Forms
         }
 
         #endregion
+
+        private void cbxSelectMiners_Checked(object sender, RoutedEventArgs e)
+        {
+            foreach(MinerDataCell cell in minerListGridData2)
+            {
+                cell.IsSelected = true;
+            }
+            this.minerListGrid.Items.Refresh();
+
+            RefreshMinerOperationButtonState();
+        }
+
+        private void cbxSelectMiners_Unchecked(object sender, RoutedEventArgs e)
+        {
+            foreach (MinerDataCell cell in minerListGridData2)
+            {
+                cell.IsSelected = false;
+            }
+            this.minerListGrid.Items.Refresh();
+
+            RefreshMinerOperationButtonState();
+        }
+
+        private void minerListGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            RefreshMinerOperationButtonState();
+        }
     }
 }
