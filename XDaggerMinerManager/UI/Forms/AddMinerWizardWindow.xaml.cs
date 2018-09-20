@@ -588,8 +588,14 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            string walletAddress = txtWalletAddress.Text;
+            string poolAddress = txtXDaggerPoolAddress.Text;
+            if (string.IsNullOrWhiteSpace(poolAddress))
+            {
+                MessageBox.Show("请输入矿池地址");
+                return;
+            }
 
+            string walletAddress = txtWalletAddress.Text;
             if (string.IsNullOrWhiteSpace(walletAddress))
             {
                 MessageBox.Show("请输入钱包地址");
@@ -610,9 +616,10 @@ namespace XDaggerMinerManager.UI.Forms
                 },
                 () => {
 
-                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'XDaggerWallet':'{1}', 'AutoDecideInstanceId':true }}\"", 
+                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'XDaggerWallet':'{1}', 'XDaggerPoolAddress':'{2}', 'AutoDecideInstanceId':true }}\"", 
                         selectedDevice.DeviceId, 
-                        walletAddress);
+                        walletAddress,
+                        poolAddress);
 
                     ConfigureOutput exeResult = createdClient.ExecuteDaemon<ConfigureOutput>(commandParameters);
                     return exeResult.InstanceId;
