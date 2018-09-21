@@ -11,7 +11,7 @@ namespace XDaggerMinerManager.UI
     /// <summary>
     /// 
     /// </summary>
-    public class MinerDataCell : INotifyPropertyChanged
+    public class MinerDataGridItem : INotifyPropertyChanged
     {
         private MinerClient clientObject = null;
 
@@ -134,12 +134,12 @@ namespace XDaggerMinerManager.UI
             }
         }
 
-        public MinerDataCell()
+        public MinerDataGridItem()
         {
 
         }
 
-        public MinerDataCell(MinerClient clientObject)
+        public MinerDataGridItem(MinerClient clientObject)
         {
             this.clientObject = clientObject ?? throw new ArgumentNullException("MinerClient");
         }

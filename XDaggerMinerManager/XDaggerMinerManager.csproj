@@ -113,7 +113,7 @@
     <Compile Include="UI\Forms\SetPasswordWindow.xaml.cs">
       <DependentUpon>SetPasswordWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\MinerDataCell.cs" />
+    <Compile Include="UI\MinerDataGridItem.cs" />
     <Compile Include="Utils\BackgroundWork.cs" />
     <Compile Include="Utils\CustomWebClient.cs">
       <SubType>Component</SubType>
