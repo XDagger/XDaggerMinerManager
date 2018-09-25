@@ -13,6 +13,8 @@ namespace XDaggerMinerManager.ObjectModel
     {
         private static MinerManager instance = null;
 
+        private Logger logger = Logger.GetInstance();
+
         public event EventHandler ClientStatusChanged;
 
         public static MinerManager GetInstance()
@@ -28,6 +30,8 @@ namespace XDaggerMinerManager.ObjectModel
 
         private MinerManager()
         {
+            logger.Trace("Initializing MinerManager.");
+
             ClientList = new List<MinerClient>();
             this.Version = ManagerConfig.Current.Version;
         }
@@ -44,47 +48,27 @@ namespace XDaggerMinerManager.ObjectModel
 
         public void SaveCurrentInfo()
         {
+            logger.Information("Start SaveCurrentInfo.");
+
             ManagerInfo.Current.Clients = this.ClientList;
             ManagerInfo.Current.SaveToFile();
-
-            /*
-            var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var directoryPath = Path.GetDirectoryName(location);
-
-            using (StreamWriter sw = new StreamWriter(Path.Combine(directoryPath, defaultInfoFileName)))
-            {
-                ManagerInfo info = new ManagerInfo();
-                info.Clients = this.ClientList;
-
-                string content = JsonConvert.SerializeObject(info, Formatting.Indented);
-                sw.Write(content);
-            }
-            */
         }
 
         public void LoadCurrentInfo()
         {
+            logger.Information("Start LoadCurrentInfo.");
+
             ManagerInfo info = ManagerInfo.Load();
             this.ClientList = info.Clients;
-
-            /*
-            var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var directoryPath = Path.GetDirectoryName(location);
-
-            using (StreamReader sr = new StreamReader(Path.Combine(directoryPath, defaultInfoFileName)))
-            {
-                string jsonString = sr.ReadToEnd();
-                ManagerInfo info = JsonConvert.DeserializeObject<ManagerInfo>(jsonString);
-
-                this.ClientList = info.Clients;
-            }
-            */
         }
 
         public void AddClient(MinerClient client)
         {
+            logger.Information("Start AddClient.");
+
             if (client == null)
             {
+                logger.Error("New Client should not be null");
                 throw new ArgumentNullException("New Client should not be null");
             }
 
@@ -95,6 +79,14 @@ namespace XDaggerMinerManager.ObjectModel
 
         public void RemoveClient(MinerClient client)
         {
+            logger.Information("Start AddClient.");
+
+            if (client == null)
+            {
+                logger.Error("Client should not be null");
+                throw new ArgumentNullException("Client should not be null");
+            }
+
             this.ClientList.Remove(client);
             this.SaveCurrentInfo();
         }

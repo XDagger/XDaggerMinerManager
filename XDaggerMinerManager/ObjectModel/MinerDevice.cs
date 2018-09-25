@@ -35,6 +35,5 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; private set;
         }
-
     }
 }

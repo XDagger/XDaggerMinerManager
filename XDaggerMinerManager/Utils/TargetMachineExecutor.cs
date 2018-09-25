@@ -14,6 +14,8 @@ namespace XDaggerMinerManager.Utils
     {
         protected string credentialUsername = string.Empty;
 
+        protected Logger logger = Logger.GetInstance();
+
         protected SecureString credentialPassword = null;
 
         public TargetMachineExecutor()
@@ -62,6 +64,8 @@ namespace XDaggerMinerManager.Utils
 
         public T ExecuteCommandAndThrow<T>(string commandFullLine, string arguments = "")
         {
+            logger.Trace($"ExecuteCommand: [{commandFullLine}] with arguments [{arguments}]");
+
             string resultString = ExecuteCommand(commandFullLine, arguments);
 
             return ParseOutput<T>(resultString);

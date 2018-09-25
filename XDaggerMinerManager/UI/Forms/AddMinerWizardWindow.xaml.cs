@@ -50,6 +50,8 @@ namespace XDaggerMinerManager.UI.Forms
         
         private List<Control> freezedControlList = new List<Control>();
 
+        private Logger logger = Logger.GetInstance();
+
         private ManagerConfig managerConfig = ManagerConfig.Current;
 
         private void OnMinerCreated(EventArgs e)
@@ -66,6 +68,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         public AddMinerWizardWindow()
         {
+            logger.Trace("AddMinerWizardWindow Initializing components.");
+
             InitializeComponent();
             
             this.txtTargetPath.Text = managerConfig.DefaultInstallationPath;
@@ -73,6 +77,8 @@ namespace XDaggerMinerManager.UI.Forms
             this.txtTargetUserPassword.Password = managerConfig.DefaultPassword;
 
             InitializeEthPoolAddresses();
+
+            logger.Trace("AddMinerWizardWindow Initialized components.");
         }
 
         public MinerClient CreatedClient
@@ -106,10 +112,14 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 e.Cancel = true;
             }
+
+            logger.Trace("AddMinerWizardWindow Closed by user.");
         }
 
         private void btnStepOneNext_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepOneNext Clicked.");
+
             string targetMachineName = txtMachineName.Text?.Trim();
             string targetMachinePath = txtTargetPath.Text?.Trim();
             string targetMachineUserName = txtTargetUserName.Text?.Trim();
@@ -132,54 +142,71 @@ namespace XDaggerMinerManager.UI.Forms
         
         private void btnStepTwoNext_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepTwoNext Clicked.");
+
             StepTwo_DownloadPackage();
         }
 
         private void btnStepThreeXDaggerNext_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepThreeXDaggerNext Clicked.");
+
             // Choose the selected device and update the client config
             StepThree_ConfigXDaggerMiner();
         }
 
         private void btnStepThreeEthNext_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepThreeEthNext Clicked.");
+
             // Choose the selected device and update the client config
             StepThree_ConfigEthMiner();
         }
 
         private void btnStepTwoBack_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepTwoBack Clicked.");
+
             SwitchUIToStep(1);
         }
 
         private void btnStepThreeBack_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepThreeBack Clicked.");
+
             SwitchUIToStep(2);
         }
 
         private void btnStepFourBack_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepFourBack Clicked.");
+
             SwitchUIToStep(3);
         }
 
         private void btnStepFourFinish_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepFourFinish Clicked.");
+
             // Config the miner and start
             StepFour_SetupMiner();
         }
 
         private void btnStepOneBrowse_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("btnStepOneBrowse Clicked.");
+
             BrowseNetworkWindow browseNetworkWindow = new BrowseNetworkWindow();
             browseNetworkWindow.SetResultHandler(minerMachine =>
                 { this.txtMachineName.Text = minerMachine?.FullMachineName; });
 
             browseNetworkWindow.ShowDialog();
-
         }
 
         private void cBxTargetEthPool_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            logger.Trace("cBxTargetEthPool_SelectionChanged.");
+
             cBxTargetEthPoolHost.Items.Clear();
             if (cBxTargetEthPool.SelectedIndex < 0 || cBxTargetEthPool.SelectedIndex >= EthMinerPoolHelper.PoolHostUrls.Count)
             {
@@ -194,6 +221,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void InitializeEthPoolAddresses()
         {
+            logger.Trace("InitializeEthPoolAddresses.");
+
             cBxTargetEthPool.Items.Clear();
             foreach(string ethPoolName in EthMinerPoolHelper.PoolDisplayNames)
             {
@@ -209,6 +238,8 @@ namespace XDaggerMinerManager.UI.Forms
         /// <param name="step"></param>
         private void SwitchUIToStep(int step)
         {
+            logger.Trace("SwitchUIToStep: " + step);
+
             grdStepOne.Visibility = Visibility.Hidden;
             grdStepTwo.Visibility = Visibility.Hidden;
             grdStepThreeXDagger.Visibility = Visibility.Hidden;
@@ -266,15 +297,17 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 StepThree_RetrieveDeviceList();
             }
-
         }
 
         #region Private Component Level Methods
 
         private void StepOne_ValidateTargetMachine()
         {
+            logger.Trace("Start StepOne_ValidateTargetMachine");
+
             if (createdClient == null)
             {
+                logger.Warning("createdClient is null.");
                 return;
             }
 
@@ -307,7 +340,10 @@ namespace XDaggerMinerManager.UI.Forms
                     HideProgressIndicator();
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("无法连接到目标机器:" + createdClient.Machine?.FullMachineName + taskResult.Exception.ToString());
+                        string errorMessage = string.Format(@"[{0}] {1}", createdClient.Machine?.FullMachineName, taskResult.Exception.ToString());
+                        MessageBox.Show("无法连接到目标机器:" + errorMessage);
+                        logger.Error("Error: " + errorMessage);
+
                         return;
                     }
 
@@ -323,19 +359,29 @@ namespace XDaggerMinerManager.UI.Forms
         /// </summary>
         private void StepOne_ValidateTargetPath()
         {
-            if (!System.IO.Directory.Exists(createdClient.GetRemoteDeploymentPath()))
+            logger.Trace("Start StepOne_ValidateTargetPath.");
+
+            if (!Directory.Exists(createdClient.GetRemoteDeploymentPath()))
             {
+                logger.Trace($"Trying to create directory {createdClient.GetRemoteDeploymentPath()}");
                 try
                 {
-                    System.IO.Directory.CreateDirectory(createdClient.GetRemoteDeploymentPath());
+                    Directory.CreateDirectory(createdClient.GetRemoteDeploymentPath());
+                    logger.Trace($"Directory {createdClient.GetRemoteDeploymentPath()} created.");
                 }
                 catch (UnauthorizedAccessException unauthException)
                 {
                     // TODO Handle Exception
+                    logger.Error("Got UnauthorizedAccessException: " + unauthException.ToString());
+
+                    // Enable the UI
+                    btnStepOneNext.IsEnabled = true;
+                    return;
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("目标路径错误：" + ex.ToString());
+                    logger.Error("Got Exception while creating directory: " + ex.ToString());
 
                     // Enable the UI
                     btnStepOneNext.IsEnabled = true;
@@ -343,9 +389,10 @@ namespace XDaggerMinerManager.UI.Forms
                 }
             }
 
-            if (System.IO.Directory.Exists(createdClient.GetRemoteBinaryPath()))
+            if (Directory.Exists(createdClient.GetRemoteBinaryPath()))
             {
                 MessageBox.Show("目标路径下已经存在矿机，请删除或更新");
+                logger.Information("目标路径下已经存在矿机，请删除或更新");
 
                 // Enable the UI
                 btnStepOneNext.IsEnabled = true;
@@ -358,6 +405,7 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在扫描已存在矿机", btnStepOneNext);
                 },
                 () => {
+                    logger.Trace("Start scanning existing services on target machine.");
                     return ServiceUtils.HasExistingService(createdClient.Machine?.FullMachineName);
                 },
                 (taskResult) => {
@@ -366,15 +414,19 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("扫描目标机器错误：" + taskResult.Exception.ToString());
+                        logger.Error("Scann finished with error: " + taskResult.Exception.ToString());
                         return;
                     }
                     bool hasExistingService = taskResult.Result;
 
                     if (hasExistingService)
                     {
+                        logger.Warning("Scann finished miner instance found.");
+
                         MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
                         if (result == MessageBoxResult.No)
                         {
+                            logger.Information("User cancelled while prompting install new instance.");
                             btnStepOneNext.IsEnabled = true;
                             return;
                         }
@@ -384,12 +436,12 @@ namespace XDaggerMinerManager.UI.Forms
                     SwitchUIToStep(2);
                 }
                 ).Execute();
-
-            
         }
 
         private void StepTwo_RetrieveMinerVersions()
         {
+            logger.Trace("Start StepTwo_RetrieveMinerVersions.");
+
             WinMinerReleaseVersions releaseVersions = null;
 
             // Check all Versions
@@ -408,8 +460,11 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         HideProgressIndicator();
                         MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.ToString());
+                        logger.Error("GetVersionInfo failed with exception: " + taskResult.Exception.ToString());
                         return;
                     }
+
+                    logger.Information($"GetVersionInfo got release version with lastest={ releaseVersions.Latest }.");
 
                     // Update the version list
                     cBxTargetVersion.Items.Clear();
@@ -427,15 +482,22 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepTwo_DownloadPackage()
         {
+            logger.Trace("Start StepTwo_DownloadPackage.");
+
             string version = this.cBxTargetVersion.Text;
             if (string.IsNullOrEmpty(version))
             {
                 MessageBox.Show("请选择一个版本");
+                logger.Warning("Need to select one version to proceed.");
+
                 return;
             }
 
             createdClient.Version = version;
             createdClient.InstanceType = this.cBxTargetInstanceType.Text;
+
+            logger.Information($"Selected version: {createdClient.Version}.");
+            logger.Information($"Selected instance type: {createdClient.InstanceType}.");
 
             winMinerBinary = new WinMinerReleaseBinary(version);
 
@@ -454,6 +516,7 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         HideProgressIndicator();
                         MessageBox.Show("下载过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while downloading package: " + taskResult.Exception.ToString());
                     }
                     else
                     {
@@ -465,6 +528,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepTwo_ExtractPackage()
         {
+            logger.Trace("Start StepTwo_ExtractPackage.");
+
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
@@ -480,6 +545,7 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         HideProgressIndicator();
                         MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while extracting: " + taskResult.Exception.ToString());
                     }
                     else
                     {
@@ -491,6 +557,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepTwo_CopyBinary()
         {
+            logger.Trace("Start StepTwo_CopyBinary.");
+
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
@@ -501,6 +569,10 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
                     }
+                    else
+                    {
+                        logger.Information($"Directory {createdClient.GetRemoteBinaryPath()} already exists, so skip copying.");
+                    }
 
                     return 0;
                 },
@@ -510,6 +582,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("拷贝过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while copying binaries: " + taskResult.Exception.ToString());
                     }
                     else
                     {
@@ -523,6 +596,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepThree_RetrieveDeviceList()
         {
+            logger.Trace("Start StepThree_RetrieveDeviceList.");
+
             txtWalletAddress.Text = ManagerConfig.Current.DefaultXDaggerWallet;
             txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEthWallet;
             txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEthEmail;
@@ -553,6 +628,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
+                        logger.Error("ExecuteCommand failed: " + taskResult.Exception.ToString());
                         return;
                     }
                     List<DeviceOutput> devices = taskResult.Result;
@@ -560,11 +636,13 @@ namespace XDaggerMinerManager.UI.Forms
                     if (devices == null || devices.Count == 0)
                     {
                         MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
+                        logger.Warning("没有找到任何满足条件的硬件，请检查目标机器配置");
                         return;
                     }
 
                     cBxTargetDevice.Items.Clear();
                     cBxTargetDeviceEth.Items.Clear();
+                    logger.Trace("Got Devices count: " + devices.Count);
                     foreach (DeviceOutput deviceOut in devices)
                     {
                         MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
@@ -581,6 +659,8 @@ namespace XDaggerMinerManager.UI.Forms
         /// </summary>
         private void StepThree_ConfigXDaggerMiner()
         {
+            logger.Trace("Start StepThree_ConfigXDaggerMiner.");
+
             MinerDevice selectedDevice = (cBxTargetDevice.SelectedIndex >= 0) ? displayedDeviceList.ElementAt(cBxTargetDevice.SelectedIndex) : null;
             if (selectedDevice == null)
             {
@@ -622,6 +702,8 @@ namespace XDaggerMinerManager.UI.Forms
                         poolAddress);
 
                     ConfigureOutput exeResult = createdClient.ExecuteDaemon<ConfigureOutput>(commandParameters);
+
+                    logger.Trace("ConfigureCommand finished with InstanceId: " + exeResult.InstanceId);
                     return exeResult.InstanceId;
                 },
                 (taskResult) => {
@@ -631,6 +713,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
+                        logger.Error("ConfigureCommand failed: " + taskResult.Exception.ToString());
                         return;
                     }
 
@@ -657,6 +740,8 @@ namespace XDaggerMinerManager.UI.Forms
         /// </summary>
         private void StepThree_ConfigEthMiner()
         {
+            logger.Trace("Start StepThree_ConfigEthMiner.");
+
             MinerDevice selectedDevice = (cBxTargetDeviceEth.SelectedIndex >= 0) ? displayedDeviceList.ElementAt(cBxTargetDeviceEth.SelectedIndex) : null;
             if (selectedDevice == null)
             {
@@ -707,6 +792,7 @@ namespace XDaggerMinerManager.UI.Forms
             catch (Exception ex)
             {
                 MessageBox.Show("配置矿机出现错误：" + ex.ToString());
+                logger.Error("GeneratePoolAddress failed: " + ex.ToString());
                 return;
             }
 
@@ -731,6 +817,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
+                        logger.Error("ConfigureCommand failed: " + taskResult.Exception.ToString());
                         return;
                     }
 
@@ -757,6 +844,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepFour_SetupMiner()
         {
+            logger.Trace("Start StepFour_SetupMiner.");
+
             // Install the Service
             BackgroundWork<int>.CreateWork(
                 this,
@@ -764,7 +853,7 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在安装矿机服务", btnStepFourFinish, btnStepFourBack);
                 },
                 () => {
-                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>("-s Install");
+                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>("-s install");
                     
                     return 0;
                 },
@@ -775,6 +864,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("安装矿机出现错误：" + taskResult.Exception.ToString());
+                        logger.Error("Error while installing miner: " + taskResult.Exception.ToString());
                         return;
                     }
 
@@ -794,13 +884,15 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepFour_StartMiner()
         {
+            logger.Trace("Start StepFour_StartMiner.");
+            
             BackgroundWork<int>.CreateWork(
                 this,
                 () => {
                     ShowProgressIndicator("正在启动矿机服务", btnStepFourFinish, btnStepFourBack);
                 },
                 () => {
-                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>("-s Start");
+                    OKResult exeResult = createdClient.ExecuteDaemon<OKResult>("-s start");
                     
                     return 0;
                 },
@@ -811,6 +903,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.ToString());
+                        logger.Error("Got error while starting miner: " + taskResult.Exception.ToString());
                         createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                     }
                     else
@@ -825,6 +918,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StepFour_Finish()
         {
+            logger.Trace("Start StepFour_Finish.");
+
             MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClient);
             this.OnMinerCreated(ev);
 
@@ -834,6 +929,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void ShowProgressIndicator(string progressMesage, params Control[] controlList)
         {
+            logger.Trace("Start ShowProgressIndicator.");
+
             lblProgressMessage.Content = progressMesage;
             prbIndicator.IsIndeterminate = true;
 
@@ -851,6 +948,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void HideProgressIndicator()
         {
+            logger.Trace("Start HideProgressIndicator.");
+
             lblProgressMessage.Content = string.Empty;
             prbIndicator.IsIndeterminate = false;
 
@@ -863,13 +962,9 @@ namespace XDaggerMinerManager.UI.Forms
             freezedControlList.Clear();
         }
 
-
         #endregion
-
-        
     }
-
-
+    
     public class MinerCreatedEventArgs : EventArgs
     {
         public MinerClient CreatedMiner
@@ -882,5 +977,4 @@ namespace XDaggerMinerManager.UI.Forms
             this.CreatedMiner = client;
         }
     }
-
 }

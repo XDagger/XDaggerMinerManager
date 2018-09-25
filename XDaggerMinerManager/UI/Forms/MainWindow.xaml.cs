@@ -39,15 +39,21 @@ namespace XDaggerMinerManager.UI.Forms
 
         private bool isTimerRefreshingBusy = false;
 
+        private Logger logger = Logger.GetInstance();
+
         private static readonly string MinerStatisticsSummaryTemplate = @"当前矿机数：{0}台  上线：{1}台  下线：{2}台  主算力：{3:0.000} Mps";
 
         #endregion
 
         public MainWindow()
         {
+            logger.Trace("Initializing MainWindow.");
+
             InitializeComponent();
             minerManager = MinerManager.GetInstance();
             InitializeUIData();
+
+            logger.Trace("Initialized MainWindow.");
         }
 
         #region UI Control Operation
@@ -123,8 +129,11 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void InitializeUIData()
         {
+            logger.Trace("Start InitializeUIData.");
+
             this.Title = string.Format("XDagger Miner Manager Platform ({0})", minerManager.Version);
 
+            logger.Trace($"Retrieving MinerClients from MinerManager. Totally { minerManager.ClientList.Count } clients.");
             foreach (MinerClient client in minerManager.ClientList)
             {
                 minerListGridItems.Add(new MinerDataGridItem(client));
@@ -132,6 +141,8 @@ namespace XDaggerMinerManager.UI.Forms
 
             RefreshMinerListGrid();
             RefreshMinerOperationButtonState();
+
+            logger.Trace("End InitializeUIData.");
         }
 
         private void RefreshMinerListGrid()
@@ -153,6 +164,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         public void OnMinerCreated(object sender, EventArgs e)
         {
+            logger.Trace("Start OnMinerCreated.");
+
             MinerCreatedEventArgs args = e as MinerCreatedEventArgs;
 
             if (args == null || args.CreatedMiner == null)
@@ -164,6 +177,8 @@ namespace XDaggerMinerManager.UI.Forms
             minerListGridItems.Add(new MinerDataGridItem(args.CreatedMiner));
 
             RefreshMinerListGrid();
+
+            logger.Trace("End OnMinerCreated.");
         }
 
         private void OnTimerRefresh(object sender, ElapsedEventArgs e)
@@ -197,8 +212,9 @@ namespace XDaggerMinerManager.UI.Forms
                     });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.Error("Exception while refreshing client status: " + ex.ToString());
                 // Temporary swallow all exceptions
             }
             finally
@@ -209,6 +225,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StartSelectedMiner()
         {
+            logger.Trace("Start StartSelectedMiner.");
+
             List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
             if(minerDataGridItems.Count == 0)
             {
@@ -230,6 +248,11 @@ namespace XDaggerMinerManager.UI.Forms
                     if (result.HasError)
                     {
                         MessageBox.Show("错误：" + result.Exception.ToString());
+                        logger.Error("Got Error while starting miner: " + result.Exception.ToString());
+                    }
+                    else
+                    {
+                        logger.Trace("Miner started.");
                     }
 
                     this.RefreshMinerListGrid();
@@ -240,6 +263,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void StopSelectedMiner()
         {
+            logger.Trace("Start StopSelectedMiner.");
+
             List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
             if (minerDataGridItems.Count == 0)
             {
@@ -261,6 +286,11 @@ namespace XDaggerMinerManager.UI.Forms
                     if (result.HasError)
                     {
                         MessageBox.Show("错误：" + result.Exception.ToString());
+                        logger.Error("Got Error while stoping miner: " + result.Exception.ToString());
+                    }
+                    else
+                    {
+                        logger.Trace("Miner stopped.");
                     }
 
                     this.RefreshMinerListGrid();
@@ -271,6 +301,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void UninstallSelectedMiner()
         {
+            logger.Trace("Start StopSelectedMiner.");
             List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
             if (minerDataGridItems.Count == 0)
             {
@@ -298,10 +329,13 @@ namespace XDaggerMinerManager.UI.Forms
                         selectedClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
                         selectedClient.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         selectedClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Unknown;
                         selectedClient.CurrentServiceStatus = MinerClient.ServiceStatus.Unknown;
+
+                        logger.Error("Got Error while uninstalling miner service: " + ex.ToString());
+
                         throw;
                     }
                     finally
@@ -317,10 +351,12 @@ namespace XDaggerMinerManager.UI.Forms
                         if (result.Exception is IOException)
                         {
                             MessageBox.Show("删除矿机目录错误，请到矿机目录下手动删除矿机文件。详细信息：" + result.Exception.ToString());
+                            logger.Error("Got error while uninstalling miner with IOException: " + result.Exception.ToString());
                         }
                         else
                         {
                             MessageBox.Show("错误：" + result.Exception.ToString());
+                            logger.Error("Something wrong while uninstalling miner: " + result.Exception.ToString());
                         }
                     }
 
@@ -371,6 +407,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void cbxSelectMiners_Checked(object sender, RoutedEventArgs e)
         {
+            logger.Trace("cbxSelectMiners_Checked");
+
             cbxSelectMiners.IsThreeState = false;
             foreach (MinerDataGridItem cell in minerListGridItems)
             {
@@ -383,6 +421,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void cbxSelectMiners_Unchecked(object sender, RoutedEventArgs e)
         {
+            logger.Trace("cbxSelectMiners_Unchecked");
+
             cbxSelectMiners.IsThreeState = false;
             foreach (MinerDataGridItem cell in minerListGridItems)
             {
@@ -393,8 +433,10 @@ namespace XDaggerMinerManager.UI.Forms
             RefreshMinerOperationButtonState();
         }
 
-        private void minerListGridItems_Chick(object sender, RoutedEventArgs e)
+        private void minerListGridItems_IsSelected_CheckChanged(object sender, RoutedEventArgs e)
         {
+            logger.Trace("minerListGridItems_IsSelected_CheckChanged");
+
             bool isAllSelected = true;
             bool isAllUnselected = true;
 
@@ -417,39 +459,12 @@ namespace XDaggerMinerManager.UI.Forms
 
             RefreshMinerOperationButtonState();
         }
-
-        private void minerListGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
-        {
-            bool isAllSelected = true;
-            bool isAllUnselected = true;
-
-            foreach (MinerDataGridItem cell in minerListGridItems)
-            {
-                isAllSelected &= cell.IsSelected;
-                isAllUnselected &= !cell.IsSelected;
-            }
-
-            if (isAllSelected || isAllUnselected)
-            {
-                cbxSelectMiners.IsThreeState = false;
-                cbxSelectMiners.IsChecked = isAllSelected;
-            }
-            else
-            {
-                cbxSelectMiners.IsChecked = null;
-            }
-            
-            RefreshMinerOperationButtonState();
-        }
-
+        
         private void cbxSelectMiners_Click(object sender, RoutedEventArgs e)
         {
+            logger.Trace("cbxSelectMiners_Click");
+
             cbxSelectMiners.IsThreeState = false;
-        }
-
-        private void minerListGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
         }
     }
 }

@@ -11,7 +11,7 @@
         Title="XDagger Miner Management Platform" Height="545.7" Width="924.667" Loaded="Window_Loaded">
     <Window.Resources>
         <DataTemplate x:Key="IsSelectedColumnTemplate">
-            <CheckBox IsChecked="{Binding Path=IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="minerListGridItems_Chick" Unchecked="minerListGridItems_Chick" />
+            <CheckBox IsChecked="{Binding Path=IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="minerListGridItems_IsSelected_CheckChanged" Unchecked="minerListGridItems_IsSelected_CheckChanged" />
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -26,7 +26,7 @@
                         <RowDefinition Height="2" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" ItemsSource="{Binding}" Loaded="minerListGrid_Loaded" SelectionChanged="minerListGrid_SelectionChanged">
+                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" ItemsSource="{Binding}" Loaded="minerListGrid_Loaded">
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Header="选择" CellTemplate="{StaticResource IsSelectedColumnTemplate}" />
                             <!--<DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />-->
