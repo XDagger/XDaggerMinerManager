@@ -23,6 +23,7 @@ using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Security;
+using System.Web;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -465,6 +466,18 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("cbxSelectMiners_Click");
 
             cbxSelectMiners.IsThreeState = false;
+        }
+
+        private void btnSendWalsonReport_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult r = MessageBox.Show("确定要发送错误日志信息给开发人员吗？（不会泄露个人信息）", "确认", MessageBoxButton.YesNo);
+            if (r == MessageBoxResult.No)
+            {
+                return;
+            }
+
+            WatsonWindow watsonWindow = new WatsonWindow();
+            watsonWindow.ShowDialog();
         }
     }
 }

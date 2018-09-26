@@ -86,8 +86,9 @@
                     <TextBox x:Name="textBox1" Margin="457,54,24,78" TextWrapping="Wrap" Text="Windows Version:" IsEnabled="False"/>
                     <Label x:Name="lblSystemInfo" Content="操作系统版本信息：" HorizontalAlignment="Left" Margin="449,22,0,0" VerticalAlignment="Top" Width="146"/>
                     <Label x:Name="lblSystemInfo_Copy" Content="当前管理平台版本信息：" HorizontalAlignment="Left" Margin="27,22,0,0" VerticalAlignment="Top" Width="217"/>
-                    <TextBox x:Name="textBox1_Copy" Margin="32,53,561,139" TextWrapping="Wrap" Text="XDaggerMinerManager Version:" IsEnabled="False"/>
-                    <Button x:Name="button" Content="检查更新" HorizontalAlignment="Left" Margin="200,325,0,0" VerticalAlignment="Top" Width="142" Height="43"/>
+                    <TextBox x:Name="textBox1_Copy" Margin="32,53,0,139" TextWrapping="Wrap" Text="XDaggerMinerManager Version:" IsEnabled="False" HorizontalAlignment="Left" Width="383"/>
+                    <Button x:Name="btCheckUpdate" Content="检查更新" HorizontalAlignment="Left" Margin="237,325,0,0" VerticalAlignment="Top" Width="178" Height="43"/>
+                    <Button x:Name="btnSendWalsonReport" Content="发送错误报告" HorizontalAlignment="Left" Margin="32,325,0,0" VerticalAlignment="Top" Width="182" Height="43" Click="btnSendWalsonReport_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

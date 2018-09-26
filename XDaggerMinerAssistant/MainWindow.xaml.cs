@@ -96,7 +96,7 @@ namespace XDaggerMinerAssistant
                 {
                     TryUninstallService(serviceName);
                 }
-                catch(Exception)
+                catch(Exception ex)
                 {
 
                 }
@@ -110,7 +110,7 @@ namespace XDaggerMinerAssistant
                     {
                         TryUninstallService(string.Format(serviceNameTemplate, i), i.ToString());
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
 
                     }
