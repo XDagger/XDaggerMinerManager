@@ -103,6 +103,11 @@ namespace XDaggerMinerManager.UI.Forms
             UninstallSelectedMiner();
         }
         
+        private void operUpdateMiner_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSelectedMiner();
+        }
+
         private void btnLockScreen_Click(object sender, RoutedEventArgs e)
         {
             ManagerInfo info = ManagerInfo.Current;
@@ -300,6 +305,20 @@ namespace XDaggerMinerManager.UI.Forms
             progress.ShowDialog();
         }
 
+        private void UpdateSelectedMiner()
+        {
+            logger.Trace("Start StopSelectedMiner.");
+            List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
+            if (minerDataGridItems.Count == 0)
+            {
+                return;
+            }
+
+            // Select the first row as the target instance type
+            string minerInstanceType = minerDataGridItems.FirstOrDefault().Client.InstanceType;
+            
+        }
+
         private void UninstallSelectedMiner()
         {
             logger.Trace("Start StopSelectedMiner.");
@@ -375,6 +394,7 @@ namespace XDaggerMinerManager.UI.Forms
             List<MinerDataGridItem> selectedRows = GetSelectedRowsInDataGrid();
 
             this.btnMinerOperation.IsEnabled = (selectedRows.Count > 0);
+            this.operUpdateMiner.IsEnabled = (selectedRows.Count > 0);
             this.operUninstallMiner.IsEnabled = (selectedRows.Count > 0);
 
             if (selectedRows.Count <= 0)

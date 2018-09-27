@@ -58,6 +58,7 @@
                             <Grid>
                                 <Button Name="operStartMiner" Content="启动" Height="20" Width="95" Margin="0,0,0,0" VerticalAlignment="Top" Click="operStartMiner_Click" />
                                 <Button Name="operStopMiner" Content="停止" Height="20" Width="95" Margin="0,20,0,0" VerticalAlignment="Top" Click="operStopMiner_Click"/>
+                                <Button Name="operUpdateMiner" Content="修改配置..." Height="20" Width="95" Margin="0,20,0,0" VerticalAlignment="Top" Click="operUpdateMiner_Click"/>
                                 <Button Name="operUninstallMiner" Content="卸载" Height="20" Width="95" Margin="0,40,0,0" Click="operUninstallMiner_Click"/>
                             </Grid>
                         </xctk:SplitButton.DropDownContent>
