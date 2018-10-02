@@ -116,6 +116,9 @@
     <Compile Include="UI\Forms\SetPasswordWindow.xaml.cs">
       <DependentUpon>SetPasswordWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\Forms\UpdateMinerWindow.xaml.cs">
+      <DependentUpon>UpdateMinerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Forms\WatsonWindow.xaml.cs">
       <DependentUpon>WatsonWindow.xaml</DependentUpon>
     </Compile>
@@ -172,6 +175,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Forms\SetPasswordWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Forms\UpdateMinerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

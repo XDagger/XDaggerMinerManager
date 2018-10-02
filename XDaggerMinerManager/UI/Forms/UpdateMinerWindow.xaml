@@ -5,26 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="修改矿机配置" Height="348.299" Width="527.703" WindowStyle="ToolWindow">
+        Title="修改矿机配置" Height="290.965" Width="527.703" WindowStyle="ToolWindow">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="26*"/>
         </Grid.RowDefinitions>
-        <Label Content="选中的矿机实例：" Margin="27,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="209"/>
+        <Label Content="选中的矿机实例： 共" Margin="27,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127"/>
+        <Label x:Name="lblSelectedMinerCount" Content=" " Margin="152,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="25"/>
+        <Label Content="个" Margin="179,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="25"/>
         <Label Content="修改矿机类型为：" Margin="0,19,160.333,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="111"/>
-        <ComboBox x:Name="cbxInstanceType" Margin="0,24,31.333,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="128"/>
-        <Grid x:Name="grdXDaggerConfig" Margin="27,74,32.333,64.333" Background="#FFE8E5E5">
-            <Label Content="XDag钱包地址:" HorizontalAlignment="Left" Margin="20,24,0,0" VerticalAlignment="Top" Width="102"/>
-            <Label Content="XDag矿池地址：" HorizontalAlignment="Left" Margin="20,69,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.901,2.06"/>
-            <TextBox x:Name="txtXDaggerWallet" Height="23" Margin="122,27,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
-            <TextBox x:Name="txtXDaggerPoolAddress" Height="23" Margin="122,72,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+        <ComboBox x:Name="cbxInstanceType" Margin="0,22,31.333,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="128" SelectionChanged="cbxInstanceType_SelectionChanged">
+            <ComboBoxItem Content="XDagger"/>
+            <ComboBoxItem Content="Ethereum"/>
+        </ComboBox>
+        <Grid x:Name="grdXDaggerConfig" Margin="27,74,32.333,65" Background="#FFE8E5E5">
+            <Label Content="XDag钱包地址:" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="102"/>
+            <Label Content="XDag矿池地址：" HorizontalAlignment="Left" Margin="10,54,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.901,2.06"/>
+            <TextBox x:Name="txtXDaggerWallet" Height="23" Margin="122,15,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+            <TextBox x:Name="txtXDaggerPoolAddress" Height="23" Margin="122,57,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+            <Label Content="(以上各项如果不填则表示不做修改)" HorizontalAlignment="Left" Margin="247,97,0,0" VerticalAlignment="Top" Width="215"/>
         </Grid>
-        <Grid x:Name="grdEthConfig" Margin="27,74,32.333,64.333" Background="#FFE8E5E5">
-            <Label Content="Eth钱包地址:" HorizontalAlignment="Left" Margin="20,24,0,0" VerticalAlignment="Top" Width="102"/>
-            <Label Content="Eth矿池地址：" HorizontalAlignment="Left" Margin="20,69,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.901,2.06"/>
-            <TextBox x:Name="txtEthWallet" Height="23" Margin="122,27,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
-            <TextBox x:Name="txtEthPoolAddress" Height="23" Margin="122,72,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+        <Grid x:Name="grdEthConfig" Margin="27,74,32.333,64.667" Background="#FFE8E5E5">
+            <Label Content="Eth钱包地址:" HorizontalAlignment="Left" Margin="20,41,0,0" VerticalAlignment="Top" Width="102"/>
+            <Label Content="选择矿池：" HorizontalAlignment="Left" Margin="20,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.901,2.06"/>
+            <TextBox x:Name="txtEthWallet" Height="23" Margin="111,44,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+            <ComboBox x:Name="cbxTargetEthPool" HorizontalAlignment="Left" Margin="111,12,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="cbxTargetEthPool_SelectionChanged"/>
+            <ComboBox x:Name="cbxTargetEthPoolHost" Margin="260,12,22,0" Height="22" VerticalAlignment="Top"/>
+            <Label Content="Email地址:" HorizontalAlignment="Left" Margin="20,72,0,0" VerticalAlignment="Top" Width="87"/>
+            <TextBox x:Name="txtEmailAddress" Height="23" Margin="112,75,22,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+            <Label Content="(以上各项如果不填则表示不做修改)" HorizontalAlignment="Left" Margin="247,97,0,0" VerticalAlignment="Top" Width="215"/>
         </Grid>
-        <Button x:Name="btnConfirm" Content="确定" Margin="0,0,185.333,17.333" HorizontalAlignment="Right" Width="127" Height="31" VerticalAlignment="Bottom" Click="btnConfirm_Click"/>
-        <Button x:Name="btnCancel" Content="取消" Margin="362,271,32.333,17.333" Click="btnCancel_Click"/>
+
+        <Button x:Name="btnConfirm" Content="确定" Margin="0,0,187.333,15.667" HorizontalAlignment="Right" Width="127" Height="31" VerticalAlignment="Bottom" Click="btnConfirm_Click"/>
+        <Button x:Name="btnCancel" Content="取消" Margin="0,0,33.333,15.667" Click="btnCancel_Click" Height="31" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="127"/>
     </Grid>
 </Window>

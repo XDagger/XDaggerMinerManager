@@ -47,6 +47,18 @@
                 <ComboBoxItem Content="Ethereum"/>
             </ComboBox>
         </Grid>
+        <Grid x:Name="grdStepThreeXDagger" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
+            <Label Content="选择硬件：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
+            <ComboBox x:Name="cBxTargetDevice" Margin="112,30,36.667,0" VerticalAlignment="Top" IsReadOnly="True" />
+            <Label Content="钱包地址：" HorizontalAlignment="Left" Margin="29,70,0,0" VerticalAlignment="Top" Width="78"/>
+            <TextBox x:Name="txtWalletAddress" Height="23" Margin="112,70,36.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+            <CheckBox x:Name="cKbWalletSaveToDefault" Content="保存为默认钱包地址" HorizontalAlignment="Left" Margin="112,147,0,0" VerticalAlignment="Top" Width="133" IsChecked="True"/>
+
+            <Button x:Name="btnStepThreeNext" Content="下一步" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeXDaggerNext_Click"/>
+            <Button x:Name="btnStepThreeBack" Content="后退" Margin="0,0,143,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeBack_Click"/>
+            <Label Content="矿池地址：" HorizontalAlignment="Left" Margin="29,112,0,0" VerticalAlignment="Top" Width="78"/>
+            <TextBox x:Name="txtXDaggerPoolAddress" Text="xdag.coolmine.top:13654" Height="23" Margin="112,112,36.667,0" TextWrapping="NoWrap"  VerticalAlignment="Top"/>
+        </Grid>
         <Grid x:Name="grdStepThreeEth" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
             <Label Content="选择硬件：" HorizontalAlignment="Left" Margin="10,19,0,0" VerticalAlignment="Top" Width="78"/>
             <ComboBox x:Name="cBxTargetDeviceEth" Margin="100,23,22.667,0" VerticalAlignment="Top" IsReadOnly="True" />
@@ -63,18 +75,6 @@
             <TextBox x:Name="txtEthWorkerName" Height="23" Margin="100,131,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
             <Label Content="Email地址：" HorizontalAlignment="Left" Margin="10,167,0,0" VerticalAlignment="Top" Width="90"/>
             <TextBox x:Name="txtEmailAddressEth" Height="23" Margin="100,170,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        </Grid>
-        <Grid x:Name="grdStepThreeXDagger" Height="240" Margin="10,50,10,10" VerticalAlignment="Top" Background="#FFE8E5E5">
-            <Label Content="选择硬件：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
-            <ComboBox x:Name="cBxTargetDevice" Margin="112,30,36.667,0" VerticalAlignment="Top" IsReadOnly="True" />
-            <Label Content="钱包地址：" HorizontalAlignment="Left" Margin="29,70,0,0" VerticalAlignment="Top" Width="78"/>
-            <TextBox x:Name="txtWalletAddress" Height="23" Margin="112,70,36.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-            <CheckBox x:Name="cKbWalletSaveToDefault" Content="保存为默认钱包地址" HorizontalAlignment="Left" Margin="112,147,0,0" VerticalAlignment="Top" Width="133" IsChecked="True"/>
-
-            <Button x:Name="btnStepThreeNext" Content="下一步" Margin="0,0,16,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeXDaggerNext_Click"/>
-            <Button x:Name="btnStepThreeBack" Content="后退" Margin="0,0,143,14" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeBack_Click"/>
-            <Label Content="矿池地址：" HorizontalAlignment="Left" Margin="29,112,0,0" VerticalAlignment="Top" Width="78"/>
-            <TextBox x:Name="txtXDaggerPoolAddress" Text="xdag.coolmine.top:13654" Height="23" Margin="112,112,36.667,0" TextWrapping="NoWrap"  VerticalAlignment="Top"/>
         </Grid>
 
         <ProgressBar x:Name="prbIndicator" Margin="0,344,0,0" Foreground="#FF4D5E83" Height="4" VerticalAlignment="Top"/>

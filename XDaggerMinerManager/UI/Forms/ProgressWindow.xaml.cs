@@ -93,24 +93,6 @@ namespace XDaggerMinerManager.UI.Forms
         {
             this.progressBar.IsIndeterminate = true;
 
-            foreach (object sub in this.subjectList)
-            {
-                BackgroundWork.CreateWork(
-                    this,
-                    () => { },
-                    () => {
-                        this.mainActionTemplate(sub);
-                    },
-                    (result) => {
-                        if (result.HasError)
-                        {
-                            this.failedActionCount++;
-                        }
-
-                        BackgroundWorkCompleted(sub);
-                    }
-                ).Execute();
-            }
         }
 
         private void BackgroundWorkCompleted(object subject)

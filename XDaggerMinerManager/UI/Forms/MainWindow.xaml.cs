@@ -239,16 +239,18 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            MinerClient selectedClient = minerDataGridItems.Select(row => row.Client).FirstOrDefault();
-            if (selectedClient == null)
+            List<object> selectedClients = new List<object>();
+            foreach (MinerDataGridItem minerItem in minerDataGridItems)
             {
-                return;
+                selectedClients.Add(minerItem.Client);
             }
-
+            
             ProgressWindow progress = new ProgressWindow("正在启动矿机...",
-                () => {
-                    OKResult r = selectedClient.ExecuteDaemon<OKResult>("-s start");
-                    selectedClient.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
+                selectedClients, 
+                (obj) => {
+                    MinerClient client = (MinerClient)obj;
+                    OKResult r = client.ExecuteDaemon<OKResult>("-s start");
+                    client.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
                 },
                 (result) => {
                     if (result.HasError)
@@ -277,16 +279,18 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            MinerClient selectedClient = minerDataGridItems.Select(row => row.Client).FirstOrDefault();
-            if (selectedClient == null)
+            List<object> selectedClients = new List<object>();
+            foreach (MinerDataGridItem minerItem in minerDataGridItems)
             {
-                return;
+                selectedClients.Add(minerItem.Client);
             }
 
             ProgressWindow progress = new ProgressWindow("正在停止矿机...",
-                () => {
-                    OKResult r = selectedClient.ExecuteDaemon<OKResult>("-s stop");
-                    selectedClient.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
+                selectedClients,
+                (obj) => {
+                    MinerClient client = (MinerClient)obj;
+                    OKResult r = client.ExecuteDaemon<OKResult>("-s stop");
+                    client.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                 },
                 (result) => {
                     if (result.HasError)
@@ -307,52 +311,55 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void UpdateSelectedMiner()
         {
-            logger.Trace("Start StopSelectedMiner.");
+            logger.Trace("Start UpdateSelectedMiner.");
             List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
             if (minerDataGridItems.Count == 0)
             {
                 return;
             }
 
-            // Select the first row as the target instance type
-            string minerInstanceType = minerDataGridItems.FirstOrDefault().Client.InstanceType;
-            
+            UpdateMinerWindow updateWindow = new UpdateMinerWindow(
+                minerDataGridItems.Select((item) => item.Client).ToList()
+                );
+            updateWindow.ShowDialog();
         }
 
         private void UninstallSelectedMiner()
         {
-            logger.Trace("Start StopSelectedMiner.");
+            logger.Trace("Start UninstallSelectedMiner.");
             List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
             if (minerDataGridItems.Count == 0)
             {
                 return;
             }
 
-            MinerClient selectedClient = minerDataGridItems.Select(r => r.Client).FirstOrDefault();
-            if (selectedClient == null)
+            List<object> selectedClients = new List<object>();
+            foreach (MinerDataGridItem minerItem in minerDataGridItems)
             {
-                return;
+                selectedClients.Add(minerItem.Client);
             }
 
             if (MessageBox.Show("确定要卸载选定的矿机吗？", "确认", MessageBoxButton.YesNo) == MessageBoxResult.No)
             {
                 return;
             }
-
-            MinerDataGridItem row = minerDataGridItems.FirstOrDefault();
+            
             ProgressWindow progress = new ProgressWindow("正在卸载矿机...",
-                () => {
+                selectedClients,
+                (obj) => {
+
+                    MinerClient client = (MinerClient)obj;
                     try
                     {
-                        OKResult r = selectedClient.ExecuteDaemon<OKResult>("-s uninstall");
+                        OKResult r = client.ExecuteDaemon<OKResult>("-s uninstall");
 
-                        selectedClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
-                        selectedClient.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
+                        client.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
+                        client.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                     }
                     catch (Exception ex)
                     {
-                        selectedClient.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Unknown;
-                        selectedClient.CurrentServiceStatus = MinerClient.ServiceStatus.Unknown;
+                        client.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Unknown;
+                        client.CurrentServiceStatus = MinerClient.ServiceStatus.Unknown;
 
                         logger.Error("Got Error while uninstalling miner service: " + ex.ToString());
 
@@ -362,7 +369,7 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         // Since sometimes the Windows Service will lock the config file for a while after uninstall, we will wait here
                         System.Threading.Thread.Sleep(5000);
-                        selectedClient.DeleteBinaries();
+                        client.DeleteBinaries();
                     }
                 },
                 (result) => {
@@ -381,8 +388,11 @@ namespace XDaggerMinerManager.UI.Forms
                     }
 
                     // Removing client from ObjectModel first, and then Delete binaries might throw IO exception which should be ignored
-                    minerManager.RemoveClient(selectedClient);
-                    minerListGridItems.Remove(row);
+                    foreach (MinerDataGridItem item in minerDataGridItems)
+                    {
+                        minerManager.RemoveClient(item.Client);
+                        minerListGridItems.Remove(item);
+                    }
 
                     this.RefreshMinerListGrid();
                 });
