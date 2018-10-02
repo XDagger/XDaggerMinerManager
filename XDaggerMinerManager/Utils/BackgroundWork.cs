@@ -139,6 +139,12 @@ namespace XDaggerMinerManager.Utils
 
         }
 
+        public BackgroundWorkResult(int result)
+        {
+            this.Result = result;
+            this.Exception = null;
+        }
+
         public BackgroundWorkResult(BackgroundWorkResult<int> result)
         {
             this.Result = result.Result;
