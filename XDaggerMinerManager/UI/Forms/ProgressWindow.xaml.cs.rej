@@ -1,0 +1,26 @@
+diff a/XDaggerMinerManager/UI/Forms/ProgressWindow.xaml.cs b/XDaggerMinerManager/UI/Forms/ProgressWindow.xaml.cs	(rejected hunks)
+@@ -93,24 +93,6 @@
+         {
+             this.progressBar.IsIndeterminate = true;
+ 
+-            foreach (object sub in this.subjectList)
+-            {
+-                BackgroundWork.CreateWork(
+-                    this,
+-                    () => { },
+-                    () => {
+-                        this.mainActionTemplate(sub);
+-                    },
+-                    (result) => {
+-                        if (result.HasError)
+-                        {
+-                            this.failedActionCount++;
+-                        }
+-
+-                        BackgroundWorkCompleted(sub);
+-                    }
+-                ).Execute();
+-            }
+         }
+ 
+         private void BackgroundWorkCompleted(object subject)

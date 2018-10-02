@@ -31,6 +31,8 @@ namespace XDaggerMinerManager.Utils
         /// <returns></returns>
         public string ExecuteCommandWithStreamOutput(string commandFullLine, string arguments, Func<StreamReader, string> streamHandler)
         {
+            logger.Trace("Start ExecuteCommandWithStreamOutput.");
+
             Process process = new System.Diagnostics.Process();
             ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
@@ -50,6 +52,7 @@ namespace XDaggerMinerManager.Utils
             }
             catch (Exception ex)
             {
+                logger.Error("Got error while ExecuteCommandWithStreamOutput: " + ex.ToString());
                 throw ex;
             }
             finally

@@ -36,6 +36,8 @@ namespace XDaggerMinerManager.UI.Forms
 
             this.minerClients = new List<object>();
             this.minerClients.AddRange(minerClients);
+
+            lblSelectedMinerCount.Content = minerClients.Count.ToString();
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
@@ -52,7 +54,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             // Validate the config
-            if (cbxInstanceType.Text == "XDagger")
+            if (GetConfigInstanceType() == "XDagger")
             {
                 if (!ValidateXDaggerConfig())
                 {
@@ -75,7 +77,7 @@ namespace XDaggerMinerManager.UI.Forms
 
             // Execute configure command
             string configParameters = string.Empty;
-            if (cbxInstanceType.Text == "XDagger")
+            if (GetConfigInstanceType() == "XDagger")
             {
                 configParameters = ComposeXDaggerConfig();
             }
@@ -83,6 +85,8 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 configParameters = ComposeEthConfig();
             }
+
+            logger.Trace("Composed configure command parameter: " + configParameters);
             
             ProgressWindow progress = new ProgressWindow("正在修改矿机配置...",
                 this.minerClients,
@@ -97,6 +101,12 @@ namespace XDaggerMinerManager.UI.Forms
                 }
                 );
             progress.ShowDialog();
+        }
+
+        private string GetConfigInstanceType()
+        {
+            ComboBoxItem item = (ComboBoxItem)cbxInstanceType.SelectedItem;
+            return item?.Content.ToString();
         }
 
         private void HandleProgressResult(int failureCount)
@@ -160,7 +170,7 @@ namespace XDaggerMinerManager.UI.Forms
         private string ComposeXDaggerConfig()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append(" -c \"{{ ");
+            builder.Append(" -c \"{ ");
 
             if(!string.IsNullOrWhiteSpace(txtXDaggerWallet.Text))
             {
@@ -172,7 +182,7 @@ namespace XDaggerMinerManager.UI.Forms
                 builder.AppendFormat(" 'XDaggerPoolAddress':'{0}' ", txtXDaggerPoolAddress.Text.Trim());
             }
 
-            builder.Append(" }}\"");
+            builder.Append(" }\"");
 
             return builder.ToString();
         }
@@ -189,21 +199,21 @@ namespace XDaggerMinerManager.UI.Forms
             string ethFullPoolAddress = ethPoolHelper.GeneratePoolAddress();
 
             StringBuilder builder = new StringBuilder();
-            builder.Append(" -c \"{{ ");
+            builder.Append(" -c \"{ ");
 
             if (!string.IsNullOrWhiteSpace(txtXDaggerWallet.Text))
             {
                 builder.AppendFormat(" 'EthPoolAddress':'{0}' ", ethFullPoolAddress);
             }
 
-            builder.Append(" }}\"");
+            builder.Append(" }\"");
 
             return builder.ToString();
         }
 
         private void cbxInstanceType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cbxInstanceType.Text == "XDagger")
+            if (GetConfigInstanceType() == "XDagger")
             {
                 grdXDaggerConfig.Visibility = Visibility.Visible;
                 grdEthConfig.Visibility = Visibility.Hidden;

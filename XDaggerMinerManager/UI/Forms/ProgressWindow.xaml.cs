@@ -34,6 +34,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private int failedActionCount = 0;
 
+        private Logger logger = Logger.GetInstance();
+
         private int TotalActionCount
         {
             get
@@ -48,6 +50,7 @@ namespace XDaggerMinerManager.UI.Forms
         }
 
         public ProgressWindow(string message, Action<BackgroundWorkResult> callback, bool shouldPromptSummary)
+            : this()
         {
             this.message = message;
             this.callback = callback;
@@ -91,12 +94,35 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            logger.Trace("ProgressWindow Loaded.");
+
             this.progressBar.IsIndeterminate = true;
 
+            logger.Trace($"Starting the BackgroundWork. Totally { this.TotalActionCount } subjects.");
+            foreach (object sub in this.subjectList)
+            {
+                BackgroundWork.CreateWork(
+                    this,
+                    () => { },
+                    () => {
+                        this.mainActionTemplate(sub);
+                    },
+                    (result) => {
+                        if (result.HasError)
+                        {
+                            this.failedActionCount++;
+                        }
+
+                        BackgroundWorkCompleted(sub);
+                    }
+                ).Execute();
+            }
         }
 
         private void BackgroundWorkCompleted(object subject)
         {
+            logger.Trace($"BackgroundWorkCompleted for subject.");
+
             UpdateTitle();
 
             this.completedActionCount++;
@@ -111,7 +137,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                 this.Close();
 
-                BackgroundWorkResult result = new BackgroundWorkResult(this.TotalActionCount - this.failedActionCount);
+                BackgroundWorkResult result = new BackgroundWorkResult(this.failedActionCount);
                 this.callback?.Invoke(result);
             }
         }
@@ -143,6 +169,8 @@ namespace XDaggerMinerManager.UI.Forms
                     message = "执行任务成功。";
                 }
             }
+
+            MessageBox.Show(message, "提示");
         }
     }
 }
