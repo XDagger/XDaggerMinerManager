@@ -51,7 +51,7 @@ namespace XDaggerMinerManager.UI
         {
             get
             {
-                return clientObject.InstanceType;
+                return clientObject.InstanceTypeEnum.ToString();
             }
         }
 

@@ -66,9 +66,16 @@ namespace XDaggerMinerManager.Utils
         {
             logger.Trace($"ExecuteCommand: [{commandFullLine}] with arguments [{arguments}]");
 
-            string resultString = ExecuteCommand(commandFullLine, arguments);
-
-            return ParseOutput<T>(resultString);
+            try
+            {
+                string resultString = ExecuteCommand(commandFullLine, arguments);
+                return ParseOutput<T>(resultString);
+            }
+            catch(Exception ex)
+            {
+                logger.Error("Got exception in ExecuteCommandAndThrow: " + ex.ToString());
+                throw;
+            }
         }
 
         /// <summary>

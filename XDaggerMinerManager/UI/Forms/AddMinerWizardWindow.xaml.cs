@@ -269,7 +269,7 @@ namespace XDaggerMinerManager.UI.Forms
                     lblStepTwo.FontWeight = FontWeights.ExtraBold;
                     break;
                 case 3:
-                    if (createdClient?.InstanceType == "XDagger")
+                    if (createdClient?.InstanceTypeEnum == MinerClient.InstanceTypes.XDagger)
                     {
                         grdStepThreeXDagger.Visibility = Visibility.Visible;
                     }
@@ -495,9 +495,10 @@ namespace XDaggerMinerManager.UI.Forms
 
             createdClient.Version = version;
             createdClient.InstanceType = this.cBxTargetInstanceType.Text;
+            createdClient.InstanceTypeEnum = (MinerClient.InstanceTypes)(this.cBxTargetInstanceType.SelectedIndex + 1);
 
             logger.Information($"Selected version: {createdClient.Version}.");
-            logger.Information($"Selected instance type: {createdClient.InstanceType}.");
+            logger.Information($"Selected instance type: {createdClient.InstanceTypeEnum.ToString()}.");
 
             winMinerBinary = new WinMinerReleaseBinary(version);
 
@@ -599,6 +600,7 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("Start StepThree_RetrieveDeviceList.");
 
             txtWalletAddress.Text = ManagerConfig.Current.DefaultXDaggerWallet;
+            txtXDaggerPoolAddress.Text = ManagerConfig.Current.DefaultXDaggerPool;
             txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEthWallet;
             txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEthEmail;
             txtEthWorkerName.Text = ManagerConfig.Current.DefaultEthWorkerName;
@@ -723,10 +725,12 @@ namespace XDaggerMinerManager.UI.Forms
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
                     createdClient.XDaggerWalletAddress = walletAddress;
-                    
+                    createdClient.XDaggerPoolAddress = poolAddress;
+
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
                         ManagerConfig.Current.DefaultXDaggerWallet = walletAddress;
+                        ManagerConfig.Current.DefaultXDaggerPool = poolAddress;
                         ManagerConfig.Current.SaveToFile();
                     }
 

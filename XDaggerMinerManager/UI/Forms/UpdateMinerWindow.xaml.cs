@@ -25,9 +25,15 @@ namespace XDaggerMinerManager.UI.Forms
 
         private Logger logger = Logger.GetInstance();
 
+        private UpdateMinerProperties properties = null;
+
         public UpdateMinerWindow(List<MinerClient> minerClients)
         {
             InitializeComponent();
+
+            InitializeEthPoolAddresses();
+
+            properties = new UpdateMinerProperties();
 
             if (minerClients == null || minerClients.Count == 0)
             {
@@ -54,14 +60,14 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             // Validate the config
-            if (GetConfigInstanceType() == "XDagger")
+            if (properties.InstanceType == MinerClient.InstanceTypes.XDagger)
             {
                 if (!ValidateXDaggerConfig())
                 {
                     return;
                 }
             }
-            else
+            else if (properties.InstanceType == MinerClient.InstanceTypes.Ethereum)
             {
                 if (!ValidateEthConfig())
                 {
@@ -77,11 +83,11 @@ namespace XDaggerMinerManager.UI.Forms
 
             // Execute configure command
             string configParameters = string.Empty;
-            if (GetConfigInstanceType() == "XDagger")
+            if (properties.InstanceType == MinerClient.InstanceTypes.XDagger)
             {
                 configParameters = ComposeXDaggerConfig();
             }
-            else
+            else if (properties.InstanceType == MinerClient.InstanceTypes.Ethereum)
             {
                 configParameters = ComposeEthConfig();
             }
@@ -93,7 +99,9 @@ namespace XDaggerMinerManager.UI.Forms
                 (obj) => {
                     MinerClient client = (MinerClient)obj;
                     OKResult exeResult = client.ExecuteDaemon<OKResult>(configParameters);
-                    client.CurrentServiceStatus = MinerClient.ServiceStatus.Disconnected;
+
+                    //After the config command success, update the status of the client
+                    properties.UpdateClient(client);
                 },
                 (result) => {
 
@@ -114,6 +122,7 @@ namespace XDaggerMinerManager.UI.Forms
             MessageBoxResult mresult = MessageBox.Show("修改配置完成，需要重启矿机服务后才能生效。需要现在重启所有修改过的矿机吗？", "确认", MessageBoxButton.YesNo);
             if (mresult == MessageBoxResult.No)
             {
+                MinerManager.GetInstance().SaveCurrentInfo();
                 this.Close();
                 return;
             }
@@ -127,42 +136,59 @@ namespace XDaggerMinerManager.UI.Forms
                     exeResult = client.ExecuteDaemon<OKResult>("-s start");
                 },
                 (result) => {
-
+                    MinerManager.GetInstance().SaveCurrentInfo();
                     this.Close();
-                }
+                },
+                shouldPromptSummary: false
                 );
             progress.ShowDialog();
         }
 
         private bool ValidateXDaggerConfig()
         {
-            string poolAddress = txtXDaggerPoolAddress.Text;
+            string poolAddress = txtXDaggerPoolAddress.Text.Trim();
             if (!string.IsNullOrWhiteSpace(poolAddress) && !poolAddress.Contains(":"))
             {
                 MessageBox.Show("矿池地址格式错误");
                 return false;
             }
 
-            string walletAddress = txtXDaggerWallet.Text;
-            walletAddress = walletAddress.Trim();
+            properties.XDaggerPoolAddress = poolAddress;
+
+            string walletAddress = txtXDaggerWallet.Text.Trim();
             if (!string.IsNullOrWhiteSpace(walletAddress) && walletAddress.Length != 32)
             {
                 MessageBox.Show("钱包必须为长度32位的字母与数字组合");
                 return false;
             }
 
+            properties.XDaggerWalletAddress = walletAddress;
+
             return true;
         }
 
         private bool ValidateEthConfig()
         {
-            string ethWalletAddress = txtEthWallet.Text;
-            ethWalletAddress = ethWalletAddress.Trim();
+            string ethWalletAddress = txtEthWallet.Text.Trim();
             if (!string.IsNullOrWhiteSpace(ethWalletAddress) && !ethWalletAddress.StartsWith("0x"))
             {
                 MessageBox.Show("钱包必须是以0x开头的32位字符串");
                 return false;
             }
+
+            if (cbxTargetEthPool.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择矿池类型");
+                return false;
+            }
+
+            if (cbxTargetEthPoolHost.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择矿池地址");
+                return false;
+            }
+
+            properties.EthFullPoolAddress = ethWalletAddress;
 
             return true;
         }
@@ -170,16 +196,23 @@ namespace XDaggerMinerManager.UI.Forms
         private string ComposeXDaggerConfig()
         {
             StringBuilder builder = new StringBuilder();
+            bool isFirstParameter = true;
+
             builder.Append(" -c \"{ ");
 
-            if(!string.IsNullOrWhiteSpace(txtXDaggerWallet.Text))
+            if(!string.IsNullOrWhiteSpace(properties.XDaggerWalletAddress))
             {
-                builder.AppendFormat(" 'XDaggerWallet':'{0}' ", txtXDaggerWallet.Text.Trim());
+                builder.AppendFormat(" 'XDaggerWallet':'{0}' ", properties.XDaggerWalletAddress);
+                isFirstParameter = false;
             }
 
-            if (!string.IsNullOrWhiteSpace(txtXDaggerPoolAddress.Text))
+            if (!string.IsNullOrWhiteSpace(properties.XDaggerPoolAddress))
             {
-                builder.AppendFormat(" 'XDaggerPoolAddress':'{0}' ", txtXDaggerPoolAddress.Text.Trim());
+                if (!isFirstParameter)
+                {
+                    builder.Append(", ");
+                }
+                builder.AppendFormat(" 'XDaggerPoolAddress':'{0}' ", properties.XDaggerPoolAddress);
             }
 
             builder.Append(" }\"");
@@ -196,30 +229,42 @@ namespace XDaggerMinerManager.UI.Forms
             ethPoolHelper.EmailAddress = txtEmailAddress.Text.Trim();
             ethPoolHelper.WorkerName = "XDaggerMinerBatchWorkerName";       // TODO: Should update to worker name template
 
-            string ethFullPoolAddress = ethPoolHelper.GeneratePoolAddress();
+            properties.EthFullPoolAddress = ethPoolHelper.GeneratePoolAddress();
 
             StringBuilder builder = new StringBuilder();
             builder.Append(" -c \"{ ");
-
-            if (!string.IsNullOrWhiteSpace(txtXDaggerWallet.Text))
-            {
-                builder.AppendFormat(" 'EthPoolAddress':'{0}' ", ethFullPoolAddress);
-            }
-
+            builder.AppendFormat(" 'EthPoolAddress':'{0}' ", properties.EthFullPoolAddress);
             builder.Append(" }\"");
 
             return builder.ToString();
+        }
+
+        private void InitializeEthPoolAddresses()
+        {
+            logger.Trace("InitializeEthPoolAddresses.");
+
+            cbxTargetEthPool.Items.Clear();
+            foreach (string ethPoolName in EthMinerPoolHelper.PoolDisplayNames)
+            {
+                cbxTargetEthPool.Items.Add(ethPoolName);
+            }
+
+            cbxTargetEthPoolHost.Items.Clear();
         }
 
         private void cbxInstanceType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GetConfigInstanceType() == "XDagger")
             {
+                properties.InstanceType = MinerClient.InstanceTypes.XDagger;
+
                 grdXDaggerConfig.Visibility = Visibility.Visible;
                 grdEthConfig.Visibility = Visibility.Hidden;
             }
             else
             {
+                properties.InstanceType = MinerClient.InstanceTypes.Ethereum;
+
                 grdXDaggerConfig.Visibility = Visibility.Hidden;
                 grdEthConfig.Visibility = Visibility.Visible;
             }

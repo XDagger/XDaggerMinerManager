@@ -4,5 +4,6 @@
     "miner_package_name": "XDaggerMinerWin-{0}-x64.zip",
     "default_install_path": "C:\\Temp\\xdagger\\",
     "default_user_name": "",
-    "default_password": ""
+    "default_password": "",
+    "default_xdagger_pool": "xdag.uupool.cn:13654"
 }

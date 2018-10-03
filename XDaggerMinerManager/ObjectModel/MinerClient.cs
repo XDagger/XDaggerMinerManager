@@ -15,6 +15,13 @@ namespace XDaggerMinerManager.ObjectModel
     {
         private bool hasStatusChanged = false;
 
+        public enum InstanceTypes
+        {
+            Unset = 0,
+            XDagger = 1,
+            Ethereum = 2,
+        }
+
         public enum DeploymentStatus
         {
             Unknown = -1,
@@ -101,6 +108,12 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
+        [JsonProperty(PropertyName = "xdagger_pool_address")]
+        public string XDaggerPoolAddress
+        {
+            get; set;
+        }
+
         [JsonProperty(PropertyName = "eth_full_pool_address")]
         public string EthFullPoolAddress
         {
@@ -115,6 +128,12 @@ namespace XDaggerMinerManager.ObjectModel
 
         [JsonProperty(PropertyName = "instance_type")]
         public string InstanceType
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "instance_type_enum")]
+        public InstanceTypes InstanceTypeEnum
         {
             get; set;
         }

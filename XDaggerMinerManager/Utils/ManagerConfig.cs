@@ -99,6 +99,12 @@ namespace XDaggerMinerManager.Utils
             get; set;
         }
 
+        [JsonProperty(PropertyName = "default_xdagger_pool")]
+        public string DefaultXDaggerPool
+        {
+            get; set;
+        }
+
         [JsonProperty(PropertyName = "default_eth_wallet")]
         public string DefaultEthWallet
         {

@@ -22,6 +22,11 @@ namespace XDaggerMinerManager.UI.Forms
     {
         private Action<object> mainActionTemplate = null;
 
+        /// <summary>
+        /// Not used yet
+        /// </summary>
+        private Action<object> onUpdatedTemplate = null;
+
         private List<object> subjectList = null;
 
         private Action<BackgroundWorkResult> callback = null;
@@ -61,8 +66,15 @@ namespace XDaggerMinerManager.UI.Forms
             : this(message, callback, shouldPromptSummary)
         {
             this.subjectList = new List<object>() { null };
-            this.mainActionTemplate = (obj) => { mainAction(); };
-            
+            if (mainAction != null)
+            {
+                this.mainActionTemplate = (obj) => { mainAction(); };
+            }
+            else
+            {
+                throw new ArgumentNullException("Action mainActionTemplate should not be null.");
+            }
+
             UpdateTitle();
         }
 
@@ -70,8 +82,7 @@ namespace XDaggerMinerManager.UI.Forms
             : this(message, callback, shouldPromptSummary)
         {
             this.subjectList = list;
-            this.mainActionTemplate = mainActionTemplate ?? throw new ArgumentNullException("Action should not be null.");
-            
+            this.mainActionTemplate = mainActionTemplate ?? throw new ArgumentNullException("Action mainActionTemplate should not be null.");
             UpdateTitle();
         }
 
@@ -155,7 +166,7 @@ namespace XDaggerMinerManager.UI.Forms
                 }
                 else
                 {
-                    message = string.Format("批量执行共计{0}个全部执行成功。", TotalActionCount);
+                    /// message = string.Format("批量执行共计{0}个全部执行成功。", TotalActionCount);
                 }
             }
             else
@@ -166,11 +177,14 @@ namespace XDaggerMinerManager.UI.Forms
                 }
                 else
                 {
-                    message = "执行任务成功。";
+                    /// message = "执行任务成功。";
                 }
             }
 
-            MessageBox.Show(message, "提示");
+            if (!string.IsNullOrEmpty(message))
+            {
+                MessageBox.Show(message, "提示");
+            }
         }
     }
 }

@@ -123,6 +123,7 @@
       <DependentUpon>WatsonWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\MinerDataGridItem.cs" />
+    <Compile Include="UI\UpdateMinerProperties.cs" />
     <Compile Include="Utils\BackgroundWork.cs" />
     <Compile Include="Utils\CustomWebClient.cs">
       <SubType>Component</SubType>
