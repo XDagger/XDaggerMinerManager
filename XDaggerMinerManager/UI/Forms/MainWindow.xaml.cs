@@ -175,7 +175,7 @@ namespace XDaggerMinerManager.UI.Forms
 
             MinerCreatedEventArgs args = e as MinerCreatedEventArgs;
 
-            if (args == null || args.CreatedClient == null || args.Machine == null)
+            if (args == null || args.CreatedClient == null)
             {
                 return;
             }

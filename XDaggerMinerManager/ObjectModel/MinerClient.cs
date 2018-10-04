@@ -70,11 +70,11 @@ namespace XDaggerMinerManager.ObjectModel
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
-
-        /*
+        
         public MinerClient(MinerMachine machine, string deploymentFolder, string version = "", string instanceName = "")
         {
             this.MachineFullName = machine.FullName;
+            this.Machine = machine;
 
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
             this.Version = version;
@@ -83,7 +83,6 @@ namespace XDaggerMinerManager.ObjectModel
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
-        */
 
         public string Name
         {
@@ -114,7 +113,13 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; set;
         }
-        
+
+        [JsonIgnore]
+        public MinerMachine Machine
+        {
+            get; set;
+        }
+
         [JsonProperty(PropertyName = "xdagger_config")]
         public XDaggerConfig XDaggerConfig
         {
@@ -148,7 +153,7 @@ namespace XDaggerMinerManager.ObjectModel
         */
 
         /// <summary>
-        /// This is the full identical name of this client
+        /// This is the InstanceId of this client
         /// </summary>
         [JsonProperty(PropertyName = "instance_name")]
         public string InstanceName
@@ -178,7 +183,7 @@ namespace XDaggerMinerManager.ObjectModel
                 }
                 else
                 {
-                    return string.Format("{0}_(1)", WinMinerReleaseBinary.ProjectName, this.FolderSuffix);
+                    return string.Format("{0}_{1}", WinMinerReleaseBinary.ProjectName, this.FolderSuffix);
                 }
             }
         }
@@ -339,19 +344,18 @@ namespace XDaggerMinerManager.ObjectModel
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.MachineFullName, System.IO.Path.GetTempPath().Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.MachineFullName, Path.GetTempPath().Replace(":", "$"));
         }
 
         public T ExecuteDaemon<T>(string parameters)
         {
-            MinerMachine machine = GetMachine();
-            if (machine == null)
+            if (this.Machine == null)
             {
-                throw new ArgumentNullException("Cannot find MinerMachine in ManagerInfo with name " + this.MachineFullName);
+                throw new ArgumentNullException("The Machine object is not initialized in MinerClient. " + this.MachineFullName);
             }
 
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(machine);
-            string daemonFullPath = System.IO.Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.Machine);
+            string daemonFullPath = Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             return executor.ExecuteCommandAndThrow<T>(daemonFullPath, parameters);
         }
@@ -421,17 +425,11 @@ namespace XDaggerMinerManager.ObjectModel
             return hasStatusChanged;
         }
 
-        public MinerMachine GetMachine()
-        {
-            MinerMachine machine = ManagerInfo.Current.Machines.First((m) => m.FullName.Equals(this.MachineFullName));
-            return machine;
-        }
-
         public void GenerateFolderSuffix()
         {
             do
             {
-                FolderSuffix = Guid.NewGuid().ToString().Substring(0, 3);
+                FolderSuffix = RandomUtils.GenerateString(3);
             } while (Directory.Exists(this.GetRemoteBinaryPath()));
             
         }

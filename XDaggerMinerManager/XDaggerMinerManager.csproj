@@ -102,6 +102,7 @@
     </ApplicationDefinition>
     <Compile Include="Configuration\EthConfig.cs" />
     <Compile Include="Configuration\XDaggerConfig.cs" />
+    <Compile Include="ObjectModel\MachineCredential.cs" />
     <Compile Include="ObjectModel\MinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerMachine.cs" />
@@ -139,8 +140,10 @@
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\NetworkUtils.cs" />
     <Compile Include="Utils\PathUtils.cs" />
+    <Compile Include="Utils\RandomUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
     <Compile Include="Utils\RemoteExecutor.cs" />
+    <Compile Include="Utils\SecureStringHelper.cs" />
     <Compile Include="Utils\ServiceUtils.cs" />
     <Compile Include="Utils\TargetMachineException.cs" />
     <Compile Include="Utils\TargetMachineExecutor.cs" />

@@ -45,8 +45,6 @@ namespace XDaggerMinerManager.UI.Forms
 
         private MinerClient createdClient = null;
 
-        private MinerMachine clientMachine = null;
-
         private WinMinerReleaseBinary winMinerBinary = null;
 
         private List<MinerDevice> displayedDeviceList = new List<MinerDevice>();
@@ -91,15 +89,6 @@ namespace XDaggerMinerManager.UI.Forms
             }
         }
 
-        public MinerMachine ClientMachine
-        {
-            get
-            {
-                return clientMachine;
-            }
-        }
-
-
         private void addMinerWizard_Loaded(object sender, RoutedEventArgs e)
         {
             SwitchUIToStep(1);
@@ -136,13 +125,24 @@ namespace XDaggerMinerManager.UI.Forms
             string targetMachineUserName = txtTargetUserName.Text?.Trim();
             string targetMachinePassword = txtTargetUserPassword.Password?.Trim();
 
-            clientMachine = new MinerMachine() {
-                FullName = targetMachineName.ToUpper(),
-                LoginUserName = targetMachineUserName.ToLower()
+            if (string.IsNullOrEmpty(targetMachineName))
+            {
+                throw new ArgumentNullException("机器名不可以为空，本机名请写LOCALHOST.");
+            }
+
+            MinerMachine clientMachine = new MinerMachine() {
+                FullName = targetMachineName.ToUpper()
             };
 
-            clientMachine.SetLoginPassword(targetMachinePassword);
-            createdClient = new MinerClient(clientMachine.FullName, targetMachinePath);
+            if (!string.IsNullOrEmpty(targetMachineUserName) && !string.IsNullOrEmpty(targetMachinePassword))
+            {
+                MachineCredential credential = new MachineCredential();
+                credential.UserName = targetMachineUserName.ToLower();
+                credential.SetLoginPassword(targetMachinePassword);
+                clientMachine.Credential = credential;
+            }
+            
+            createdClient = new MinerClient(clientMachine, targetMachinePath);
 
             // Check whether this target is already in Miner Manager Client list
 
@@ -399,6 +399,7 @@ namespace XDaggerMinerManager.UI.Forms
                 }
             }
 
+            bool confirmedAddNewMiner = false;
             if (Directory.Exists(createdClient.GetRemoteBinaryPath()))
             {
                 MessageBoxResult r = MessageBox.Show("目标路径下已经存在矿机，要创建新矿机吗？", "提示", MessageBoxButton.YesNo);
@@ -411,6 +412,7 @@ namespace XDaggerMinerManager.UI.Forms
                     return;
                 }
 
+                confirmedAddNewMiner = true;
                 createdClient.GenerateFolderSuffix();
             }
 
@@ -438,12 +440,15 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         logger.Warning("Scann finished miner instance found.");
 
-                        MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
-                        if (result == MessageBoxResult.No)
+                        if (!confirmedAddNewMiner)
                         {
-                            logger.Information("User cancelled while prompting install new instance.");
-                            btnStepOneNext.IsEnabled = true;
-                            return;
+                            MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
+                            if (result == MessageBoxResult.No)
+                            {
+                                logger.Information("User cancelled while prompting install new instance.");
+                                btnStepOneNext.IsEnabled = true;
+                                return;
+                            }
                         }
                     }
 
@@ -628,7 +633,7 @@ namespace XDaggerMinerManager.UI.Forms
                 cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolHostIndex.Value;
             }
 
-            MinerMachine existingMachine = ManagerInfo.Current.Machines.First(m => m.FullName.Equals(clientMachine.FullName));
+            MinerMachine existingMachine = ManagerInfo.Current.Machines.FirstOrDefault(m => m.FullName.Equals(createdClient.MachineFullName));
             if (existingMachine != null && existingMachine.Devices != null && existingMachine.Devices.Count > 0)
             {
                 // This machine has been queried before and the devices are saved in the ManagerInfo cache, read it
@@ -645,7 +650,7 @@ namespace XDaggerMinerManager.UI.Forms
             else
             {
                 // Didn't find the machine in cache, use Executor to retrieve it
-                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(clientMachine);
+                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineFullName);
                 string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
                 BackgroundWork<List<DeviceOutput>>.CreateWork(
@@ -687,7 +692,7 @@ namespace XDaggerMinerManager.UI.Forms
                             cBxTargetDevice.Items.Add(device.DisplayName);
                             cBxTargetDeviceEth.Items.Add(device.DisplayName);
 
-                            clientMachine.Devices.Add(device);
+                            createdClient.Machine.Devices.Add(device);
                         }
                     }
                 ).Execute();
@@ -708,22 +713,23 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            string poolAddress = txtXDaggerPoolAddress.Text;
-            if (string.IsNullOrWhiteSpace(poolAddress))
+            XDaggerConfig xDaggerConfig = new XDaggerConfig();
+
+            xDaggerConfig.PoolAddress = txtXDaggerPoolAddress.Text.Trim();
+            if (string.IsNullOrWhiteSpace(xDaggerConfig.PoolAddress))
             {
                 MessageBox.Show("请输入矿池地址");
                 return;
             }
 
-            string walletAddress = txtWalletAddress.Text;
-            if (string.IsNullOrWhiteSpace(walletAddress))
+            xDaggerConfig.WalletAddress = txtWalletAddress.Text.Trim();
+            if (string.IsNullOrWhiteSpace(xDaggerConfig.WalletAddress))
             {
                 MessageBox.Show("请输入钱包地址");
                 return;
             }
-
-            walletAddress = walletAddress.Trim();
-            if (walletAddress.Length != 32)
+            
+            if (xDaggerConfig.WalletAddress.Length != 32)
             {
                 MessageBox.Show("钱包必须为长度32位的字母与数字组合");
                 return;
@@ -737,9 +743,9 @@ namespace XDaggerMinerManager.UI.Forms
                 () => {
 
                     string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'XDaggerWallet':'{1}', 'XDaggerPoolAddress':'{2}', 'AutoDecideInstanceId':true }}\"", 
-                        selectedDevice.DeviceId, 
-                        walletAddress,
-                        poolAddress);
+                        selectedDevice.DeviceId,
+                        xDaggerConfig.WalletAddress,
+                        xDaggerConfig.PoolAddress);
 
                     ConfigureOutput exeResult = createdClient.ExecuteDaemon<ConfigureOutput>(commandParameters);
 
@@ -762,13 +768,11 @@ namespace XDaggerMinerManager.UI.Forms
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
-                    createdClient.XDaggerConfig.WalletAddress = walletAddress;
-                    createdClient.XDaggerConfig.PoolAddress = poolAddress;
+                    createdClient.XDaggerConfig = xDaggerConfig;
 
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
-                        ManagerConfig.Current.DefaultXDagger.WalletAddress = walletAddress;
-                        ManagerConfig.Current.DefaultXDagger.PoolAddress = poolAddress;
+                        ManagerConfig.Current.DefaultXDagger = xDaggerConfig;
                         ManagerConfig.Current.SaveToFile();
                     }
 
@@ -818,18 +822,23 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
+            EthConfig ethConfig = new EthConfig();
+            ethConfig.PoolIndex = cBxTargetEthPool.SelectedIndex;
+            ethConfig.PoolHostIndex = cBxTargetEthPoolHost.SelectedIndex;
+            ethConfig.WalletAddress = txtWalletAddressEth.Text.Trim();
+            ethConfig.Email = txtEmailAddressEth.Text;
+            ethConfig.WorkerName = txtEthWorkerName.Text;
+
             EthMinerPoolHelper ethPoolHelper = new EthMinerPoolHelper();
-            ethPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)cBxTargetEthPool.SelectedIndex;
-            ethPoolHelper.HostIndex = cBxTargetEthPoolHost.SelectedIndex;
-            ethPoolHelper.EthWalletAddress = txtWalletAddressEth.Text;
-            ethPoolHelper.EmailAddress = txtEmailAddressEth.Text;
-            ethPoolHelper.WorkerName = txtEthWorkerName.Text;
-
-            string ethFullPoolAddress = string.Empty;
-
+            ethPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)ethConfig.PoolIndex;
+            ethPoolHelper.HostIndex = ethConfig.PoolHostIndex.Value;
+            ethPoolHelper.EthWalletAddress = ethConfig.WalletAddress;
+            ethPoolHelper.EmailAddress = ethConfig.Email;
+            ethPoolHelper.WorkerName = ethConfig.WorkerName;
+            
             try
             {
-                ethFullPoolAddress = ethPoolHelper.GeneratePoolAddress();
+                ethConfig.PoolFullAddress = ethPoolHelper.GeneratePoolAddress();
             }
             catch (Exception ex)
             {
@@ -848,7 +857,7 @@ namespace XDaggerMinerManager.UI.Forms
                     string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'EthPoolAddress':'{2}' }}\"",
                         selectedDevice.DeviceId,
                         createdClient.InstanceName,
-                        ethFullPoolAddress);
+                        ethConfig.PoolFullAddress);
                     OKResult exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
                     return 0;
                 },
@@ -865,17 +874,11 @@ namespace XDaggerMinerManager.UI.Forms
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
-                    createdClient.EthConfig.PoolFullAddress = ethFullPoolAddress;
+                    createdClient.EthConfig = ethConfig;
 
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
-                        ManagerConfig.Current.DefaultEth.PoolIndex = ethPoolHelper.Index.GetHashCode();
-                        ManagerConfig.Current.DefaultEth.PoolHostIndex = ethPoolHelper.HostIndex;
-                        ManagerConfig.Current.DefaultEth.WalletAddress = ethPoolHelper.EthWalletAddress;
-                        ManagerConfig.Current.DefaultEth.WorkerName = ethPoolHelper.WorkerName;
-                        ManagerConfig.Current.DefaultEth.WorkerPassword = ethPoolHelper.WorkerPassword;
-                        ManagerConfig.Current.DefaultEth.Email = ethPoolHelper.EmailAddress;
-
+                        ManagerConfig.Current.DefaultEth = ethConfig;
                         ManagerConfig.Current.SaveToFile();
                     }
 
@@ -962,7 +965,7 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("Start StepFour_Finish.");
 
-            MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClient, clientMachine);
+            MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClient);
             this.OnMinerCreated(ev);
 
             wizardStatus = AddMinerWizardStatus.Finished;
@@ -1014,16 +1017,9 @@ namespace XDaggerMinerManager.UI.Forms
             get; private set;
         }
 
-        public MinerMachine Machine
-        {
-            get; private set;
-        }
-
-
-        public MinerCreatedEventArgs(MinerClient client, MinerMachine machine)
+        public MinerCreatedEventArgs(MinerClient client)
         {
             this.CreatedClient = client;
-            this.Machine = machine;
         }
     }
 }

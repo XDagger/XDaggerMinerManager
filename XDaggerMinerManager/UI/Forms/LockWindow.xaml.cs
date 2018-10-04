@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using XDaggerMinerManager.Configuration;
+using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -42,7 +43,7 @@ namespace XDaggerMinerManager.UI.Forms
             ManagerInfo info = ManagerInfo.Current;
 
             string password = this.tBxPassword.Password;
-            if (!info.IsPasswordMatch(password))
+            if (!SecureStringHelper.IsPasswordMatch(password, info.LockPasswordHash))
             {
                 ShowError("密码错误");
                 return;

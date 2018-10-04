@@ -15,6 +15,7 @@ namespace XDaggerMinerManager.ObjectModel
     {
         public MinerMachine()
         {
+            this.Devices = new List<MinerDevice>();
         }
 
         public static string TranslateHeaderName(string header)
@@ -27,17 +28,6 @@ namespace XDaggerMinerManager.ObjectModel
             }
         }
 
-        public void SetLoginPassword(string password)
-        {
-            this.LoginPlainPassword = password;
-
-            this.LoginPassword = new SecureString();
-            foreach (char x in this.LoginPlainPassword)
-            {
-                this.LoginPassword.AppendChar(x);
-            }
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -46,21 +36,21 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; set;
         }
-
-        [JsonProperty(PropertyName = "user_name")]
-        public string LoginUserName
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        [JsonProperty(PropertyName = "credential_id")]
+        public string CredentialId
         {
             get; set;
         }
 
-        [JsonProperty(PropertyName = "password")]
-        public SecureString LoginPassword
-        {
-            get; set;
-        }
-
-        [JsonProperty(PropertyName = "plain_password")]
-        public string LoginPlainPassword
+        /// <summary>
+        /// 
+        /// </summary>
+        [JsonIgnore]
+        public MachineCredential Credential
         {
             get; set;
         }

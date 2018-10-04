@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using XDaggerMinerManager.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
+using XDaggerMinerManager.Utils;
+using System.Linq;
 
 namespace XDaggerMinerManager.Configuration
 {
@@ -40,6 +42,22 @@ namespace XDaggerMinerManager.Configuration
                 {
                     string jsonString = sr.ReadToEnd();
                     ManagerInfo info = JsonConvert.DeserializeObject<ManagerInfo>(jsonString);
+
+                    if (info.Machines == null)
+                    {
+                        info.Machines = new List<MinerMachine>();
+                    }
+
+                    if (info.Credentials == null)
+                    {
+                        info.Credentials = new List<MachineCredential>();
+                    }
+
+                    if (info.Clients == null)
+                    {
+                        info.Clients = new List<MinerClient>();
+                    }
+
                     return info;
                 }
             }
@@ -65,6 +83,8 @@ namespace XDaggerMinerManager.Configuration
         {
             this.LockPasswordHash = string.Empty;
             this.Clients = new List<MinerClient>();
+            this.Credentials = new List<MachineCredential>();
+            this.Machines = new List<MinerMachine>();
         }
 
         [JsonProperty(PropertyName = "lock_password")]
@@ -79,10 +99,67 @@ namespace XDaggerMinerManager.Configuration
             get; set;
         }
 
+        [JsonProperty(PropertyName = "credentials")]
+        public List<MachineCredential> Credentials
+        {
+            get; set;
+        }
+
         [JsonProperty(PropertyName = "clients")]
         public List<MinerClient> Clients
         {
             get; set;
+        }
+
+        /// <summary>
+        /// Returns the credentialId
+        /// </summary>
+        /// <param name="credential"></param>
+        /// <returns></returns>
+        public string AddOrUpdateCredential(MachineCredential credential)
+        {
+            MachineCredential existingCredential = this.Credentials.FirstOrDefault(c => c.UserName.Equals(credential.UserName));
+            if (existingCredential != null)
+            {
+                // Update the password and return the Id
+                existingCredential.SetLoginPassword(credential.LoginPlainPassword);
+                return existingCredential.Id;
+            }
+            else
+            {
+                // Generate credential Id
+                credential.Id = RandomUtils.GenerateString(6, (cId => !this.Credentials.Any(c => c.Id == cId)));
+                this.Credentials.Add(credential);
+
+                return credential.Id;
+            }
+        }
+
+        public void AddOrUpdateMachine(MinerMachine machine)
+        {
+            MinerMachine existingMachine = this.Machines.FirstOrDefault(m => m.FullName.Equals(machine.FullName));
+            if (existingMachine != null)
+            {
+                // Duplicated machines, update the machine information
+                if (machine.Devices.Count > existingMachine.Devices.Count)
+                {
+                    existingMachine.Devices = machine.Devices;
+                }
+
+                if (!string.IsNullOrEmpty(machine.IpAddressV4))
+                {
+                    existingMachine.IpAddressV4 = machine.IpAddressV4;
+                }
+
+                if(!string.IsNullOrEmpty(machine.CredentialId))
+                {
+                    existingMachine.CredentialId = machine.CredentialId;
+                }
+            }
+            else
+            {
+                this.Machines.Add(machine);
+            }
         }
 
         public bool HasLockPassword()
@@ -97,36 +174,8 @@ namespace XDaggerMinerManager.Configuration
                 throw new ArgumentNullException("password");
             }
 
-            this.LockPasswordHash = HashPassword(password);
+            this.LockPasswordHash = SecureStringHelper.HashPassword(password);
             this.SaveToFile();
-        }
-
-        public bool IsPasswordMatch(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password) && string.IsNullOrWhiteSpace(this.LockPasswordHash))
-            {
-                return true;
-            }
-            if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(this.LockPasswordHash))
-            {
-                return false;
-            }
-
-            return (HashPassword(password) == this.LockPasswordHash);
-        }
-
-        private static string HashPassword(string password)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(password);
-            SHA256Managed hashstring = new SHA256Managed();
-            byte[] hash = hashstring.ComputeHash(bytes);
-            string hashString = string.Empty;
-            foreach (byte x in hash)
-            {
-                hashString += String.Format("{0:x2}", x);
-            }
-
-            return hashString;
         }
     }
 }

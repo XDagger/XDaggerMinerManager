@@ -14,6 +14,10 @@ namespace XDaggerMinerManager.ObjectModel
     {
         private static MinerManager instance = null;
 
+        private ManagerConfig managerConfig = null;
+
+        private ManagerInfo managerInfo = null;
+
         private Logger logger = Logger.GetInstance();
 
         public event EventHandler ClientStatusChanged;
@@ -33,32 +37,46 @@ namespace XDaggerMinerManager.ObjectModel
         {
             logger.Trace("Initializing MinerManager.");
 
-            ClientList = new List<MinerClient>();
-            MachineList = new List<MinerMachine>();
-            this.Version = ManagerConfig.Current.Version;
+            managerConfig = ManagerConfig.Current;
+            managerInfo = ManagerInfo.Current;
         }
 
         public string Version
         {
-            get; private set;
+            get
+            {
+                return managerConfig.Version;
+            }
         }
 
         public List<MinerClient> ClientList
         {
-            get; private set;
+            get
+            {
+                return managerInfo.Clients;
+            }
         }
 
         public List<MinerMachine> MachineList
         {
-            get; private set;
+            get
+            {
+                return managerInfo.Machines;
+            }
+        }
+
+        public List<MachineCredential> CredentialList
+        {
+            get
+            {
+                return managerInfo.Credentials;
+            }
         }
 
         public void SaveCurrentInfo()
         {
             logger.Information("Start SaveCurrentInfo.");
-
-            ManagerInfo.Current.Clients = this.ClientList;
-            ManagerInfo.Current.Machines = this.MachineList;
+            
             ManagerInfo.Current.SaveToFile();
         }
 
@@ -67,8 +85,32 @@ namespace XDaggerMinerManager.ObjectModel
             logger.Information("Start LoadCurrentInfo.");
 
             ManagerInfo info = ManagerInfo.Load();
-            this.ClientList = info.Clients;
-            this.MachineList = info.Machines;
+
+            // Fill the rich object data to each object
+            foreach(MinerMachine machine in info.Machines)
+            {
+                if(!string.IsNullOrEmpty(machine.CredentialId))
+                {
+                    MachineCredential credential = info.Credentials.FirstOrDefault(c => c.Id == machine.CredentialId);
+                    if (credential == null)
+                    {
+                        throw new InvalidDataException($"LoadCurrentInfo error: cannot find CredentialId { machine.CredentialId } in ManagerInfo.");
+                    }
+
+                    machine.Credential = credential;
+                }
+            }
+
+            foreach(MinerClient client in info.Clients)
+            {
+                MinerMachine machine = info.Machines.FirstOrDefault(m => m.FullName == client.MachineFullName);
+                if(machine == null)
+                {
+                    throw new InvalidDataException($"LoadCurrentInfo error: cannot find machine with name { client.MachineFullName } in ManagerInfo.");
+                }
+
+                client.Machine = machine;
+            }
         }
 
         public void AddClient(MinerClient client)
@@ -81,7 +123,24 @@ namespace XDaggerMinerManager.ObjectModel
                 throw new ArgumentNullException("New Client should not be null");
             }
 
+            if (client.Machine == null)
+            {
+                logger.Error("New Client Machine should not be null");
+                throw new ArgumentNullException("New Client Machine should not be null");
+            }
+
             client.StatusChanged += ClientStatusChanged;
+            client.MachineFullName = client.Machine.FullName;
+
+            MinerMachine newMachine = client.Machine;
+            MachineCredential newCredential = newMachine.Credential;
+            if (newCredential != null)
+            {
+                newMachine.CredentialId = managerInfo.AddOrUpdateCredential(newMachine.Credential);
+            }
+
+            managerInfo.AddOrUpdateMachine(newMachine);
+
             this.ClientList.Add(client);
             this.SaveCurrentInfo();
         }
@@ -100,7 +159,7 @@ namespace XDaggerMinerManager.ObjectModel
             this.SaveCurrentInfo();
         }
 
-        public void AddMachine(MinerMachine machine)
+        private void AddMachine(MinerMachine machine)
         {
             logger.Information("Start AddMachine.");
             if (machine == null)
@@ -109,21 +168,8 @@ namespace XDaggerMinerManager.ObjectModel
                 throw new ArgumentNullException("Machine should not be null");
             }
 
-            MinerMachine existingMachine = this.MachineList.First(m => m.FullName.Equals(machine.FullName));
-            if (existingMachine != null)
-            {
-                // Duplicated machines, just ignore except adding the unknown devices
-                if (machine.Devices.Count > existingMachine.Devices.Count)
-                {
-                    existingMachine.Devices = machine.Devices;
-                }
-            }
-            else
-            {
-                this.MachineList.Add(machine);
-            }
-
-            this.SaveCurrentInfo();
+            
+            
         }
     }
 }
