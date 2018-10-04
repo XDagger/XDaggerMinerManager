@@ -83,15 +83,13 @@ namespace XDaggerMinerManager.ObjectModel
         public void LoadCurrentInfo()
         {
             logger.Information("Start LoadCurrentInfo.");
-
-            ManagerInfo info = ManagerInfo.Load();
-
+            
             // Fill the rich object data to each object
-            foreach(MinerMachine machine in info.Machines)
+            foreach(MinerMachine machine in managerInfo.Machines)
             {
                 if(!string.IsNullOrEmpty(machine.CredentialId))
                 {
-                    MachineCredential credential = info.Credentials.FirstOrDefault(c => c.Id == machine.CredentialId);
+                    MachineCredential credential = managerInfo.Credentials.FirstOrDefault(c => c.Id == machine.CredentialId);
                     if (credential == null)
                     {
                         throw new InvalidDataException($"LoadCurrentInfo error: cannot find CredentialId { machine.CredentialId } in ManagerInfo.");
@@ -101,9 +99,9 @@ namespace XDaggerMinerManager.ObjectModel
                 }
             }
 
-            foreach(MinerClient client in info.Clients)
+            foreach(MinerClient client in managerInfo.Clients)
             {
-                MinerMachine machine = info.Machines.FirstOrDefault(m => m.FullName == client.MachineFullName);
+                MinerMachine machine = managerInfo.Machines.FirstOrDefault(m => m.FullName == client.MachineFullName);
                 if(machine == null)
                 {
                     throw new InvalidDataException($"LoadCurrentInfo error: cannot find machine with name { client.MachineFullName } in ManagerInfo.");

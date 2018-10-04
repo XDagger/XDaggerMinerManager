@@ -197,10 +197,17 @@ namespace XDaggerMinerManager.UI.Forms
 
             isTimerRefreshingBusy = true;
 
-            this.Dispatcher.Invoke(() =>
+            try
             {
-                RefreshMinerOperationButtonState();
-            });
+                this.Dispatcher.Invoke(() =>
+                {
+                    RefreshMinerOperationButtonState();
+                });
+            }
+            catch(Exception)
+            {
+                // TODO: Temporary swallow evernthing
+            }
 
             try
             {

@@ -32,6 +32,9 @@ namespace XDaggerMinerManager.UI.Forms
         {
             InitializeComponent();
 
+            this.grdEthConfig.Visibility = Visibility.Hidden;
+            this.grdXDaggerConfig.Visibility = Visibility.Hidden;
+
             InitializeEthPoolAddresses();
 
             properties = new UpdateMinerProperties();
@@ -45,6 +48,8 @@ namespace XDaggerMinerManager.UI.Forms
             this.minerClients.AddRange(minerClients);
 
             lblSelectedMinerCount.Content = minerClients.Count.ToString();
+
+            InitializeCommonFields();
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
@@ -165,6 +170,11 @@ namespace XDaggerMinerManager.UI.Forms
 
             properties.XDaggerWalletAddress = walletAddress;
 
+            if (cbxXDaggerDevice.SelectedIndex >= 0)
+            {
+                properties.DeviceName = cbxXDaggerDevice.SelectedItem.ToString();
+            }
+
             return true;
         }
 
@@ -191,6 +201,11 @@ namespace XDaggerMinerManager.UI.Forms
 
             properties.EthFullPoolAddress = ethWalletAddress;
 
+            if (cbxEthDevice.SelectedIndex >= 0)
+            {
+                properties.DeviceName = cbxEthDevice.SelectedItem.ToString();
+            }
+
             return true;
         }
 
@@ -201,8 +216,18 @@ namespace XDaggerMinerManager.UI.Forms
 
             builder.Append(" -c \"{ ");
 
-            if(!string.IsNullOrWhiteSpace(properties.XDaggerWalletAddress))
+            if (!string.IsNullOrWhiteSpace(properties.DeviceName))
             {
+                builder.AppendFormat(" 'DeviceName':'{0}' ", properties.DeviceName);
+                isFirstParameter = false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(properties.XDaggerWalletAddress))
+            {
+                if (!isFirstParameter)
+                {
+                    builder.Append(", ");
+                }
                 builder.AppendFormat(" 'XDaggerWallet':'{0}' ", properties.XDaggerWalletAddress);
                 isFirstParameter = false;
             }
@@ -234,7 +259,20 @@ namespace XDaggerMinerManager.UI.Forms
 
             StringBuilder builder = new StringBuilder();
             builder.Append(" -c \"{ ");
+
+            bool isFirstParameter = true;
+            if (!string.IsNullOrWhiteSpace(properties.DeviceName))
+            {
+                builder.AppendFormat(" 'DeviceName':'{0}' ", properties.DeviceName);
+                isFirstParameter = false;
+            }
+            
+            if (!isFirstParameter)
+            {
+                builder.Append(", ");
+            }
             builder.AppendFormat(" 'EthPoolAddress':'{0}' ", properties.EthFullPoolAddress);
+
             builder.Append(" }\"");
 
             return builder.ToString();
@@ -251,6 +289,98 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             cbxTargetEthPoolHost.Items.Clear();
+        }
+
+        private void InitializeCommonFields()
+        {
+            MinerClient firstClient = (MinerClient)this.minerClients.FirstOrDefault();
+
+            // Initialize the Common Devices
+            List<string> commonDevices = new List<string>();
+            commonDevices.AddRange(firstClient.Machine.Devices.Select(d => d.DisplayName));
+
+            foreach(MinerClient client in this.minerClients)
+            {
+                for(int i = commonDevices.Count - 1; i >= 0; i--)
+                {
+                    if (!client.Machine.Devices.Any(device => device.DisplayName == commonDevices[i]))
+                    {
+                        commonDevices.RemoveAt(i);
+                    }
+                }
+            }
+
+            cbxXDaggerDevice.Items.Clear();
+            cbxEthDevice.Items.Clear();
+            foreach(string device in commonDevices)
+            {
+                cbxXDaggerDevice.Items.Add(device);
+                cbxEthDevice.Items.Add(device);
+            }
+
+            // Initialize Text Fields
+            string xdaggerWalletAddress = firstClient.XDaggerConfig?.WalletAddress;
+            string xdaggerPoolAddress = firstClient.XDaggerConfig?.PoolAddress;
+            string ethWalletAddress = firstClient.EthConfig?.WalletAddress;
+            string ethEmail = firstClient.EthConfig?.Email;
+            string ethWorkerName = firstClient.EthConfig?.WorkerName;
+            int? ethPoolIndex = firstClient.EthConfig?.PoolIndex;
+            int? ethPoolHostIndex = firstClient.EthConfig?.PoolHostIndex;
+
+            foreach (MinerClient client in this.minerClients)
+            {
+                if(!string.Equals(client.XDaggerConfig?.WalletAddress, xdaggerWalletAddress))
+                {
+                    xdaggerWalletAddress = string.Empty;
+                }
+                if (!string.Equals(client.XDaggerConfig?.PoolAddress, xdaggerPoolAddress))
+                {
+                    xdaggerPoolAddress = string.Empty;
+                }
+                if (!string.Equals(client.EthConfig?.WalletAddress, ethWalletAddress))
+                {
+                    ethWalletAddress = string.Empty;
+                }
+                if (!string.Equals(client.EthConfig?.Email, ethEmail))
+                {
+                    ethEmail = string.Empty;
+                }
+                if (!string.Equals(client.EthConfig?.WorkerName, ethWorkerName))
+                {
+                    ethWorkerName = string.Empty;
+                }
+
+                if (client.EthConfig?.PoolIndex != ethPoolIndex)
+                {
+                    ethPoolIndex = null;
+                }
+                if (client.EthConfig?.PoolHostIndex != ethPoolHostIndex)
+                {
+                    ethPoolHostIndex = null;
+                }
+            }
+
+            txtXDaggerWallet.Text = xdaggerWalletAddress;
+            txtXDaggerWallet.Foreground = new SolidColorBrush(Colors.Gray);
+
+            txtXDaggerPoolAddress.Text = xdaggerPoolAddress;
+            txtXDaggerPoolAddress.Foreground = new SolidColorBrush(Colors.Gray);
+
+            txtEthWallet.Text = ethWalletAddress;
+            txtEthWallet.Foreground = new SolidColorBrush(Colors.Gray);
+
+            txtEmailAddress.Text = ethEmail;
+            txtEmailAddress.Foreground = new SolidColorBrush(Colors.Gray);
+
+            if (ethPoolIndex.HasValue)
+            {
+                cbxTargetEthPool.SelectedIndex = ethPoolIndex.Value;
+            }
+
+            if (ethPoolHostIndex.HasValue)
+            {
+                cbxTargetEthPoolHost.SelectedIndex = ethPoolHostIndex.Value;
+            }
         }
 
         private void cbxInstanceType_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -283,6 +413,26 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 cbxTargetEthPoolHost.Items.Add(ethPoolHost);
             }
+        }
+
+        private void txtXDaggerWallet_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtXDaggerWallet.Foreground = new SolidColorBrush(Colors.Black);
+        }
+
+        private void txtXDaggerPoolAddress_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtXDaggerPoolAddress.Foreground = new SolidColorBrush(Colors.Black);
+        }
+
+        private void txtEthWallet_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtEthWallet.Foreground = new SolidColorBrush(Colors.Black);
+        }
+
+        private void txtEmailAddress_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtEmailAddress.Foreground = new SolidColorBrush(Colors.Black);
         }
     }
 }
