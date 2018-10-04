@@ -55,12 +55,12 @@ namespace XDaggerMinerManager.UI
 
             if (this.InstanceType == MinerClient.InstanceTypes.XDagger)
             {
-                client.XDaggerWalletAddress = (!string.IsNullOrWhiteSpace(XDaggerWalletAddress) ? XDaggerWalletAddress : client.XDaggerWalletAddress);
-                client.XDaggerPoolAddress = (!string.IsNullOrWhiteSpace(XDaggerPoolAddress) ? XDaggerPoolAddress : client.XDaggerPoolAddress);
+                client.XDaggerConfig.WalletAddress = (!string.IsNullOrWhiteSpace(XDaggerWalletAddress) ? XDaggerWalletAddress : client.XDaggerConfig.WalletAddress);
+                client.XDaggerConfig.PoolAddress = (!string.IsNullOrWhiteSpace(XDaggerPoolAddress) ? XDaggerPoolAddress : client.XDaggerConfig.PoolAddress);
             }
             else
             {
-                client.EthFullPoolAddress = (!string.IsNullOrWhiteSpace(EthFullPoolAddress) ? EthFullPoolAddress : client.EthFullPoolAddress);
+                client.EthConfig.PoolFullAddress = (!string.IsNullOrWhiteSpace(EthFullPoolAddress) ? EthFullPoolAddress : client.EthConfig.PoolFullAddress);
             }
         }
     }

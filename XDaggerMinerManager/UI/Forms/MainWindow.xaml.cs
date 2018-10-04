@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
+using XDaggerMinerManager.Configuration;
 using XDaggerMinerManager.Utils;
 using System.Timers;
 using System.IO;

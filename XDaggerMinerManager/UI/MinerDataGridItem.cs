@@ -29,7 +29,7 @@ namespace XDaggerMinerManager.UI
         {
             get
             {
-                return clientObject.Machine?.FullMachineName;
+                return clientObject.MachineFullName;
             }
         }
 
@@ -59,7 +59,7 @@ namespace XDaggerMinerManager.UI
         {
             get
             {
-                return clientObject.Machine?.FullMachineName + clientObject.InstanceName;
+                return clientObject.MachineFullName + clientObject.InstanceName;
             }
         }
 
@@ -75,7 +75,7 @@ namespace XDaggerMinerManager.UI
         {
             get
             {
-                return (this.InstanceType == "Ethereum") ? clientObject.EthFullPoolAddress : clientObject.XDaggerWalletAddress;
+                return (clientObject.InstanceTypeEnum == MinerClient.InstanceTypes.Ethereum) ? clientObject.EthConfig.PoolFullAddress : clientObject.XDaggerConfig.WalletAddress;
             }
         }
 

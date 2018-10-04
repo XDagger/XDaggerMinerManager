@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using XDaggerMinerManager.Configuration;
 using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.ObjectModel

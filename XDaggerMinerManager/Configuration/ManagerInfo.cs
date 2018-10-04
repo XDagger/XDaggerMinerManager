@@ -6,7 +6,7 @@ using XDaggerMinerManager.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Configuration
 {
     public class ManagerInfo
     {

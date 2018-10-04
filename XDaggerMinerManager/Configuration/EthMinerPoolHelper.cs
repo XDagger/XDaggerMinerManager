@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Configuration
 {
     public class EthMinerPoolHelper
     {

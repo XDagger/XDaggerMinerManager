@@ -20,6 +20,7 @@ using XDaggerMinerManager.ObjectModel;
 using System.ComponentModel;
 using IO = System.IO;
 using XDaggerMinerManager.Utils;
+using XDaggerMinerManager.Configuration;
 using System.Diagnostics;
 
 namespace XDaggerMinerManager.UI.Forms
@@ -613,18 +614,18 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("Start StepThree_RetrieveDeviceList.");
 
-            txtWalletAddress.Text = ManagerConfig.Current.DefaultXDaggerWallet;
-            txtXDaggerPoolAddress.Text = ManagerConfig.Current.DefaultXDaggerPool;
-            txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEthWallet;
-            txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEthEmail;
-            txtEthWorkerName.Text = ManagerConfig.Current.DefaultEthWorkerName;
-            if (ManagerConfig.Current.DefaultEthPoolIndex != null)
+            txtWalletAddress.Text = ManagerConfig.Current.DefaultXDagger.WalletAddress;
+            txtXDaggerPoolAddress.Text = ManagerConfig.Current.DefaultXDagger.PoolAddress;
+            txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEth.WalletAddress;
+            txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEth.Email;
+            txtEthWorkerName.Text = ManagerConfig.Current.DefaultEth.WorkerName;
+            if (ManagerConfig.Current.DefaultEth.PoolIndex != null)
             {
-                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEthPoolIndex.Value;
+                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolIndex.Value;
             }
-            if (ManagerConfig.Current.DefaultEthPoolHostIndex != null)
+            if (ManagerConfig.Current.DefaultEth.PoolHostIndex != null)
             {
-                cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEthPoolHostIndex.Value;
+                cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolHostIndex.Value;
             }
 
             MinerMachine existingMachine = ManagerInfo.Current.Machines.First(m => m.FullName.Equals(clientMachine.FullName));
@@ -761,13 +762,13 @@ namespace XDaggerMinerManager.UI.Forms
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
-                    createdClient.XDaggerWalletAddress = walletAddress;
-                    createdClient.XDaggerPoolAddress = poolAddress;
+                    createdClient.XDaggerConfig.WalletAddress = walletAddress;
+                    createdClient.XDaggerConfig.PoolAddress = poolAddress;
 
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
-                        ManagerConfig.Current.DefaultXDaggerWallet = walletAddress;
-                        ManagerConfig.Current.DefaultXDaggerPool = poolAddress;
+                        ManagerConfig.Current.DefaultXDagger.WalletAddress = walletAddress;
+                        ManagerConfig.Current.DefaultXDagger.PoolAddress = poolAddress;
                         ManagerConfig.Current.SaveToFile();
                     }
 
@@ -864,16 +865,16 @@ namespace XDaggerMinerManager.UI.Forms
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
-                    createdClient.EthFullPoolAddress = ethFullPoolAddress;
+                    createdClient.EthConfig.PoolFullAddress = ethFullPoolAddress;
 
                     if (cKbWalletSaveToDefault.IsChecked ?? false)
                     {
-                        ManagerConfig.Current.DefaultEthPoolIndex = ethPoolHelper.Index.GetHashCode();
-                        ManagerConfig.Current.DefaultEthPoolHostIndex = ethPoolHelper.HostIndex;
-                        ManagerConfig.Current.DefaultEthWallet = ethPoolHelper.EthWalletAddress;
-                        ManagerConfig.Current.DefaultEthWorkerName = ethPoolHelper.WorkerName;
-                        ManagerConfig.Current.DefaultEthWorkerPassword = ethPoolHelper.WorkerPassword;
-                        ManagerConfig.Current.DefaultEthEmail = ethPoolHelper.EmailAddress;
+                        ManagerConfig.Current.DefaultEth.PoolIndex = ethPoolHelper.Index.GetHashCode();
+                        ManagerConfig.Current.DefaultEth.PoolHostIndex = ethPoolHelper.HostIndex;
+                        ManagerConfig.Current.DefaultEth.WalletAddress = ethPoolHelper.EthWalletAddress;
+                        ManagerConfig.Current.DefaultEth.WorkerName = ethPoolHelper.WorkerName;
+                        ManagerConfig.Current.DefaultEth.WorkerPassword = ethPoolHelper.WorkerPassword;
+                        ManagerConfig.Current.DefaultEth.Email = ethPoolHelper.EmailAddress;
 
                         ManagerConfig.Current.SaveToFile();
                     }

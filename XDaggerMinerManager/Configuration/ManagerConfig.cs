@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Configuration
 {
     public class ManagerConfig
     {
@@ -54,7 +54,8 @@ namespace XDaggerMinerManager.Utils
 
         public ManagerConfig()
         {
-
+            this.DefaultXDagger = new XDaggerConfig();
+            this.DefaultEth = new EthConfig();
         }
 
         [JsonProperty(PropertyName = "version")]
@@ -93,6 +94,19 @@ namespace XDaggerMinerManager.Utils
             get; set;
         }
 
+        [JsonProperty(PropertyName = "default_xdagger")]
+        public XDaggerConfig DefaultXDagger
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "default_eth")]
+        public EthConfig DefaultEth
+        {
+            get; set;
+        }
+
+        /*
         [JsonProperty(PropertyName = "default_xdagger_wallet")]
         public string DefaultXDaggerWallet
         {
@@ -140,5 +154,7 @@ namespace XDaggerMinerManager.Utils
         {
             get; set;
         }
+        */
+
     }
 }

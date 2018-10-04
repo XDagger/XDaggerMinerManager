@@ -100,6 +100,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Configuration\EthConfig.cs" />
+    <Compile Include="Configuration\XDaggerConfig.cs" />
     <Compile Include="ObjectModel\MinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerMachine.cs" />
@@ -128,11 +130,11 @@
     <Compile Include="Utils\CustomWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Utils\EthMinerPoolHelper.cs" />
+    <Compile Include="Configuration\EthMinerPoolHelper.cs" />
     <Compile Include="Utils\LocalExecutor.cs" />
     <Compile Include="Utils\Logger.cs" />
-    <Compile Include="Utils\ManagerConfig.cs" />
-    <Compile Include="Utils\ManagerInfo.cs" />
+    <Compile Include="Configuration\ManagerConfig.cs" />
+    <Compile Include="Configuration\ManagerInfo.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\NetworkUtils.cs" />

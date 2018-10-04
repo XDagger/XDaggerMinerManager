@@ -8,6 +8,7 @@ using System.Net;
 using System.ComponentModel;
 using System.IO.Compression;
 using Newtonsoft.Json;
+using XDaggerMinerManager.Configuration;
 
 namespace XDaggerMinerManager.Utils
 {

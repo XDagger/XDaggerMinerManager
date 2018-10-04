@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using XDaggerMinerManager.Utils;
 using Newtonsoft.Json;
 using System.IO;
+using XDaggerMinerManager.Configuration;
 
 namespace XDaggerMinerManager.ObjectModel
 {
@@ -53,10 +54,12 @@ namespace XDaggerMinerManager.ObjectModel
 
         public MinerClient()
         {
-
+            this.XDaggerConfig = new XDaggerConfig();
+            this.EthConfig = new EthConfig();
         }
 
         public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
+            : this()
         {
             this.MachineFullName = machineName;
             
@@ -111,7 +114,20 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; set;
         }
+        
+        [JsonProperty(PropertyName = "xdagger_config")]
+        public XDaggerConfig XDaggerConfig
+        {
+            get; set;
+        }
 
+        [JsonProperty(PropertyName = "eth_config")]
+        public EthConfig EthConfig
+        {
+            get; set;
+        }
+        
+        /*
         [JsonProperty(PropertyName = "xdagger_wallet_address")]
         public string XDaggerWalletAddress
         {
@@ -129,7 +145,11 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get; set;
         }
+        */
 
+        /// <summary>
+        /// This is the full identical name of this client
+        /// </summary>
         [JsonProperty(PropertyName = "instance_name")]
         public string InstanceName
         {
