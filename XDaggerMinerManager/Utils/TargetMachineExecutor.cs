@@ -35,7 +35,7 @@ namespace XDaggerMinerManager.Utils
                 return null;
             }
 
-            TargetMachineExecutor executor = GetExecutor(machine?.FullMachineName);
+            TargetMachineExecutor executor = GetExecutor(machine?.FullName);
             if (!string.IsNullOrEmpty(machine?.LoginUserName) && !string.IsNullOrEmpty(machine?.LoginPlainPassword))
             {
                 executor.SetCredential(machine.LoginUserName, machine.LoginPlainPassword);

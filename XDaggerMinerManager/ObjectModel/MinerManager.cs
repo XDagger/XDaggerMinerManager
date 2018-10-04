@@ -33,6 +33,7 @@ namespace XDaggerMinerManager.ObjectModel
             logger.Trace("Initializing MinerManager.");
 
             ClientList = new List<MinerClient>();
+            MachineList = new List<MinerMachine>();
             this.Version = ManagerConfig.Current.Version;
         }
 
@@ -46,11 +47,17 @@ namespace XDaggerMinerManager.ObjectModel
             get; private set;
         }
 
+        public List<MinerMachine> MachineList
+        {
+            get; private set;
+        }
+
         public void SaveCurrentInfo()
         {
             logger.Information("Start SaveCurrentInfo.");
 
             ManagerInfo.Current.Clients = this.ClientList;
+            ManagerInfo.Current.Machines = this.MachineList;
             ManagerInfo.Current.SaveToFile();
         }
 
@@ -60,6 +67,7 @@ namespace XDaggerMinerManager.ObjectModel
 
             ManagerInfo info = ManagerInfo.Load();
             this.ClientList = info.Clients;
+            this.MachineList = info.Machines;
         }
 
         public void AddClient(MinerClient client)
@@ -88,6 +96,32 @@ namespace XDaggerMinerManager.ObjectModel
             }
 
             this.ClientList.Remove(client);
+            this.SaveCurrentInfo();
+        }
+
+        public void AddMachine(MinerMachine machine)
+        {
+            logger.Information("Start AddMachine.");
+            if (machine == null)
+            {
+                logger.Error("Machine should not be null");
+                throw new ArgumentNullException("Machine should not be null");
+            }
+
+            MinerMachine existingMachine = this.MachineList.First(m => m.FullName.Equals(machine.FullName));
+            if (existingMachine != null)
+            {
+                // Duplicated machines, just ignore except adding the unknown devices
+                if (machine.Devices.Count > existingMachine.Devices.Count)
+                {
+                    existingMachine.Devices = machine.Devices;
+                }
+            }
+            else
+            {
+                this.MachineList.Add(machine);
+            }
+
             this.SaveCurrentInfo();
         }
     }

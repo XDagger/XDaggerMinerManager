@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XDaggerMinerManager.Utils;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace XDaggerMinerManager.ObjectModel
 {
@@ -57,9 +58,7 @@ namespace XDaggerMinerManager.ObjectModel
 
         public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
         {
-            this.Machine = new MinerMachine() {
-                FullMachineName = machineName.Trim().ToUpper()
-            };
+            this.MachineFullName = machineName;
             
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
             this.Version = version;
@@ -69,9 +68,10 @@ namespace XDaggerMinerManager.ObjectModel
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
 
+        /*
         public MinerClient(MinerMachine machine, string deploymentFolder, string version = "", string instanceName = "")
         {
-            this.Machine = machine;
+            this.MachineFullName = machine.FullName;
 
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
             this.Version = version;
@@ -80,6 +80,7 @@ namespace XDaggerMinerManager.ObjectModel
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
+        */
 
         public string Name
         {
@@ -87,17 +88,26 @@ namespace XDaggerMinerManager.ObjectModel
             {
                 if (string.IsNullOrEmpty(this.InstanceName))
                 {
-                    return this.Machine?.FullMachineName;
+                    return this.MachineFullName;
                 }
                 else
                 {
-                    return string.Format("{0}_{1}", this.Machine?.FullMachineName, this.InstanceName);
+                    return string.Format("{0}_{1}", this.MachineFullName, this.InstanceName);
                 }
             }
         }
-        
-        [JsonProperty(PropertyName = "machine")]
-        public MinerMachine Machine
+
+        /// <summary>
+        /// This is the randomly generated folder suffix for the multiple client instances
+        /// </summary>
+        [JsonProperty(PropertyName = "folder_suffix")]
+        public string FolderSuffix
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "machine_full_name")]
+        public string MachineFullName
         {
             get; set;
         }
@@ -138,11 +148,26 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
+        public string BinaryFolder
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.FolderSuffix))
+                {
+                    return WinMinerReleaseBinary.ProjectName;
+                }
+                else
+                {
+                    return string.Format("{0}_(1)", WinMinerReleaseBinary.ProjectName, this.FolderSuffix);
+                }
+            }
+        }
+
         public string BinaryPath
         {
             get
             {
-                return System.IO.Path.Combine(this.DeploymentFolder, WinMinerReleaseBinary.ProjectName);
+                return System.IO.Path.Combine(this.DeploymentFolder, this.BinaryFolder);
             }
         }
 
@@ -269,37 +294,43 @@ namespace XDaggerMinerManager.ObjectModel
         
         public string GetRemoteDeploymentPath()
         {
-            if (string.IsNullOrEmpty(this.Machine?.FullMachineName) || string.IsNullOrEmpty(DeploymentFolder))
+            if (string.IsNullOrEmpty(this.MachineFullName) || string.IsNullOrEmpty(DeploymentFolder))
             {
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, this.DeploymentFolder.Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.MachineFullName, this.DeploymentFolder.Replace(":", "$"));
         }
 
         public string GetRemoteBinaryPath()
         {
-            if (string.IsNullOrEmpty(this.Machine?.FullMachineName) || string.IsNullOrEmpty(BinaryPath))
+            if (string.IsNullOrEmpty(this.MachineFullName) || string.IsNullOrEmpty(BinaryPath))
             {
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, this.BinaryPath.Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.MachineFullName, this.BinaryPath.Replace(":", "$"));
         }
 
         public string GetRemoteTempPath()
         {
-            if (string.IsNullOrEmpty(this.Machine?.FullMachineName))
+            if (string.IsNullOrEmpty(this.MachineFullName))
             {
                 return string.Empty;
             }
 
-            return string.Format("\\\\{0}\\{1}", this.Machine?.FullMachineName, System.IO.Path.GetTempPath().Replace(":", "$"));
+            return string.Format("\\\\{0}\\{1}", this.MachineFullName, System.IO.Path.GetTempPath().Replace(":", "$"));
         }
 
         public T ExecuteDaemon<T>(string parameters)
         {
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.Machine);
+            MinerMachine machine = GetMachine();
+            if (machine == null)
+            {
+                throw new ArgumentNullException("Cannot find MinerMachine in ManagerInfo with name " + this.MachineFullName);
+            }
+
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(machine);
             string daemonFullPath = System.IO.Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             return executor.ExecuteCommandAndThrow<T>(daemonFullPath, parameters);
@@ -370,14 +401,30 @@ namespace XDaggerMinerManager.ObjectModel
             return hasStatusChanged;
         }
 
+        public MinerMachine GetMachine()
+        {
+            MinerMachine machine = ManagerInfo.Current.Machines.First((m) => m.FullName.Equals(this.MachineFullName));
+            return machine;
+        }
+
+        public void GenerateFolderSuffix()
+        {
+            do
+            {
+                FolderSuffix = Guid.NewGuid().ToString().Substring(0, 3);
+            } while (Directory.Exists(this.GetRemoteBinaryPath()));
+            
+        }
+
         #region Private Methods
-        
+
 
         private void OnStatusChanged(EventArgs e)
         {
             StatusChanged?.Invoke(this, e);
         }
 
+        
         #endregion
 
 

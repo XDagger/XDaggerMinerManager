@@ -44,6 +44,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private MinerClient createdClient = null;
 
+        private MinerMachine clientMachine = null;
+
         private WinMinerReleaseBinary winMinerBinary = null;
 
         private List<MinerDevice> displayedDeviceList = new List<MinerDevice>();
@@ -64,7 +66,6 @@ namespace XDaggerMinerManager.UI.Forms
         }
 
         public event EventHandler MinerCreated;
-
 
         public AddMinerWizardWindow()
         {
@@ -88,6 +89,15 @@ namespace XDaggerMinerManager.UI.Forms
                 return createdClient;
             }
         }
+
+        public MinerMachine ClientMachine
+        {
+            get
+            {
+                return clientMachine;
+            }
+        }
+
 
         private void addMinerWizard_Loaded(object sender, RoutedEventArgs e)
         {
@@ -125,20 +135,19 @@ namespace XDaggerMinerManager.UI.Forms
             string targetMachineUserName = txtTargetUserName.Text?.Trim();
             string targetMachinePassword = txtTargetUserPassword.Password?.Trim();
 
-            MinerMachine machine = new MinerMachine() {
-                FullMachineName = targetMachineName,
-                LoginUserName = targetMachineUserName
+            clientMachine = new MinerMachine() {
+                FullName = targetMachineName.ToUpper(),
+                LoginUserName = targetMachineUserName.ToLower()
             };
 
-            machine.SetLoginPassword(targetMachinePassword);
-            createdClient = new MinerClient(machine, targetMachinePath);
+            clientMachine.SetLoginPassword(targetMachinePassword);
+            createdClient = new MinerClient(clientMachine.FullName, targetMachinePath);
 
             // Check whether this target is already in Miner Manager Client list
 
             // Check the machine name and path is accessasible
             StepOne_ValidateTargetMachine();
         }
-
         
         private void btnStepTwoNext_Click(object sender, RoutedEventArgs e)
         {
@@ -198,7 +207,7 @@ namespace XDaggerMinerManager.UI.Forms
 
             BrowseNetworkWindow browseNetworkWindow = new BrowseNetworkWindow();
             browseNetworkWindow.SetResultHandler(minerMachine =>
-                { this.txtMachineName.Text = minerMachine?.FullMachineName; });
+                { this.txtMachineName.Text = minerMachine?.FullName; });
 
             browseNetworkWindow.ShowDialog();
         }
@@ -333,14 +342,14 @@ namespace XDaggerMinerManager.UI.Forms
                     // Send the ping asynchronously.
                     // Use the waiter as the user token.
                     // When the callback completes, it can wake up this thread.
-                    return pingSender.Send(createdClient.Machine?.FullMachineName, timeout, buffer, options);
+                    return pingSender.Send(createdClient.MachineFullName, timeout, buffer, options);
                 },
                 (taskResult) => {
 
                     HideProgressIndicator();
                     if (taskResult.HasError)
                     {
-                        string errorMessage = string.Format(@"[{0}] {1}", createdClient.Machine?.FullMachineName, taskResult.Exception.ToString());
+                        string errorMessage = string.Format(@"[{0}] {1}", createdClient.MachineFullName, taskResult.Exception.ToString());
                         MessageBox.Show("无法连接到目标机器:" + errorMessage);
                         logger.Error("Error: " + errorMessage);
 
@@ -391,12 +400,17 @@ namespace XDaggerMinerManager.UI.Forms
 
             if (Directory.Exists(createdClient.GetRemoteBinaryPath()))
             {
-                MessageBox.Show("目标路径下已经存在矿机，请删除或更新");
-                logger.Information("目标路径下已经存在矿机，请删除或更新");
+                MessageBoxResult r = MessageBox.Show("目标路径下已经存在矿机，要创建新矿机吗？", "提示", MessageBoxButton.YesNo);
+                logger.Information("检测到目标路径下已经存在矿机.");
 
-                // Enable the UI
-                btnStepOneNext.IsEnabled = true;
-                return;
+                if (r == MessageBoxResult.No)
+                {
+                    // Enable the UI
+                    btnStepOneNext.IsEnabled = true;
+                    return;
+                }
+
+                createdClient.GenerateFolderSuffix();
             }
 
             BackgroundWork<bool>.CreateWork(
@@ -406,7 +420,7 @@ namespace XDaggerMinerManager.UI.Forms
                 },
                 () => {
                     logger.Trace("Start scanning existing services on target machine.");
-                    return ServiceUtils.HasExistingService(createdClient.Machine?.FullMachineName);
+                    return ServiceUtils.HasExistingService(createdClient.MachineFullName);
                 },
                 (taskResult) => {
 
@@ -613,47 +627,70 @@ namespace XDaggerMinerManager.UI.Forms
                 cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEthPoolHostIndex.Value;
             }
 
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.Machine);
-            string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
-
-            BackgroundWork<List<DeviceOutput>>.CreateWork(
-                this,
-                () => {
-                    ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
-                },
-                () => {
-                    return executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
-                },
-                (taskResult) => {
-
-                    HideProgressIndicator();
-                    if (taskResult.HasError)
-                    {
-                        MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
-                        logger.Error("ExecuteCommand failed: " + taskResult.Exception.ToString());
-                        return;
-                    }
-                    List<DeviceOutput> devices = taskResult.Result;
-
-                    if (devices == null || devices.Count == 0)
-                    {
-                        MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
-                        logger.Warning("没有找到任何满足条件的硬件，请检查目标机器配置");
-                        return;
-                    }
-
-                    cBxTargetDevice.Items.Clear();
-                    cBxTargetDeviceEth.Items.Clear();
-                    logger.Trace("Got Devices count: " + devices.Count);
-                    foreach (DeviceOutput deviceOut in devices)
-                    {
-                        MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
-                        displayedDeviceList.Add(device);
-                        cBxTargetDevice.Items.Add(device.DisplayName);
-                        cBxTargetDeviceEth.Items.Add(device.DisplayName);
-                    }
+            MinerMachine existingMachine = ManagerInfo.Current.Machines.First(m => m.FullName.Equals(clientMachine.FullName));
+            if (existingMachine != null && existingMachine.Devices != null && existingMachine.Devices.Count > 0)
+            {
+                // This machine has been queried before and the devices are saved in the ManagerInfo cache, read it
+                displayedDeviceList = existingMachine.Devices;
+                cBxTargetDevice.Items.Clear();
+                cBxTargetDeviceEth.Items.Clear();
+                logger.Trace("Got Devices from ManagerInfo cache. Count: " + displayedDeviceList.Count);
+                foreach (MinerDevice device in displayedDeviceList)
+                {
+                    cBxTargetDevice.Items.Add(device.DisplayName);
+                    cBxTargetDeviceEth.Items.Add(device.DisplayName);
                 }
-            ).Execute();
+            }
+            else
+            {
+                // Didn't find the machine in cache, use Executor to retrieve it
+                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(clientMachine);
+                string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+
+                BackgroundWork<List<DeviceOutput>>.CreateWork(
+                    this,
+                    () =>
+                    {
+                        ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
+                    },
+                    () =>
+                    {
+                        return executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
+                    },
+                    (taskResult) =>
+                    {
+
+                        HideProgressIndicator();
+                        if (taskResult.HasError)
+                        {
+                            MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
+                            logger.Error("ExecuteCommand failed: " + taskResult.Exception.ToString());
+                            return;
+                        }
+                        List<DeviceOutput> devices = taskResult.Result;
+
+                        if (devices == null || devices.Count == 0)
+                        {
+                            MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
+                            logger.Warning("没有找到任何满足条件的硬件，请检查目标机器配置");
+                            return;
+                        }
+
+                        cBxTargetDevice.Items.Clear();
+                        cBxTargetDeviceEth.Items.Clear();
+                        logger.Trace("Got Devices count: " + devices.Count);
+                        foreach (DeviceOutput deviceOut in devices)
+                        {
+                            MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
+                            displayedDeviceList.Add(device);
+                            cBxTargetDevice.Items.Add(device.DisplayName);
+                            cBxTargetDeviceEth.Items.Add(device.DisplayName);
+
+                            clientMachine.Devices.Add(device);
+                        }
+                    }
+                ).Execute();
+            }
         }
 
         /// <summary>
@@ -924,7 +961,7 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("Start StepFour_Finish.");
 
-            MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClient);
+            MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClient, clientMachine);
             this.OnMinerCreated(ev);
 
             wizardStatus = AddMinerWizardStatus.Finished;
@@ -971,14 +1008,21 @@ namespace XDaggerMinerManager.UI.Forms
     
     public class MinerCreatedEventArgs : EventArgs
     {
-        public MinerClient CreatedMiner
+        public MinerClient CreatedClient
         {
             get; private set;
         }
 
-        public MinerCreatedEventArgs(MinerClient client)
+        public MinerMachine Machine
         {
-            this.CreatedMiner = client;
+            get; private set;
+        }
+
+
+        public MinerCreatedEventArgs(MinerClient client, MinerMachine machine)
+        {
+            this.CreatedClient = client;
+            this.Machine = machine;
         }
     }
 }

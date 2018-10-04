@@ -73,6 +73,12 @@ namespace XDaggerMinerManager.Utils
             get; set;
         }
 
+        [JsonProperty(PropertyName = "machines")]
+        public List<MinerMachine> Machines
+        {
+            get; set;
+        }
+
         [JsonProperty(PropertyName = "clients")]
         public List<MinerClient> Clients
         {

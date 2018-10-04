@@ -42,7 +42,7 @@ namespace XDaggerMinerManager.ObjectModel
         /// 
         /// </summary>
         [JsonProperty(PropertyName = "full_name")]
-        public string FullMachineName
+        public string FullName
         {
             get; set;
         }
@@ -65,7 +65,14 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
+        [JsonProperty(PropertyName = "ip_address_v4")]
         public string IpAddressV4
+        {
+            get; set;
+        }
+
+        [JsonProperty(PropertyName = "devices")]
+        public List<MinerDevice> Devices
         {
             get; set;
         }

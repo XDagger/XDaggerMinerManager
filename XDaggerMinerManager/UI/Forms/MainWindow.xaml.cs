@@ -174,13 +174,13 @@ namespace XDaggerMinerManager.UI.Forms
 
             MinerCreatedEventArgs args = e as MinerCreatedEventArgs;
 
-            if (args == null || args.CreatedMiner == null)
+            if (args == null || args.CreatedClient == null || args.Machine == null)
             {
                 return;
             }
 
-            minerManager.AddClient(args.CreatedMiner);
-            minerListGridItems.Add(new MinerDataGridItem(args.CreatedMiner));
+            minerManager.AddClient(args.CreatedClient);
+            minerListGridItems.Add(new MinerDataGridItem(args.CreatedClient));
 
             RefreshMinerListGrid();
 

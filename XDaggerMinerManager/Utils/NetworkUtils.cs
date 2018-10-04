@@ -29,7 +29,7 @@ namespace XDaggerMinerManager.Utils
                     continue;
                 }
 
-                MinerMachine machine = new MinerMachine() { FullMachineName = name, IpAddressV4 = ipAddress };
+                MinerMachine machine = new MinerMachine() { FullName = name, IpAddressV4 = ipAddress };
                 machineList.Add(machine);
             }
 
