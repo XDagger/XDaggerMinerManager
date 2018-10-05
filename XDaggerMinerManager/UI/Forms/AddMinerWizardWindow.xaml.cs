@@ -764,7 +764,14 @@ namespace XDaggerMinerManager.UI.Forms
                     }
 
                     int? instanceId = taskResult.Result;
-                    createdClient.InstanceName = instanceId?.ToString();
+                    if (instanceId == null)
+                    {
+                        MessageBox.Show("配置矿机出现错误，未返回InstanceId.");
+                        logger.Error("配置矿机出现错误，未返回InstanceId.");
+                        return;
+                    }
+
+                    createdClient.InstanceId = instanceId.Value;
 
                     // Save the currnet config into cache.
                     createdClient.Device = selectedDevice;
@@ -856,7 +863,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'EthPoolAddress':'{2}' }}\"",
                         selectedDevice.DeviceId,
-                        createdClient.InstanceName,
+                        createdClient.InstanceId,
                         ethConfig.PoolFullAddress);
                     OKResult exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
                     return 0;

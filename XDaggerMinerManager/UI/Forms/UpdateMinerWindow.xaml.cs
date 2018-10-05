@@ -28,6 +28,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private UpdateMinerProperties properties = null;
 
+        private Dictionary<string, bool> newInstanceIdDictionary = null;
+
         public UpdateMinerWindow(List<MinerClient> minerClients)
         {
             InitializeComponent();
@@ -43,6 +45,8 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 throw new ArgumentNullException("MinerClients is null or empty.");
             }
+
+            this.newInstanceIdDictionary = new Dictionary<string, bool>();
 
             this.minerClients = new List<object>();
             this.minerClients.AddRange(minerClients);
@@ -104,7 +108,18 @@ namespace XDaggerMinerManager.UI.Forms
                 this.minerClients,
                 (obj) => {
                     MinerClient client = (MinerClient)obj;
-                    OKResult exeResult = client.ExecuteDaemon<OKResult>(configParameters);
+                    ConfigureOutput exeResult = client.ExecuteDaemon<ConfigureOutput>(configParameters);
+
+                    // If instance type changed, we need to decide the new instanceId
+                    if(client.InstanceTypeEnum != properties.InstanceType && exeResult.InstanceId != null)
+                    {
+                        int finalInstanceId = AssignInstanceId(client.MachineFullName, properties.InstanceType, exeResult.InstanceId.Value);
+                        if (finalInstanceId != exeResult.InstanceId)
+                        {
+                            client.ExecuteDaemon<ConfigureOutput>("-c \"{ 'InstanceId':'" + finalInstanceId.ToString() + "' }\"");
+                            client.InstanceId = finalInstanceId;
+                        }
+                    }
 
                     //After the config command success, update the status of the client
                     properties.UpdateClient(client);
@@ -276,6 +291,30 @@ namespace XDaggerMinerManager.UI.Forms
             builder.Append(" }\"");
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// When changing instanceType for 2+ clients on the same machine, it might has a situation that they will have the same instanceId,
+        /// So in this step the MinerManager would detect the conflicts then assign new instanceId when necessary.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="returnedInstanceId"></param>
+        /// <returns></returns>
+        private int AssignInstanceId(string machineName, MinerClient.InstanceTypes instanceType, int newInstanceId)
+        {
+            int assignedInstanceId = newInstanceId;
+            string key = machineName + instanceType.ToString() + assignedInstanceId.ToString();
+
+            MinerManager manager = MinerManager.GetInstance();
+            while (this.newInstanceIdDictionary.ContainsKey(key) 
+                || manager.IsInstanceIdExists(machineName, instanceType, assignedInstanceId))
+            {
+                assignedInstanceId ++;
+                key = machineName + instanceType.ToString() + assignedInstanceId.ToString();
+            }
+
+            this.newInstanceIdDictionary[key] = true;
+            return assignedInstanceId;
         }
 
         private void InitializeEthPoolAddresses()

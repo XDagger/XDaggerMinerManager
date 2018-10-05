@@ -54,31 +54,30 @@ namespace XDaggerMinerManager.ObjectModel
 
         public MinerClient()
         {
-            this.XDaggerConfig = new XDaggerConfig();
-            this.EthConfig = new EthConfig();
         }
 
-        public MinerClient(string machineName, string deploymentFolder, string version = "", string instanceName = "")
+        public MinerClient(string machineName, string deploymentFolder, string version = "", int instanceId = 0)
             : this()
         {
             this.MachineFullName = machineName;
             
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
             this.Version = version;
-            this.InstanceName = instanceName;
+            this.InstanceId = instanceId;
 
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
         }
         
-        public MinerClient(MinerMachine machine, string deploymentFolder, string version = "", string instanceName = "")
+        public MinerClient(MinerMachine machine, string deploymentFolder, string version = "", int instanceId = 0)
+            : this()
         {
             this.MachineFullName = machine.FullName;
             this.Machine = machine;
 
             this.DeploymentFolder = deploymentFolder.Trim().ToLower();
             this.Version = version;
-            this.InstanceName = instanceName;
+            this.InstanceId = instanceId;
 
             this.CurrentDeploymentStatus = DeploymentStatus.Unknown;
             this.CurrentServiceStatus = ServiceStatus.Unknown;
@@ -88,13 +87,13 @@ namespace XDaggerMinerManager.ObjectModel
         {
             get
             {
-                if (string.IsNullOrEmpty(this.InstanceName))
+                if (this.InstanceId == 0)
                 {
                     return this.MachineFullName;
                 }
                 else
                 {
-                    return string.Format("{0}_{1}", this.MachineFullName, this.InstanceName);
+                    return string.Format("{0}_{1}", this.MachineFullName, this.InstanceId);
                 }
             }
         }
@@ -120,16 +119,48 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
+        private XDaggerConfig xdaggerConfig = null;
         [JsonProperty(PropertyName = "xdagger_config")]
         public XDaggerConfig XDaggerConfig
         {
-            get; set;
+            get
+            {
+                if (xdaggerConfig == null)
+                {
+                    xdaggerConfig = new XDaggerConfig();
+                }
+
+                return xdaggerConfig;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    xdaggerConfig = value;
+                }
+            }
         }
 
+        private EthConfig ethConfig = null;
         [JsonProperty(PropertyName = "eth_config")]
         public EthConfig EthConfig
         {
-            get; set;
+            get
+            {
+                if (ethConfig == null)
+                {
+                    ethConfig = new EthConfig();
+                }
+
+                return ethConfig;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    ethConfig = value;
+                }
+            }
         }
         
         /*
@@ -155,8 +186,8 @@ namespace XDaggerMinerManager.ObjectModel
         /// <summary>
         /// This is the InstanceId of this client
         /// </summary>
-        [JsonProperty(PropertyName = "instance_name")]
-        public string InstanceName
+        [JsonProperty(PropertyName = "instance_Id")]
+        public int InstanceId
         {
             get; set;
         }

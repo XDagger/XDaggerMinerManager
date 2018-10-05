@@ -59,7 +59,7 @@ namespace XDaggerMinerManager.UI
         {
             get
             {
-                return clientObject.MachineFullName + clientObject.InstanceName;
+                return clientObject.MachineFullName + clientObject.InstanceId;
             }
         }
 

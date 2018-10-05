@@ -157,6 +157,14 @@ namespace XDaggerMinerManager.ObjectModel
             this.SaveCurrentInfo();
         }
 
+        public bool IsInstanceIdExists(string machineName, MinerClient.InstanceTypes instanceType, int val)
+        {
+            return this.ClientList.Any(client =>
+                {
+                    return client.MachineFullName == machineName && client.InstanceTypeEnum == instanceType && client.InstanceId == val; }
+                );
+        }
+
         private void AddMachine(MinerMachine machine)
         {
             logger.Information("Start AddMachine.");
@@ -165,9 +173,6 @@ namespace XDaggerMinerManager.ObjectModel
                 logger.Error("Machine should not be null");
                 throw new ArgumentNullException("Machine should not be null");
             }
-
-            
-            
         }
     }
 }
