@@ -30,6 +30,15 @@ namespace XDaggerMinerManager.UI.Forms
 
         private Dictionary<string, bool> newInstanceIdDictionary = null;
 
+        private bool missingXDaggerPoolAddress = false;
+
+        private bool missingXDaggerWalletAddress = false;
+
+        private bool missingEthWalletAddress = false;
+
+        private bool missingEthPoolAddress = false;
+
+
         public UpdateMinerWindow(List<MinerClient> minerClients)
         {
             InitializeComponent();
@@ -117,8 +126,9 @@ namespace XDaggerMinerManager.UI.Forms
                         if (finalInstanceId != exeResult.InstanceId)
                         {
                             client.ExecuteDaemon<ConfigureOutput>("-c \"{ 'InstanceId':'" + finalInstanceId.ToString() + "' }\"");
-                            client.InstanceId = finalInstanceId;
                         }
+
+                        client.InstanceId = finalInstanceId;
                     }
 
                     //After the config command success, update the status of the client
@@ -174,6 +184,12 @@ namespace XDaggerMinerManager.UI.Forms
                 return false;
             }
 
+            if (string.IsNullOrEmpty(poolAddress) && missingXDaggerPoolAddress)
+            {
+                MessageBox.Show("由于有些矿机没有设置矿池地址，必须填写矿池地址");
+                return false;
+            }
+
             properties.XDaggerPoolAddress = poolAddress;
 
             string walletAddress = txtXDaggerWallet.Text.Trim();
@@ -183,13 +199,19 @@ namespace XDaggerMinerManager.UI.Forms
                 return false;
             }
 
+            if (string.IsNullOrEmpty(walletAddress) && missingXDaggerWalletAddress)
+            {
+                MessageBox.Show("由于有些矿机没有设置钱包地址，必须填写钱包地址");
+                return false;
+            }
+
             properties.XDaggerWalletAddress = walletAddress;
 
             if (cbxXDaggerDevice.SelectedIndex >= 0)
             {
                 properties.DeviceName = cbxXDaggerDevice.SelectedItem.ToString();
             }
-
+            
             return true;
         }
 
@@ -201,21 +223,48 @@ namespace XDaggerMinerManager.UI.Forms
                 MessageBox.Show("钱包必须是以0x开头的32位字符串");
                 return false;
             }
+            
+            bool ethPoolTotallyBlank = (cbxTargetEthPool.SelectedIndex < 0)
+                                    && (cbxTargetEthPoolHost.SelectedIndex < 0)
+                                    && (string.IsNullOrEmpty(txtEmailAddress.Text));
 
-            if (cbxTargetEthPool.SelectedIndex < 0)
+            if (missingEthPoolAddress || !ethPoolTotallyBlank)
             {
-                MessageBox.Show("请选择矿池类型");
-                return false;
+                if (string.IsNullOrEmpty(ethWalletAddress))
+                {
+                    MessageBox.Show(missingEthPoolAddress ? "由于有些矿机没有设置钱包地址，必须填写钱包地址" : "更改矿机设置需要重新填写钱包地址");
+                    return false;
+                }
+
+                EthMinerPoolHelper ethMinerPoolHelper = new EthMinerPoolHelper();
+                if (cbxTargetEthPool.SelectedIndex < 0)
+                {
+                    MessageBox.Show(missingEthPoolAddress ? "由于有些矿机没有设置矿池，请选择矿池类型" : "更改矿机设置需要重新选择矿池类型");
+                    return false;
+                }
+
+                if (cbxTargetEthPoolHost.SelectedIndex < 0)
+                {
+                    MessageBox.Show(missingEthPoolAddress ? "由于有些矿机没有设置矿池，请选择矿池地址" : "更改矿机设置需要重新选择矿池地址");
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(txtEmailAddress.Text) && !ethPoolTotallyBlank)
+                {
+                    if (MessageBox.Show("更改矿机配置后如果不填写Email地址，则之前的Email地址将被抹掉，确认吗？", "提示") == MessageBoxResult.No)
+                    {
+                        return false;
+                    }
+                }
+
+                ethMinerPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)cbxTargetEthPool.SelectedIndex;
+                ethMinerPoolHelper.HostIndex = cbxTargetEthPoolHost.SelectedIndex;
+                ethMinerPoolHelper.EmailAddress = txtEmailAddress.Text.Trim();
+                ethMinerPoolHelper.EthWalletAddress = ethWalletAddress;
+                ethMinerPoolHelper.WorkerName = "XDaggerMinerBatchWorkerName";
+                properties.EthFullPoolAddress = ethMinerPoolHelper.GeneratePoolAddress();
             }
-
-            if (cbxTargetEthPoolHost.SelectedIndex < 0)
-            {
-                MessageBox.Show("请选择矿池地址");
-                return false;
-            }
-
-            properties.EthFullPoolAddress = ethWalletAddress;
-
+            
             if (cbxEthDevice.SelectedIndex >= 0)
             {
                 properties.DeviceName = cbxEthDevice.SelectedItem.ToString();
@@ -342,7 +391,7 @@ namespace XDaggerMinerManager.UI.Forms
             {
                 for(int i = commonDevices.Count - 1; i >= 0; i--)
                 {
-                    if (!client.Machine.Devices.Any(device => device.DisplayName == commonDevices[i]))
+                    if (!client.Machine.Devices.Any(device => (string.Equals(device.DisplayName, commonDevices[i]))))
                     {
                         commonDevices.RemoveAt(i);
                     }
@@ -368,27 +417,12 @@ namespace XDaggerMinerManager.UI.Forms
 
             foreach (MinerClient client in this.minerClients)
             {
-                if(!string.Equals(client.XDaggerConfig?.WalletAddress, xdaggerWalletAddress))
-                {
-                    xdaggerWalletAddress = string.Empty;
-                }
-                if (!string.Equals(client.XDaggerConfig?.PoolAddress, xdaggerPoolAddress))
-                {
-                    xdaggerPoolAddress = string.Empty;
-                }
-                if (!string.Equals(client.EthConfig?.WalletAddress, ethWalletAddress))
-                {
-                    ethWalletAddress = string.Empty;
-                }
-                if (!string.Equals(client.EthConfig?.Email, ethEmail))
-                {
-                    ethEmail = string.Empty;
-                }
-                if (!string.Equals(client.EthConfig?.WorkerName, ethWorkerName))
-                {
-                    ethWorkerName = string.Empty;
-                }
-
+                xdaggerWalletAddress = CheckMatchAndIgnoreEmpty(client.XDaggerConfig?.WalletAddress, xdaggerWalletAddress);
+                xdaggerPoolAddress = CheckMatchAndIgnoreEmpty(client.XDaggerConfig?.PoolAddress, xdaggerPoolAddress);
+                ethWalletAddress = CheckMatchAndIgnoreEmpty(client.EthConfig?.WalletAddress, ethWalletAddress);
+                ethEmail = CheckMatchAndIgnoreEmpty(client.EthConfig?.Email, ethEmail);
+                ethWorkerName = CheckMatchAndIgnoreEmpty(client.EthConfig?.WorkerName, ethWorkerName);
+                
                 if (client.EthConfig?.PoolIndex != ethPoolIndex)
                 {
                     ethPoolIndex = null;
@@ -419,6 +453,35 @@ namespace XDaggerMinerManager.UI.Forms
             if (ethPoolHostIndex.HasValue)
             {
                 cbxTargetEthPoolHost.SelectedIndex = ethPoolHostIndex.Value;
+            }
+
+            // Check the missing fields that must be filled by user
+            missingEthPoolAddress = false;
+            missingEthWalletAddress = false;
+            missingXDaggerPoolAddress = false;
+            missingXDaggerWalletAddress = false;
+
+            foreach (MinerClient client in this.minerClients)
+            {
+                if (string.IsNullOrEmpty(client.XDaggerConfig?.PoolAddress))
+                {
+                    missingXDaggerPoolAddress = true;
+                }
+
+                if (string.IsNullOrEmpty(client.XDaggerConfig?.WalletAddress))
+                {
+                    missingXDaggerWalletAddress = true;
+                }
+
+                if (string.IsNullOrEmpty(client.EthConfig?.PoolFullAddress))
+                {
+                    missingEthPoolAddress = true;
+                }
+
+                if (string.IsNullOrEmpty(client.EthConfig?.WalletAddress))
+                {
+                    missingEthWalletAddress = true;
+                }
             }
         }
 
@@ -472,6 +535,21 @@ namespace XDaggerMinerManager.UI.Forms
         private void txtEmailAddress_TextChanged(object sender, TextChangedEventArgs e)
         {
             txtEmailAddress.Foreground = new SolidColorBrush(Colors.Black);
+        }
+
+        private string CheckMatchAndIgnoreEmpty(string newValue, string originValue)
+        {
+            if (string.IsNullOrEmpty(newValue))
+            {
+                return originValue;
+            }
+
+            if (string.Equals(newValue, originValue))
+            {
+                return originValue;
+            }
+
+            return string.Empty;
         }
     }
 }

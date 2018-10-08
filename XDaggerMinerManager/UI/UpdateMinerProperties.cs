@@ -28,7 +28,7 @@ namespace XDaggerMinerManager.UI
         {
             get; set;
         }
-
+        
         public string DeviceName
         {
             get; set;
