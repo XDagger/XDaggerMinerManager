@@ -42,7 +42,8 @@
                             <!--<DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay}" /> -->
                         </DataGrid.Columns>
                     </DataGrid>
-                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="211,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
+                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="198,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
+                    <Button Grid.Row="0" x:Name="btnAddBatchMiner" Content="批量添加矿机..." HorizontalAlignment="Left" Margin="310,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddBatchMiner_Click" Height="20"/>
                     <CheckBox x:Name="cbxSelectMiners" Content="全选" HorizontalAlignment="Left" Height="20" Margin="10,31,0,0" VerticalAlignment="Top" Width="54" IsThreeState="True" Checked="cbxSelectMiners_Checked" Unchecked="cbxSelectMiners_Unchecked" Click="cbxSelectMiners_Click"/>
                     <GridSplitter Height="2" Grid.Row="1" HorizontalAlignment="Stretch" Margin="0,0,0.333,0" ResizeDirection="Rows" />
                     <TabControl Grid.Row="2" Margin="10,10,10.333,10" >

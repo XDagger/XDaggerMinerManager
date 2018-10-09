@@ -8,7 +8,7 @@ using XDaggerMinerManager.ObjectModel;
 
 namespace XDaggerMinerManager.UI
 {
-    public class UpdateMinerProperties
+    public class ModifyMinerProperties
     {
         public MinerClient.InstanceTypes InstanceType
         {
@@ -35,7 +35,7 @@ namespace XDaggerMinerManager.UI
             get; set;
         }
 
-        public UpdateMinerProperties()
+        public ModifyMinerProperties()
         {
             this.InstanceType = MinerClient.InstanceTypes.Unset;
             this.XDaggerPoolAddress = string.Empty;

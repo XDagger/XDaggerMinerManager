@@ -18,7 +18,7 @@ using XDaggerMinerManager.Utils;
 namespace XDaggerMinerManager.UI.Forms
 {
     /// <summary>
-    /// Interaction logic for UpdateMinerWindow.xaml
+    /// Interaction logic for ModifyMinerWindow.xaml
     /// </summary>
     public partial class ModifyMinerWindow : Window
     {
@@ -26,7 +26,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private Logger logger = Logger.GetInstance();
 
-        private UpdateMinerProperties properties = null;
+        private ModifyMinerProperties properties = null;
 
         private Dictionary<string, bool> newInstanceIdDictionary = null;
 
@@ -48,7 +48,7 @@ namespace XDaggerMinerManager.UI.Forms
 
             InitializeEthPoolAddresses();
 
-            properties = new UpdateMinerProperties();
+            properties = new ModifyMinerProperties();
 
             if (minerClients == null || minerClients.Count == 0)
             {

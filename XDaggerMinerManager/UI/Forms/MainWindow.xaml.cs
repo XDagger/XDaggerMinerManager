@@ -58,13 +58,16 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("Initialized MainWindow.");
         }
 
-        #region UI Control Operation
+        #region UI Control Methods
 
-        private void btnAddMiner_Click(object sender, RoutedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            AddMinerWizardWindow addMinerWizard = new AddMinerWizardWindow();
-            addMinerWizard.MinerCreated += OnMinerCreated;
-            addMinerWizard.ShowDialog();
+            // Set up a timer to trigger every second.  
+            Timer timer = new Timer();
+            timer.Interval = 2000;
+            timer.Elapsed += new ElapsedEventHandler(this.OnTimerRefresh);
+            timer.Start();
+            isTimerRefreshingBusy = false;
         }
 
         private void minerListGrid_Loaded(object sender, RoutedEventArgs e)
@@ -79,14 +82,17 @@ namespace XDaggerMinerManager.UI.Forms
             minerListGrid.ItemsSource = minerListGridItems;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void btnAddMiner_Click(object sender, RoutedEventArgs e)
         {
-            // Set up a timer to trigger every second.  
-            Timer timer = new Timer();
-            timer.Interval = 2000;
-            timer.Elapsed += new ElapsedEventHandler(this.OnTimerRefresh);
-            timer.Start();
-            isTimerRefreshingBusy = false;
+            AddMinerWizardWindow addMinerWizard = new AddMinerWizardWindow();
+            addMinerWizard.MinerCreated += OnMinerCreated;
+            addMinerWizard.ShowDialog();
+        }
+
+        private void btnAddBatchMiner_Click(object sender, RoutedEventArgs e)
+        {
+            AddBatchMinerWizardWindow addBatchMinerWizard = new AddBatchMinerWizardWindow();
+            addBatchMinerWizard.ShowDialog();
         }
 
         private void operStartMiner_Click(object sender, RoutedEventArgs e)
@@ -130,6 +136,81 @@ namespace XDaggerMinerManager.UI.Forms
             lockWindow.Show();
         }
 
+        private void cbxSelectMiners_Checked(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("cbxSelectMiners_Checked");
+
+            cbxSelectMiners.IsThreeState = false;
+            foreach (MinerDataGridItem cell in minerListGridItems)
+            {
+                cell.IsSelected = true;
+            }
+            this.minerListGrid.Items.Refresh();
+
+            RefreshMinerOperationButtonState();
+        }
+
+        private void cbxSelectMiners_Unchecked(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("cbxSelectMiners_Unchecked");
+
+            cbxSelectMiners.IsThreeState = false;
+            foreach (MinerDataGridItem cell in minerListGridItems)
+            {
+                cell.IsSelected = false;
+            }
+            this.minerListGrid.Items.Refresh();
+
+            RefreshMinerOperationButtonState();
+        }
+
+        private void minerListGridItems_IsSelected_CheckChanged(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("minerListGridItems_IsSelected_CheckChanged");
+
+            bool isAllSelected = true;
+            bool isAllUnselected = true;
+
+            foreach (MinerDataGridItem cell in minerListGridItems)
+            {
+                isAllSelected &= cell.IsSelected;
+                isAllUnselected &= !cell.IsSelected;
+            }
+
+            if (isAllSelected || isAllUnselected)
+            {
+                cbxSelectMiners.IsThreeState = false;
+                cbxSelectMiners.IsChecked = isAllSelected;
+            }
+            else
+            {
+                cbxSelectMiners.IsThreeState = true;
+                cbxSelectMiners.IsChecked = null;
+            }
+
+            RefreshMinerOperationButtonState();
+        }
+
+        private void cbxSelectMiners_Click(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("cbxSelectMiners_Click");
+
+            cbxSelectMiners.IsThreeState = false;
+        }
+
+        private void btnSendWalsonReport_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult r = MessageBox.Show("确定要发送错误日志信息给开发人员吗？（不会泄露个人信息）", "确认", MessageBoxButton.YesNo);
+            if (r == MessageBoxResult.No)
+            {
+                return;
+            }
+
+            WatsonWindow watsonWindow = new WatsonWindow();
+            watsonWindow.ShowDialog();
+        }
+
+        
         #endregion
 
         #region UI Common Functions
@@ -444,78 +525,6 @@ namespace XDaggerMinerManager.UI.Forms
 
         #endregion
 
-        private void cbxSelectMiners_Checked(object sender, RoutedEventArgs e)
-        {
-            logger.Trace("cbxSelectMiners_Checked");
-
-            cbxSelectMiners.IsThreeState = false;
-            foreach (MinerDataGridItem cell in minerListGridItems)
-            {
-                cell.IsSelected = true;
-            }
-            this.minerListGrid.Items.Refresh();
-
-            RefreshMinerOperationButtonState();
-        }
-
-        private void cbxSelectMiners_Unchecked(object sender, RoutedEventArgs e)
-        {
-            logger.Trace("cbxSelectMiners_Unchecked");
-
-            cbxSelectMiners.IsThreeState = false;
-            foreach (MinerDataGridItem cell in minerListGridItems)
-            {
-                cell.IsSelected = false;
-            }
-            this.minerListGrid.Items.Refresh();
-
-            RefreshMinerOperationButtonState();
-        }
-
-        private void minerListGridItems_IsSelected_CheckChanged(object sender, RoutedEventArgs e)
-        {
-            logger.Trace("minerListGridItems_IsSelected_CheckChanged");
-
-            bool isAllSelected = true;
-            bool isAllUnselected = true;
-
-            foreach (MinerDataGridItem cell in minerListGridItems)
-            {
-                isAllSelected &= cell.IsSelected;
-                isAllUnselected &= !cell.IsSelected;
-            }
-
-            if (isAllSelected || isAllUnselected)
-            {
-                cbxSelectMiners.IsThreeState = false;
-                cbxSelectMiners.IsChecked = isAllSelected;
-            }
-            else
-            {
-                cbxSelectMiners.IsThreeState = true;
-                cbxSelectMiners.IsChecked = null;
-            }
-
-            RefreshMinerOperationButtonState();
-        }
         
-        private void cbxSelectMiners_Click(object sender, RoutedEventArgs e)
-        {
-            logger.Trace("cbxSelectMiners_Click");
-
-            cbxSelectMiners.IsThreeState = false;
-        }
-
-        private void btnSendWalsonReport_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBoxResult r = MessageBox.Show("确定要发送错误日志信息给开发人员吗？（不会泄露个人信息）", "确认", MessageBoxButton.YesNo);
-            if (r == MessageBoxResult.No)
-            {
-                return;
-            }
-
-            WatsonWindow watsonWindow = new WatsonWindow();
-            watsonWindow.ShowDialog();
-        }
     }
 }
