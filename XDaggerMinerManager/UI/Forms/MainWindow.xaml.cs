@@ -326,7 +326,7 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            UpdateMinerWindow updateWindow = new UpdateMinerWindow(
+            ModifyMinerWindow updateWindow = new ModifyMinerWindow(
                 minerDataGridItems.Select((item) => item.Client).ToList()
                 );
             updateWindow.ShowDialog();

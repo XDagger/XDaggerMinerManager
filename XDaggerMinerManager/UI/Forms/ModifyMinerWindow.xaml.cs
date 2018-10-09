@@ -20,7 +20,7 @@ namespace XDaggerMinerManager.UI.Forms
     /// <summary>
     /// Interaction logic for UpdateMinerWindow.xaml
     /// </summary>
-    public partial class UpdateMinerWindow : Window
+    public partial class ModifyMinerWindow : Window
     {
         private List<object> minerClients = null;
 
@@ -39,7 +39,7 @@ namespace XDaggerMinerManager.UI.Forms
         private bool missingEthPoolAddress = false;
 
 
-        public UpdateMinerWindow(List<MinerClient> minerClients)
+        public ModifyMinerWindow(List<MinerClient> minerClients)
         {
             InitializeComponent();
 
