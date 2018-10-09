@@ -104,19 +104,24 @@ namespace XDaggerMinerManager.UI.Forms
             string configParameters = string.Empty;
             if (properties.InstanceType == MinerClient.InstanceTypes.XDagger)
             {
-                configParameters = ComposeXDaggerConfig();
+                configParameters = ComposeXDaggerConfigParameters();
             }
-            else if (properties.InstanceType == MinerClient.InstanceTypes.Ethereum)
+            else if (properties.InstanceType == MinerClient.InstanceTypes.Ethereum && properties.EthConfig.IsEmptyConfig())
             {
-                configParameters = ComposeEthConfig();
+                configParameters = ComposeEthConfigParameters();
             }
+            logger.Trace($"Composed configure command parameter: [{ configParameters }]");
 
-            logger.Trace("Composed configure command parameter: " + configParameters);
-            
             ProgressWindow progress = new ProgressWindow("正在修改矿机配置...",
                 this.minerClients,
                 (obj) => {
                     MinerClient client = (MinerClient)obj;
+
+                    if (properties.InstanceType == MinerClient.InstanceTypes.Ethereum && !properties.EthConfig.IsEmptyConfig())
+                    {
+                        configParameters = ComposeEthConfigParameters(client);
+                    }
+                    logger.Trace($"Composed configure command parameter: [{ configParameters }] on machine [{ client.MachineFullName }]");
                     ConfigureOutput exeResult = client.ExecuteDaemon<ConfigureOutput>(configParameters);
 
                     // If instance type changed, we need to decide the new instanceId
@@ -228,43 +233,35 @@ namespace XDaggerMinerManager.UI.Forms
                                     && (cbxTargetEthPoolHost.SelectedIndex < 0)
                                     && (string.IsNullOrEmpty(txtEmailAddress.Text));
 
-            if (missingEthPoolAddress || !ethPoolTotallyBlank)
+            if (missingEthWalletAddress && string.IsNullOrEmpty(ethWalletAddress))
             {
-                if (string.IsNullOrEmpty(ethWalletAddress))
-                {
-                    MessageBox.Show(missingEthPoolAddress ? "由于有些矿机没有设置钱包地址，必须填写钱包地址" : "更改矿机设置需要重新填写钱包地址");
-                    return false;
-                }
+                MessageBox.Show("由于有些矿机没有设置钱包地址，必须填写钱包地址");
+                return false;
+            }
 
-                EthMinerPoolHelper ethMinerPoolHelper = new EthMinerPoolHelper();
+            if (cbxTargetEthPool.SelectedIndex >= 0 && cbxTargetEthPoolHost.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择矿池的地址");
+                return false;
+            }
+
+            if (missingEthPoolAddress)
+            {
                 if (cbxTargetEthPool.SelectedIndex < 0)
                 {
-                    MessageBox.Show(missingEthPoolAddress ? "由于有些矿机没有设置矿池，请选择矿池类型" : "更改矿机设置需要重新选择矿池类型");
+                    MessageBox.Show("由于有些矿机没有设置矿池，请选择矿池类型");
                     return false;
                 }
-
-                if (cbxTargetEthPoolHost.SelectedIndex < 0)
-                {
-                    MessageBox.Show(missingEthPoolAddress ? "由于有些矿机没有设置矿池，请选择矿池地址" : "更改矿机设置需要重新选择矿池地址");
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(txtEmailAddress.Text) && !ethPoolTotallyBlank)
-                {
-                    if (MessageBox.Show("更改矿机配置后如果不填写Email地址，则之前的Email地址将被抹掉，确认吗？", "提示") == MessageBoxResult.No)
-                    {
-                        return false;
-                    }
-                }
-
-                ethMinerPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)cbxTargetEthPool.SelectedIndex;
-                ethMinerPoolHelper.HostIndex = cbxTargetEthPoolHost.SelectedIndex;
-                ethMinerPoolHelper.EmailAddress = txtEmailAddress.Text.Trim();
-                ethMinerPoolHelper.EthWalletAddress = ethWalletAddress;
-                ethMinerPoolHelper.WorkerName = "XDaggerMinerBatchWorkerName";
-                properties.EthFullPoolAddress = ethMinerPoolHelper.GeneratePoolAddress();
             }
-            
+
+            EthConfig updatedConfig = new EthConfig();
+            updatedConfig.PoolIndex = (cbxTargetEthPool.SelectedIndex >= 0) ? (EthConfig.PoolIndexes)cbxTargetEthPool.SelectedIndex : (EthConfig.PoolIndexes?)null;
+            updatedConfig.PoolHostIndex = cbxTargetEthPoolHost.SelectedIndex;
+            updatedConfig.EmailAddress = txtEmailAddress.Text.Trim();
+            updatedConfig.WalletAddress = ethWalletAddress;
+            updatedConfig.WorkerName = "{MACHINE_NAME}_{INSTANCE_ID}";
+            properties.EthConfig = updatedConfig;
+
             if (cbxEthDevice.SelectedIndex >= 0)
             {
                 properties.DeviceName = cbxEthDevice.SelectedItem.ToString();
@@ -273,7 +270,7 @@ namespace XDaggerMinerManager.UI.Forms
             return true;
         }
 
-        private string ComposeXDaggerConfig()
+        private string ComposeXDaggerConfigParameters()
         {
             StringBuilder builder = new StringBuilder();
             bool isFirstParameter = true;
@@ -310,17 +307,8 @@ namespace XDaggerMinerManager.UI.Forms
             return builder.ToString();
         }
 
-        private string ComposeEthConfig()
+        private string ComposeEthConfigParameters(MinerClient client = null)
         {
-            EthMinerPoolHelper ethPoolHelper = new EthMinerPoolHelper();
-            ethPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)cbxTargetEthPool.SelectedIndex;
-            ethPoolHelper.HostIndex = cbxTargetEthPoolHost.SelectedIndex;
-            ethPoolHelper.EthWalletAddress = txtEthWallet.Text.Trim();
-            ethPoolHelper.EmailAddress = txtEmailAddress.Text.Trim();
-            ethPoolHelper.WorkerName = "XDaggerMinerBatchWorkerName";       // TODO: Should update to worker name template
-
-            properties.EthFullPoolAddress = ethPoolHelper.GeneratePoolAddress();
-
             StringBuilder builder = new StringBuilder();
             builder.Append(" -c \"{ ");
 
@@ -331,11 +319,15 @@ namespace XDaggerMinerManager.UI.Forms
                 isFirstParameter = false;
             }
             
-            if (!isFirstParameter)
+            if (client != null && properties.EthConfig != null)
             {
-                builder.Append(", ");
+                EthConfig mergedConfig = client.EthConfig.CloneWithUpdate(properties.EthConfig);
+                if (!isFirstParameter)
+                {
+                    builder.Append(", ");
+                }
+                builder.AppendFormat(" 'EthPoolAddress':'{0}' ", mergedConfig.PoolFullAddress);
             }
-            builder.AppendFormat(" 'EthPoolAddress':'{0}' ", properties.EthFullPoolAddress);
 
             builder.Append(" }\"");
 
@@ -371,7 +363,7 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("InitializeEthPoolAddresses.");
 
             cbxTargetEthPool.Items.Clear();
-            foreach (string ethPoolName in EthMinerPoolHelper.PoolDisplayNames)
+            foreach (string ethPoolName in EthConfig.PoolDisplayNames)
             {
                 cbxTargetEthPool.Items.Add(ethPoolName);
             }
@@ -381,18 +373,26 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void InitializeCommonFields()
         {
+            logger.Trace("InitializeCommonFields.");
+
             MinerClient firstClient = (MinerClient)this.minerClients.FirstOrDefault();
 
             // Initialize the Common Devices
             List<string> commonDevices = new List<string>();
             commonDevices.AddRange(firstClient.Machine.Devices.Select(d => d.DisplayName));
+            
+            foreach(string cDevice in commonDevices)
+            {
+                logger.Trace("Common Device: " + cDevice);
+            }
 
-            foreach(MinerClient client in this.minerClients)
+            foreach (MinerClient client in this.minerClients)
             {
                 for(int i = commonDevices.Count - 1; i >= 0; i--)
                 {
                     if (!client.Machine.Devices.Any(device => (string.Equals(device.DisplayName, commonDevices[i]))))
                     {
+                        logger.Trace($"Cannot find device [{commonDevices[i]}], remove it.");
                         commonDevices.RemoveAt(i);
                     }
                 }
@@ -410,9 +410,9 @@ namespace XDaggerMinerManager.UI.Forms
             string xdaggerWalletAddress = firstClient.XDaggerConfig?.WalletAddress;
             string xdaggerPoolAddress = firstClient.XDaggerConfig?.PoolAddress;
             string ethWalletAddress = firstClient.EthConfig?.WalletAddress;
-            string ethEmail = firstClient.EthConfig?.Email;
+            string ethEmail = firstClient.EthConfig?.EmailAddress;
             string ethWorkerName = firstClient.EthConfig?.WorkerName;
-            int? ethPoolIndex = firstClient.EthConfig?.PoolIndex;
+            EthConfig.PoolIndexes? ethPoolIndex = firstClient.EthConfig?.PoolIndex;
             int? ethPoolHostIndex = firstClient.EthConfig?.PoolHostIndex;
 
             foreach (MinerClient client in this.minerClients)
@@ -420,7 +420,7 @@ namespace XDaggerMinerManager.UI.Forms
                 xdaggerWalletAddress = CheckMatchAndIgnoreEmpty(client.XDaggerConfig?.WalletAddress, xdaggerWalletAddress);
                 xdaggerPoolAddress = CheckMatchAndIgnoreEmpty(client.XDaggerConfig?.PoolAddress, xdaggerPoolAddress);
                 ethWalletAddress = CheckMatchAndIgnoreEmpty(client.EthConfig?.WalletAddress, ethWalletAddress);
-                ethEmail = CheckMatchAndIgnoreEmpty(client.EthConfig?.Email, ethEmail);
+                ethEmail = CheckMatchAndIgnoreEmpty(client.EthConfig?.EmailAddress, ethEmail);
                 ethWorkerName = CheckMatchAndIgnoreEmpty(client.EthConfig?.WorkerName, ethWorkerName);
                 
                 if (client.EthConfig?.PoolIndex != ethPoolIndex)
@@ -445,9 +445,12 @@ namespace XDaggerMinerManager.UI.Forms
             txtEmailAddress.Text = ethEmail;
             txtEmailAddress.Foreground = new SolidColorBrush(Colors.Gray);
 
+            txtWorkerName.Text = ethWorkerName;
+            txtWorkerName.Foreground = new SolidColorBrush(Colors.Gray);
+
             if (ethPoolIndex.HasValue)
             {
-                cbxTargetEthPool.SelectedIndex = ethPoolIndex.Value;
+                cbxTargetEthPool.SelectedIndex = ethPoolIndex.GetHashCode();
             }
 
             if (ethPoolHostIndex.HasValue)
@@ -473,7 +476,7 @@ namespace XDaggerMinerManager.UI.Forms
                     missingXDaggerWalletAddress = true;
                 }
 
-                if (string.IsNullOrEmpty(client.EthConfig?.PoolFullAddress))
+                if (client.EthConfig?.PoolIndex == null || client.EthConfig?.PoolHostIndex == null)
                 {
                     missingEthPoolAddress = true;
                 }
@@ -506,12 +509,12 @@ namespace XDaggerMinerManager.UI.Forms
         private void cbxTargetEthPool_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             cbxTargetEthPoolHost.Items.Clear();
-            if (cbxTargetEthPool.SelectedIndex < 0 || cbxTargetEthPool.SelectedIndex >= EthMinerPoolHelper.PoolHostUrls.Count)
+            if (cbxTargetEthPool.SelectedIndex < 0 || cbxTargetEthPool.SelectedIndex >= EthConfig.PoolHostUrls.Count)
             {
                 return;
             }
 
-            foreach (string ethPoolHost in EthMinerPoolHelper.PoolHostUrls[cbxTargetEthPool.SelectedIndex])
+            foreach (string ethPoolHost in EthConfig.PoolHostUrls[cbxTargetEthPool.SelectedIndex])
             {
                 cbxTargetEthPoolHost.Items.Add(ethPoolHost);
             }
@@ -535,6 +538,11 @@ namespace XDaggerMinerManager.UI.Forms
         private void txtEmailAddress_TextChanged(object sender, TextChangedEventArgs e)
         {
             txtEmailAddress.Foreground = new SolidColorBrush(Colors.Black);
+        }
+
+        private void txtWorkerName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtWorkerName.Foreground = new SolidColorBrush(Colors.Black);
         }
 
         private string CheckMatchAndIgnoreEmpty(string newValue, string originValue)

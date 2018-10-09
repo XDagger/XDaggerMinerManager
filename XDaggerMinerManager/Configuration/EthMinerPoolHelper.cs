@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace XDaggerMinerManager.Configuration
 {
+
+    /*
     public class EthMinerPoolHelper
     {
         public enum PoolIndex
@@ -249,4 +251,7 @@ namespace XDaggerMinerManager.Configuration
             }
         }
     }
+
+
+    */
 }

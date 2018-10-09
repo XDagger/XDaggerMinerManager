@@ -218,12 +218,12 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("cBxTargetEthPool_SelectionChanged.");
 
             cBxTargetEthPoolHost.Items.Clear();
-            if (cBxTargetEthPool.SelectedIndex < 0 || cBxTargetEthPool.SelectedIndex >= EthMinerPoolHelper.PoolHostUrls.Count)
+            if (cBxTargetEthPool.SelectedIndex < 0 || cBxTargetEthPool.SelectedIndex >= EthConfig.PoolHostUrls.Count)
             {
                 return;
             }
 
-            foreach (string ethPoolHost in EthMinerPoolHelper.PoolHostUrls[cBxTargetEthPool.SelectedIndex])
+            foreach (string ethPoolHost in EthConfig.PoolHostUrls[cBxTargetEthPool.SelectedIndex])
             {
                 cBxTargetEthPoolHost.Items.Add(ethPoolHost);
             }
@@ -234,7 +234,7 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("InitializeEthPoolAddresses.");
 
             cBxTargetEthPool.Items.Clear();
-            foreach(string ethPoolName in EthMinerPoolHelper.PoolDisplayNames)
+            foreach(string ethPoolName in EthConfig.PoolDisplayNames)
             {
                 cBxTargetEthPool.Items.Add(ethPoolName);
             }
@@ -622,11 +622,11 @@ namespace XDaggerMinerManager.UI.Forms
             txtWalletAddress.Text = ManagerConfig.Current.DefaultXDagger.WalletAddress;
             txtXDaggerPoolAddress.Text = ManagerConfig.Current.DefaultXDagger.PoolAddress;
             txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEth.WalletAddress;
-            txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEth.Email;
+            txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEth.EmailAddress;
             txtEthWorkerName.Text = ManagerConfig.Current.DefaultEth.WorkerName;
             if (ManagerConfig.Current.DefaultEth.PoolIndex != null)
             {
-                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolIndex.Value;
+                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolIndex.GetHashCode();
             }
             if (ManagerConfig.Current.DefaultEth.PoolHostIndex != null)
             {
@@ -830,27 +830,20 @@ namespace XDaggerMinerManager.UI.Forms
             }
 
             EthConfig ethConfig = new EthConfig();
-            ethConfig.PoolIndex = cBxTargetEthPool.SelectedIndex;
+            ethConfig.PoolIndex = (EthConfig.PoolIndexes)cBxTargetEthPool.SelectedIndex;
             ethConfig.PoolHostIndex = cBxTargetEthPoolHost.SelectedIndex;
             ethConfig.WalletAddress = txtWalletAddressEth.Text.Trim();
-            ethConfig.Email = txtEmailAddressEth.Text;
+            ethConfig.EmailAddress = txtEmailAddressEth.Text;
             ethConfig.WorkerName = txtEthWorkerName.Text;
 
-            EthMinerPoolHelper ethPoolHelper = new EthMinerPoolHelper();
-            ethPoolHelper.Index = (EthMinerPoolHelper.PoolIndex)ethConfig.PoolIndex;
-            ethPoolHelper.HostIndex = ethConfig.PoolHostIndex.Value;
-            ethPoolHelper.EthWalletAddress = ethConfig.WalletAddress;
-            ethPoolHelper.EmailAddress = ethConfig.Email;
-            ethPoolHelper.WorkerName = ethConfig.WorkerName;
-            
             try
             {
-                ethConfig.PoolFullAddress = ethPoolHelper.GeneratePoolAddress();
+                ethConfig.ValidateProperties();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                MessageBox.Show("配置矿机出现错误：" + ex.ToString());
-                logger.Error("GeneratePoolAddress failed: " + ex.ToString());
+                MessageBox.Show("配置数据有误：" + ex.ToString());
+                logger.Error("ValidateProperties failed: " + ex.ToString());
                 return;
             }
 
