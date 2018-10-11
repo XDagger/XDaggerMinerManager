@@ -24,23 +24,40 @@ namespace XDaggerMinerManager.UI.Forms
     {
         private ObservableCollection<MinerMachine> networkMachineData = new ObservableCollection<MinerMachine>();
 
-        private Action<MinerMachine> resultHandler = null;
+        private Action<List<MinerMachine>> resultHandler = null;
 
-        public BrowseNetworkWindow()
+        private bool allowMultipleSelection = true;
+
+        private List<MinerMachine> resultMachines = null;
+
+        public BrowseNetworkWindow(bool allowMultipleSelection = false)
         {
             InitializeComponent();
+
+            this.allowMultipleSelection = allowMultipleSelection;
+
+            if (allowMultipleSelection)
+            {
+                resultMachines = new List<MinerMachine>();
+
+                DataGridCheckBoxColumn selection = new DataGridCheckBoxColumn();
+                selection.Header = "选择";
+                selection.IsReadOnly = false;
+                selection.IsThreeState = false;
+
+                this.dataGridMachineList.Columns.Add(selection);
+            }
 
             this.dataGridMachineList.ItemsSource = networkMachineData;
             this.dataGridMachineList.AllowDrop = false;
             this.dataGridMachineList.CanUserAddRows = false;
             this.dataGridMachineList.CanUserReorderColumns = false;
-            this.dataGridMachineList.IsReadOnly = true;
+            this.dataGridMachineList.IsReadOnly = false;
             this.dataGridMachineList.CanUserDeleteRows = false;
             this.dataGridMachineList.CanUserResizeRows = false;
-            
         }
 
-        public void SetResultHandler(Action<MinerMachine> resultHandler)
+        public void SetResultHandler(Action<List<MinerMachine>> resultHandler)
         {
             this.resultHandler = resultHandler;
         }
@@ -54,7 +71,8 @@ namespace XDaggerMinerManager.UI.Forms
         {
             if (this.dataGridMachineList.SelectedItem != null)
             {
-                this.resultHandler?.Invoke(this.dataGridMachineList.SelectedItem as MinerMachine);
+                MinerMachine machine = this.dataGridMachineList.SelectedItem as MinerMachine;
+                this.resultHandler?.Invoke(new List<MinerMachine>() { machine });
                 this.Close();
             }
         }
@@ -63,7 +81,17 @@ namespace XDaggerMinerManager.UI.Forms
         {
             foreach (DataGridColumn col in dataGridMachineList.Columns)
             {
+                if (col is DataGridCheckBoxColumn)
+                {
+                    continue;
+                }
+
                 col.Header = MinerMachine.TranslateHeaderName(col.Header.ToString());
+                if (string.IsNullOrEmpty(col.Header.ToString()))
+                {
+                    col.Visibility = Visibility.Hidden;
+                }
+
                 col.IsReadOnly = true;
             }
 
@@ -98,23 +126,39 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void dataGridMachineList_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
-            this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+            if (!allowMultipleSelection)
+            {
+                this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+            }
         }
 
         private void dataGridMachineList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+            if (!allowMultipleSelection)
+            {
+                this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+            }
         }
 
         private void dataGridMachineList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (this.dataGridMachineList.SelectedItem != null)
+            if (allowMultipleSelection)
             {
-                this.resultHandler?.Invoke(this.dataGridMachineList.SelectedItem as MinerMachine);
-                this.Close();
+                return;
             }
 
-           
+            if (this.dataGridMachineList.SelectedItem != null)
+            {
+                MinerMachine machine = this.dataGridMachineList.SelectedItem as MinerMachine;
+                this.resultHandler?.Invoke(new List<MinerMachine>() { machine });
+                this.Close();
+            }
+        }
+
+        private void dataGridMachineList_IsSelected_CheckChanged(object sender, RoutedEventArgs e)
+        {
+            resultMachines.Clear();
+
         }
     }
 }

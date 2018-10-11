@@ -22,7 +22,7 @@ namespace XDaggerMinerManager.ObjectModel
         {
             switch(header)
             {
-                case "FullMachineName": return "机器名称";
+                case "FullName": return "机器名称";
                 case "IpAddressV4": return "地址";
                 default: return string.Empty;
             }

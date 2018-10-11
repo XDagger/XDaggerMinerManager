@@ -110,9 +110,9 @@ namespace XDaggerMinerManager.UI.Forms
             UninstallSelectedMiner();
         }
         
-        private void operUpdateMiner_Click(object sender, RoutedEventArgs e)
+        private void operModifyMiner_Click(object sender, RoutedEventArgs e)
         {
-            UpdateSelectedMiner();
+            ModifySelectedMiner();
         }
 
         private void btnLockScreen_Click(object sender, RoutedEventArgs e)
@@ -398,9 +398,9 @@ namespace XDaggerMinerManager.UI.Forms
             progress.ShowDialog();
         }
 
-        private void UpdateSelectedMiner()
+        private void ModifySelectedMiner()
         {
-            logger.Trace("Start UpdateSelectedMiner.");
+            logger.Trace("Start ModifySelectedMiner.");
             List<MinerDataGridItem> minerDataGridItems = GetSelectedRowsInDataGrid();
             if (minerDataGridItems.Count == 0)
             {
@@ -493,7 +493,7 @@ namespace XDaggerMinerManager.UI.Forms
             List<MinerDataGridItem> selectedRows = GetSelectedRowsInDataGrid();
 
             this.btnMinerOperation.IsEnabled = (selectedRows.Count > 0);
-            this.operUpdateMiner.IsEnabled = (selectedRows.Count > 0);
+            this.operModifyMiner.IsEnabled = (selectedRows.Count > 0);
             this.operUninstallMiner.IsEnabled = (selectedRows.Count > 0);
 
             if (selectedRows.Count <= 0)

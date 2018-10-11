@@ -206,9 +206,15 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("btnStepOneBrowse Clicked.");
 
-            BrowseNetworkWindow browseNetworkWindow = new BrowseNetworkWindow();
-            browseNetworkWindow.SetResultHandler(minerMachine =>
-                { this.txtMachineName.Text = minerMachine?.FullName; });
+            BrowseNetworkWindow browseNetworkWindow = new BrowseNetworkWindow(false);
+            browseNetworkWindow.SetResultHandler(
+                minerMachines =>
+                {
+                    if (minerMachines != null && minerMachines.Count == 1)
+                    {
+                        this.txtMachineName.Text = minerMachines.FirstOrDefault()?.FullName;
+                    }
+                });
 
             browseNetworkWindow.ShowDialog();
         }

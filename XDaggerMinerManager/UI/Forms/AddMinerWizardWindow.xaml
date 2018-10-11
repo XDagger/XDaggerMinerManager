@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="添加矿机" Height="388" Width="444" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Closing="onClosing" Loaded="addMinerWizard_Loaded">
+        Title="添加矿机" Height="388" Width="444" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Closing="onClosing" Loaded="addMinerWizard_Loaded">
     <Grid Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="287*"/>
