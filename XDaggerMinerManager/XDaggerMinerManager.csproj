@@ -102,11 +102,21 @@
     </ApplicationDefinition>
     <Compile Include="Configuration\EthConfig.cs" />
     <Compile Include="Configuration\XDaggerConfig.cs" />
+    <Compile Include="ObjectModel\MachineConnectivity.cs" />
     <Compile Include="ObjectModel\MachineCredential.cs" />
     <Compile Include="ObjectModel\MinerDevice.cs" />
     <Compile Include="ObjectModel\MinerClient.cs" />
     <Compile Include="ObjectModel\MinerMachine.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
+    <Compile Include="UI\BrowseNetworkMachine.cs" />
+    <Compile Include="UI\Controls\MachineConnectivityDataGrid.xaml.cs">
+      <DependentUpon>MachineConnectivityDataGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Controls\MachineConnectivityDataGridItem.cs" />
+    <Compile Include="UI\Controls\MachineDataGrid.xaml.cs">
+      <DependentUpon>MachineDataGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Controls\MachineDataGridItem.cs" />
     <Compile Include="UI\Forms\AddBatchMinerWizardWindow.xaml.cs">
       <DependentUpon>AddBatchMinerWizardWindow.xaml</DependentUpon>
     </Compile>
@@ -138,10 +148,12 @@
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Configuration\ManagerConfig.cs" />
     <Compile Include="Configuration\ManagerInfo.cs" />
+    <Compile Include="Utils\MachineConnectivityBackgroundWork.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
     <Compile Include="Utils\NetworkShareAccessor.cs" />
     <Compile Include="Utils\NetworkUtils.cs" />
     <Compile Include="Utils\PathUtils.cs" />
+    <Compile Include="Utils\PingUtil.cs" />
     <Compile Include="Utils\RandomUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
     <Compile Include="Utils\RemoteExecutor.cs" />
@@ -151,6 +163,14 @@
     <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WatsonDump.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
+    <Page Include="UI\Controls\MachineConnectivityDataGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Controls\MachineDataGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\Forms\AddBatchMinerWizardWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -1,0 +1,26 @@
+﻿<UserControl x:Class="XDaggerMinerManager.UI.Controls.MachineDataGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:XDaggerMinerManager.UI.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             Loaded="usercontrol_Loaded">
+    <UserControl.Resources>
+        <DataTemplate x:Key="IsSelectedColumnTemplate">
+            <CheckBox IsChecked="{Binding Path=IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="selection_CheckChanged" Unchecked="selection_CheckChanged" />
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <DataGrid x:Name="dataGrid" Margin="0" SelectionChanged="dataGrid_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn x:Name="SelectionColumn" Header="选择" CellTemplate="{StaticResource IsSelectedColumnTemplate}" />
+                <DataGridTextColumn x:Name="FullNameColumn" Header="机器名称" Binding="{Binding FullName, Mode=OneWay,UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn x:Name="IpAddressColumn" Header="IP地址" Binding="{Binding IpAddressV4, Mode=OneWay}" />
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
+</UserControl>

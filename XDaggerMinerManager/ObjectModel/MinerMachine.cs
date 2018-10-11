@@ -18,15 +18,6 @@ namespace XDaggerMinerManager.ObjectModel
             this.Devices = new List<MinerDevice>();
         }
 
-        public static string TranslateHeaderName(string header)
-        {
-            switch(header)
-            {
-                case "FullName": return "机器名称";
-                case "IpAddressV4": return "地址";
-                default: return string.Empty;
-            }
-        }
 
         /// <summary>
         /// 

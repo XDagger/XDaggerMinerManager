@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
+using XDaggerMinerManager.UI.Controls;
 using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.UI.Forms
@@ -22,11 +23,11 @@ namespace XDaggerMinerManager.UI.Forms
     /// </summary>
     public partial class BrowseNetworkWindow : Window
     {
-        private ObservableCollection<MinerMachine> networkMachineData = new ObservableCollection<MinerMachine>();
+        private ObservableCollection<BrowseNetworkMachine> networkMachineData = new ObservableCollection<BrowseNetworkMachine>();
 
         private Action<List<MinerMachine>> resultHandler = null;
 
-        private bool allowMultipleSelection = true;
+        private bool allowMultipleSelection = false;
 
         private List<MinerMachine> resultMachines = null;
 
@@ -36,7 +37,35 @@ namespace XDaggerMinerManager.UI.Forms
 
             this.allowMultipleSelection = allowMultipleSelection;
 
-            if (allowMultipleSelection)
+            if (this.allowMultipleSelection)
+            {
+                dataGridMachines.SetDisplayColumns(MachineDataGrid.Columns.Selection, MachineDataGrid.Columns.FullName);
+            }
+            else
+            {
+                dataGridMachines.SetDisplayColumns(MachineDataGrid.Columns.FullName);
+            }
+
+            dataGridMachines.SelectionChanged += DataGridMachines_SelectionChanged;
+
+            /*
+            this.dataGridMachineList.AutoGenerateColumns = false;
+            this.dataGridMachineList.AllowDrop = false;
+            this.dataGridMachineList.CanUserAddRows = false;
+            this.dataGridMachineList.CanUserReorderColumns = false;
+            this.dataGridMachineList.IsReadOnly = false;
+            this.dataGridMachineList.CanUserDeleteRows = false;
+            this.dataGridMachineList.CanUserResizeRows = false;
+            this.dataGridMachineList.DataContext = this;
+            this.dataGridMachineList.SelectionUnit = DataGridSelectionUnit.FullRow;
+
+            /// this.dataGridMachineList.Items.Clear();
+            this.dataGridMachineList.ItemsSource = networkMachineData;
+            this.dataGridMachineList.Items.Refresh();
+            */
+
+            /*
+            if (!allowMultipleSelection)
             {
                 resultMachines = new List<MinerMachine>();
 
@@ -45,16 +74,16 @@ namespace XDaggerMinerManager.UI.Forms
                 selection.IsReadOnly = false;
                 selection.IsThreeState = false;
 
-                this.dataGridMachineList.Columns.Add(selection);
+                ///  this.dataGridMachineList.Columns.Add(selection);
             }
+            */
 
-            this.dataGridMachineList.ItemsSource = networkMachineData;
-            this.dataGridMachineList.AllowDrop = false;
-            this.dataGridMachineList.CanUserAddRows = false;
-            this.dataGridMachineList.CanUserReorderColumns = false;
-            this.dataGridMachineList.IsReadOnly = false;
-            this.dataGridMachineList.CanUserDeleteRows = false;
-            this.dataGridMachineList.CanUserResizeRows = false;
+        }
+
+        private void DataGridMachines_SelectionChanged(object sender, EventArgs e)
+        {
+            List<MinerMachine> selectedMachines = dataGridMachines.GetSelectedMachines();
+            this.btnConfirm.IsEnabled = (selectedMachines != null && selectedMachines.Count > 0);
         }
 
         public void SetResultHandler(Action<List<MinerMachine>> resultHandler)
@@ -69,24 +98,29 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnConfirm_Click(object sender, RoutedEventArgs e)
         {
-            if (this.dataGridMachineList.SelectedItem != null)
+            List<MinerMachine> selectedMachines = dataGridMachines.GetSelectedMachines();
+            if (selectedMachines != null && selectedMachines.Count > 0)
             {
-                MinerMachine machine = this.dataGridMachineList.SelectedItem as MinerMachine;
-                this.resultHandler?.Invoke(new List<MinerMachine>() { machine });
+                this.resultHandler?.Invoke(selectedMachines);
                 this.Close();
+            }
+            else
+            {
+                MessageBox.Show("请在列表中选择机器");
             }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            /*
             foreach (DataGridColumn col in dataGridMachineList.Columns)
             {
-                if (col is DataGridCheckBoxColumn)
+                if (col is DataGridTemplateColumn)
                 {
-                    continue;
+                    col.Visibility = (allowMultipleSelection ? Visibility.Visible : Visibility.Hidden);
                 }
 
-                col.Header = MinerMachine.TranslateHeaderName(col.Header.ToString());
+                col.Header = BrowseNetworkMachine.TranslateHeaderName(col.Header.ToString());
                 if (string.IsNullOrEmpty(col.Header.ToString()))
                 {
                     col.Visibility = Visibility.Hidden;
@@ -94,6 +128,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                 col.IsReadOnly = true;
             }
+            */
 
             BackgroundWork<List<MinerMachine>>.CreateWork(
                 this,
@@ -118,8 +153,9 @@ namespace XDaggerMinerManager.UI.Forms
 
                     foreach(MinerMachine machine in taskResult.Result)
                     {
-                        this.networkMachineData.Add(machine);
+                        dataGridMachines.AddItem(machine);
                     }
+                    
                 }
             ).Execute();
         }
@@ -128,7 +164,7 @@ namespace XDaggerMinerManager.UI.Forms
         {
             if (!allowMultipleSelection)
             {
-                this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+                ////this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
             }
         }
 
@@ -136,7 +172,7 @@ namespace XDaggerMinerManager.UI.Forms
         {
             if (!allowMultipleSelection)
             {
-                this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
+                ////this.btnConfirm.IsEnabled = (this.dataGridMachineList.SelectedItems.Count == 1);
             }
         }
 
@@ -147,17 +183,19 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
-            if (this.dataGridMachineList.SelectedItem != null)
+            ////if (this.dataGridMachineList.SelectedItem != null)
             {
-                MinerMachine machine = this.dataGridMachineList.SelectedItem as MinerMachine;
-                this.resultHandler?.Invoke(new List<MinerMachine>() { machine });
-                this.Close();
+                //// BrowseNetworkMachine machine = this.dataGridMachineList.SelectedItem as BrowseNetworkMachine;
+                ////this.resultHandler?.Invoke(new List<MinerMachine>() { machine.GetMachine() });
+                ////this.Close();
             }
         }
 
         private void dataGridMachineList_IsSelected_CheckChanged(object sender, RoutedEventArgs e)
         {
             resultMachines.Clear();
+
+            /// this.dataGridMachineList..Items[0]
 
         }
     }

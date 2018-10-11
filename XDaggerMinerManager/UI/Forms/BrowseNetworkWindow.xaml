@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:XDaggerMinerManager"
         xmlns:utils="clr-namespace:XDaggerMinerManager.Utils"
         xmlns:local1="clr-namespace:XDaggerMinerManager.UI.Forms"
+        xmlns:u="clr-namespace:XDaggerMinerManager.UI.Controls"
         
         mc:Ignorable="d"
         Title="检测局域网内机器" Height="297.001" Width="375" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
@@ -17,10 +18,16 @@
     <Grid>
         <Button Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="20,0,0,25.667" Width="134" Click="btnConfirm_Click" Height="29" VerticalAlignment="Bottom" IsEnabled="False"/>
         <Button Name="btnCancel" Content="取消" Margin="0,0,23,25.667" HorizontalAlignment="Right" Width="139" Click="btnCancel_Click" Height="29" VerticalAlignment="Bottom"/>
-        <DataGrid Name="dataGridMachineList" Margin="10,10,10,72.667" SelectedCellsChanged="dataGridMachineList_SelectedCellsChanged" SelectionChanged="dataGridMachineList_SelectionChanged" MouseDoubleClick="dataGridMachineList_MouseDoubleClick">
-            <DataGridTemplateColumn Header="选择" CellTemplate="{StaticResource IsSelectedColumnTemplate}" />
-
+        <u:MachineDataGrid x:Name="dataGridMachines" Margin="10,10,10,78">
+        </u:MachineDataGrid>
+        <!--
+        <DataGrid Name="dataGridMachineList" Margin="10,10,10,72.667"  ItemsSource="{Binding}" SelectedCellsChanged="dataGridMachineList_SelectedCellsChanged" SelectionChanged="dataGridMachineList_SelectionChanged" MouseDoubleClick="dataGridMachineList_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="选择" CellTemplate="{StaticResource IsSelectedColumnTemplate}" />
+                <DataGridTextColumn Header="名称" Binding="{Binding FullName, Mode=TwoWay}" />
+            </DataGrid.Columns>
         </DataGrid>
+        -->
         <ProgressBar x:Name="prbIndicator" Margin="10,0,10,9.667" Height="3" VerticalAlignment="Bottom" Visibility="Hidden"/>
 
     </Grid>

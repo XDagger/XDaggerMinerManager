@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
+using XDaggerMinerManager.UI.Controls;
 using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.UI.Forms
@@ -25,7 +30,15 @@ namespace XDaggerMinerManager.UI.Forms
 
         private List<MinerClient> createdClients = null;
 
+        private ObservableCollection<BrowseNetworkMachine> machineDataItems = null;
+
         private bool needRefreshMachineConnections = true;
+
+        /// private Dictionary<string, MachineConnectivity> machineConnectivitiesResult = null;
+
+        private MachineConnectivityBackgroundWork connectivityBackgroundWork = null;
+
+        private List<Control> freezedControlList = new List<Control>();
 
         private MinerClient.InstanceTypes selectedMinerClientType;
 
@@ -40,9 +53,135 @@ namespace XDaggerMinerManager.UI.Forms
             InitializeComponent();
 
             createdClients = new List<MinerClient>();
+
             needRefreshMachineConnections = true;
+            connectivityBackgroundWork = new MachineConnectivityBackgroundWork(this);
+            connectivityBackgroundWork.OnUpdated += MachineConnectivity_OnUpdated;
+            connectivityBackgroundWork.OnFinished += MachineConnectivity_OnFinished;
+
+            InitializeUI();
 
             SwitchUIToStep(1);
+        }
+
+        private void InitializeUI()
+        {
+            machineDataItems = new ObservableCollection<BrowseNetworkMachine>();
+
+            dataGridMachines.SetDisplayColumns(MachineDataGrid.Columns.FullName, MachineDataGrid.Columns.IpAddressV4);
+            /// dataGridMachines.CanUserEdit = true;
+        }
+
+        private void btnAddByName_Click(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("btnAddByName Clicked.");
+
+
+
+        }
+
+        private void btnOpenNetwork_Click(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("btnOpenNetwork Clicked.");
+
+            BrowseNetworkWindow browseNetworkWindow = new BrowseNetworkWindow(true);
+            browseNetworkWindow.SetResultHandler(
+                minerMachines =>
+                {
+                    AddToMachineList(minerMachines);
+                });
+
+            browseNetworkWindow.ShowDialog();
+        }
+
+        private void btnImportMachineList_Click(object sender, RoutedEventArgs e)
+        {
+            logger.Trace("btnImportMachineList Clicked.");
+
+            Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog();
+            dialog.DefaultExt = ".csv";
+            dialog.Filter = "CSV Files (*.csv)|*.csv|Text Files (*.txt)|*.txt";
+
+            string importFileFullName = string.Empty;
+            bool? result = dialog.ShowDialog();
+
+            if (!result.HasValue || !result.Value)
+            {
+                return;
+            }
+
+            importFileFullName = dialog.FileName;
+            List<MinerMachine> newMachines = new List<MinerMachine>();
+            using (StreamReader reader = new StreamReader(importFileFullName))
+            {
+                while(!reader.EndOfStream)
+                {
+                    string line = reader.ReadLine();
+                    string machineName = line.Trim().ToUpper();
+                    if (machineName.Contains(","))
+                    {
+                        machineName = machineName.Substring(0, machineName.IndexOf(','));
+                    }
+
+                    if (!string.IsNullOrEmpty(machineName))
+                    {
+                        newMachines.Add(new MinerMachine() { FullName = machineName });
+                    }
+                }
+            }
+
+            AddToMachineList(newMachines);
+        }
+
+
+        private void MachineConnectivity_OnUpdated(object sender, EventArgs e)
+        {
+            /// MessageBox.Show("MachineConnectivity_OnUpdated");
+        }
+
+        private void MachineConnectivity_OnFinished(object sender, EventArgs e)
+        {
+            
+        }
+
+
+        #endregion
+
+        #region Private Methods
+
+        private void ShowProgressIndicator(string progressMesage, params Control[] controlList)
+        {
+            logger.Trace("Start ShowProgressIndicator.");
+
+            lblTestConnectionNotice.Content = progressMesage;
+            prbIndicator.IsIndeterminate = true;
+
+            // Freeze the controls
+            if (controlList != null)
+            {
+                freezedControlList.AddRange(controlList.ToArray());
+
+                foreach (Control control in freezedControlList)
+                {
+                    control.IsEnabled = false;
+                }
+            }
+        }
+
+        private void HideProgressIndicator()
+        {
+            logger.Trace("Start HideProgressIndicator.");
+
+            lblTestConnectionNotice.Content = string.Empty;
+            prbIndicator.IsIndeterminate = false;
+
+            // Defreeze the controls
+            foreach (Control control in freezedControlList)
+            {
+                control.IsEnabled = true;
+            }
+
+            freezedControlList.Clear();
         }
 
         private void SwitchUIToStep(int step)
@@ -106,6 +245,11 @@ namespace XDaggerMinerManager.UI.Forms
                     break;
             }
 
+            if (step == 2)
+            {
+                StepTwo_TestMachineConnections();
+            }
+
             if (step == 3)
             {
                 StepThree_RetrieveMinerVersions();
@@ -118,6 +262,43 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepOneNext_Click(object sender, RoutedEventArgs e)
         {
+            if (createdClients.Count == 0)
+            {
+                MessageBox.Show("请输入机器名称", "提示");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(txtTargetPath.Text))
+            {
+                MessageBox.Show("请输入安装矿机的有效路径", "提示");
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(txtTargetUserName.Text))
+            {
+                string username = txtTargetUserName.Text.Trim();
+
+                if (string.IsNullOrEmpty(txtTargetUserPassword.Password))
+                {
+                    MessageBox.Show("请输入用户的密码", "提示");
+                    return;
+                }
+
+                string password = txtTargetUserPassword.Password.Trim();
+                MachineCredential credential = new MachineCredential() { UserName = username, LoginPlainPassword = password };
+
+                // Consolidate the credentials
+                foreach (MinerClient client in createdClients)
+                {
+                    client.Machine.Credential = credential;
+                }
+            }
+            
+            foreach (MinerClient client in createdClients)
+            {
+                connectivityBackgroundWork.AddMachine(client.Machine);
+            }
+
             SwitchUIToStep(2);
         }
 
@@ -176,6 +357,36 @@ namespace XDaggerMinerManager.UI.Forms
 
         #region Private Methods
 
+        private void StepTwo_TestMachineConnections()
+        {
+            if (!needRefreshMachineConnections)
+            {
+                return;
+            }
+
+            BackgroundWork.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在测试目标机器的连接，请稍后...", btnStepTwoNext);
+                },
+                () => {
+                    connectivityBackgroundWork.DoWork();
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("测试出现错误:" + taskResult.Exception.Message);
+                        logger.Error("Error while testing connection: " + taskResult.Exception.ToString());
+
+                        return;
+                    }
+                }
+            ).Execute();
+
+        }
+
         private void StepFour_RetrieveDeviceList()
         {
             
@@ -185,10 +396,40 @@ namespace XDaggerMinerManager.UI.Forms
         {
             
         }
+     
+        /// <summary>
+        /// Add the new list into the current machine list, if there are duplicate, prompt merge
+        /// </summary>
+        /// <param name="minerMachines"></param>
+        private void AddToMachineList(List<MinerMachine> minerMachines)
+        {
+            bool duplicateFound = false;
 
+            foreach (MinerMachine machine in minerMachines)
+            {
+                if (createdClients.Any(client => client.Machine.FullName.Equals(machine.FullName, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    duplicateFound = true;
+                }
+                else
+                {
+                    MinerClient newClient = new MinerClient();
+                    newClient.Machine = machine;
+                    createdClients.Add(newClient);
 
+                    dataGridMachines.AddItem(machine);
+                    // machineDataItems.Add(new BrowseNetworkMachine(machine));
+                }
+            }
+            
+            if (duplicateFound)
+            {
+                MessageBox.Show("检测到机器名中有重复。由于批量创建矿机时每台机器只能同时创建一个矿机，机器列表中已经将重复的机器名去掉。", "提示", MessageBoxButton.OK);
+            }
+        }
 
         #endregion
 
+       
     }
 }
