@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="输入机器名称" Height="111.386" Width="317.03" WindowStyle="ToolWindow">
+        Title="输入机器名称" Height="111.386" Width="317.03" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <TextBox x:Name="txtMachineName" Height="23" Margin="10,10,10,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
         <Button x:Name="btnConfirm" Content="确定" Margin="0,0,101,10.5" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="74" Click="btnConfirm_Click"/>

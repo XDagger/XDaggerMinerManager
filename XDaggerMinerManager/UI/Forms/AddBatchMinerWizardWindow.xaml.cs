@@ -76,8 +76,9 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("btnAddByName Clicked.");
 
-
-
+            InputMachineName inputMachine = new InputMachineName();
+            inputMachine.OnFinished += InputMachine_OnFinished;
+            inputMachine.ShowDialog();
         }
 
         private void btnOpenNetwork_Click(object sender, RoutedEventArgs e)
@@ -133,6 +134,25 @@ namespace XDaggerMinerManager.UI.Forms
             AddToMachineList(newMachines);
         }
 
+        private void btnDeleteMachine_Click(object sender, RoutedEventArgs e)
+        {
+            List<MinerMachine> selectedMachines = dataGridMachines.GetSelectedMachines();
+            if (selectedMachines == null || selectedMachines.Count == 0)
+            {
+                return;
+            }
+
+            foreach(MinerMachine machine in selectedMachines)
+            {
+                dataGridMachines.RemoveItem(machine);
+            }
+        }
+
+        private void InputMachine_OnFinished(object sender, MachineNameEventArgs e)
+        {
+            MinerMachine machine = new MinerMachine() { FullName = e.MachineName };
+            AddToMachineList(new List<MinerMachine>() { machine });
+        }
 
         private void MachineConnectivity_OnUpdated(object sender, EventArgs e)
         {
@@ -262,15 +282,18 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepOneNext_Click(object sender, RoutedEventArgs e)
         {
-            if (createdClients.Count == 0)
-            {
-                MessageBox.Show("请输入机器名称", "提示");
-                return;
-            }
-
             if (string.IsNullOrEmpty(txtTargetPath.Text))
             {
                 MessageBox.Show("请输入安装矿机的有效路径", "提示");
+                return;
+            }
+
+            string deploymentFolder = txtTargetPath.Text.Trim();
+
+            List<MinerMachine> machineList = dataGridMachines.GetAllMachines();
+            if (machineList.Count == 0)
+            {
+                MessageBox.Show("请输入机器名称", "提示");
                 return;
             }
 
@@ -288,17 +311,21 @@ namespace XDaggerMinerManager.UI.Forms
                 MachineCredential credential = new MachineCredential() { UserName = username, LoginPlainPassword = password };
 
                 // Consolidate the credentials
-                foreach (MinerClient client in createdClients)
+                foreach (MinerMachine m in machineList)
                 {
-                    client.Machine.Credential = credential;
+                    m.Credential = credential;
                 }
             }
-            
-            foreach (MinerClient client in createdClients)
+
+            createdClients.Clear();
+            connectivityBackgroundWork.ClearExcept(machineList);
+
+            foreach (MinerMachine machine in machineList)
             {
+                MinerClient client = new MinerClient(machine, deploymentFolder);
                 connectivityBackgroundWork.AddMachine(client.Machine);
             }
-
+            
             SwitchUIToStep(2);
         }
 
@@ -405,20 +432,17 @@ namespace XDaggerMinerManager.UI.Forms
         {
             bool duplicateFound = false;
 
+            List<MinerMachine> existingMachines = dataGridMachines.GetAllMachines();
+
             foreach (MinerMachine machine in minerMachines)
             {
-                if (createdClients.Any(client => client.Machine.FullName.Equals(machine.FullName, StringComparison.InvariantCultureIgnoreCase)))
+                if (existingMachines.Any(m => m.FullName.Equals(machine.FullName, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     duplicateFound = true;
                 }
                 else
                 {
-                    MinerClient newClient = new MinerClient();
-                    newClient.Machine = machine;
-                    createdClients.Add(newClient);
-
                     dataGridMachines.AddItem(machine);
-                    // machineDataItems.Add(new BrowseNetworkMachine(machine));
                 }
             }
             
@@ -428,8 +452,9 @@ namespace XDaggerMinerManager.UI.Forms
             }
         }
 
+
         #endregion
 
-       
+        
     }
 }

@@ -19,7 +19,7 @@ namespace XDaggerMinerManager.UI.Forms
     /// </summary>
     public partial class InputMachineName : Window
     {
-        public event EventHandler<EventArgs> OnFinished;
+        public event EventHandler<MachineNameEventArgs> OnFinished;
 
         public InputMachineName()
         {
@@ -28,13 +28,14 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnConfirm_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(txtMachineName.Text))
+            if (string.IsNullOrWhiteSpace(txtMachineName.Text))
             {
                 MessageBox.Show("请输入机器名称");
                 return;
             }
 
             string machineName = txtMachineName.Text.Trim().ToUpper();
+            this.Close();
 
             OnFinished?.Invoke(this, new MachineNameEventArgs(machineName));
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,15 +32,15 @@ namespace XDaggerMinerManager.UI.Controls
         public event EventHandler<EventArgs> SelectionChanged = null;
 
         private List<Columns> displayColumns = null;
-
-        private List<MachineDataGridItem> dataGridItems = null;
+        
+        private ObservableCollection<MachineDataGridItem> dataGridItems = null;
 
         public MachineDataGrid()
         {
             InitializeComponent();
 
             displayColumns = new List<Columns>();
-            dataGridItems = new List<MachineDataGridItem>();
+            dataGridItems = new ObservableCollection<MachineDataGridItem>();
         }
 
         public MachineDataGrid(params Columns[] columns)
@@ -48,16 +49,16 @@ namespace XDaggerMinerManager.UI.Controls
 
             displayColumns.AddRange(columns);
 
-            dataGridItems = new List<MachineDataGridItem>();
+            dataGridItems = new ObservableCollection<MachineDataGridItem>();
         }
 
-        public MachineDataGrid(List<MachineDataGridItem> items, params Columns[] columns)
+        public MachineDataGrid(ObservableCollection<MachineDataGridItem> items, params Columns[] columns)
         {
             InitializeComponent();
 
             displayColumns.AddRange(columns);
 
-            dataGridItems = items ?? new List<MachineDataGridItem>();
+            dataGridItems = items ?? new ObservableCollection<MachineDataGridItem>();
         }
 
         public void SetDisplayColumns(params Columns[] columns)
@@ -65,6 +66,7 @@ namespace XDaggerMinerManager.UI.Controls
             displayColumns.AddRange(columns);
         }
 
+        /*
         public bool CanUserEdit
         {
             get
@@ -78,6 +80,7 @@ namespace XDaggerMinerManager.UI.Controls
                 this.dataGrid.CanUserDeleteRows = value;
             }
         }
+        */
 
         private void usercontrol_Loaded(object sender, RoutedEventArgs e)
         {
@@ -119,6 +122,11 @@ namespace XDaggerMinerManager.UI.Controls
             SelectionChanged?.Invoke(this, new EventArgs());
         }
 
+        public List<MinerMachine> GetAllMachines()
+        {
+            return dataGridItems.Select(item => item.GetMachine()).ToList();
+        }
+
         public List<MinerMachine> GetSelectedMachines()
         {
             if (displayColumns.Contains(Columns.Selection))
@@ -129,14 +137,35 @@ namespace XDaggerMinerManager.UI.Controls
             else
             {
                 // Single selection
-                MachineDataGridItem selectedItem = (MachineDataGridItem)dataGrid.SelectedItem;
-                return new List<MinerMachine>() { selectedItem?.GetMachine() };
+                List<MinerMachine> selectedList = new List<MinerMachine>();
+                foreach(MachineDataGridItem item in dataGrid.SelectedItems)
+                {
+                    if (item != null)
+                    {
+                        selectedList.Add(item.GetMachine());
+                    }
+                }
+
+                return selectedList;
             }
         }
 
         public void AddItem(MinerMachine machine)
         {
             dataGridItems.Add(new MachineDataGridItem(machine));
+            this.dataGrid.Items.Refresh();
+        }
+
+        public void RemoveItem(MinerMachine machine)
+        {
+            for(int i = 0; i < dataGridItems.Count; i++)
+            {
+                if (dataGridItems[i].FullName.Equals(machine.FullName))
+                {
+                    dataGridItems.RemoveAt(i);
+                    return;
+                }
+            }
             this.dataGrid.Items.Refresh();
         }
 

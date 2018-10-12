@@ -35,7 +35,7 @@ namespace XDaggerMinerManager.Utils
             minerMachines = machineList;
             connectivityResults = new Dictionary<string, MachineConnectivity>();
         }
-
+        
         public void AddMachine(MinerMachine machine)
         {
             if (!connectivityResults.ContainsKey(machine.FullName))
@@ -49,6 +49,17 @@ namespace XDaggerMinerManager.Utils
             foreach(MinerMachine machine in machines)
             {
                 AddMachine(machine);
+            }
+        }
+
+        public void ClearExcept(List<MinerMachine> machines)
+        {
+            foreach (KeyValuePair<string, MachineConnectivity> keyValue in connectivityResults)
+            {
+                if (!machines.Any(m => m.FullName.Equals(keyValue.Key)))
+                {
+                    connectivityResults.Remove(keyValue.Key);
+                }
             }
         }
 
