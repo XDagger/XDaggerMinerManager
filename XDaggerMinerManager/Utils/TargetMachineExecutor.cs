@@ -14,6 +14,8 @@ namespace XDaggerMinerManager.Utils
     {
         protected string credentialUsername = string.Empty;
 
+        protected bool disableTrace = false;
+
         protected Logger logger = Logger.GetInstance();
 
         protected SecureString credentialPassword = null;
@@ -28,7 +30,7 @@ namespace XDaggerMinerManager.Utils
             
         }
 
-        public static TargetMachineExecutor GetExecutor(MinerMachine machine)
+        public static TargetMachineExecutor GetExecutor(MinerMachine machine, bool disableTrace = false)
         {
             if (machine == null)
             {
@@ -40,6 +42,8 @@ namespace XDaggerMinerManager.Utils
             {
                 executor.SetCredential(machine.Credential.UserName, machine.Credential.LoginPlainPassword);
             }
+
+            executor.disableTrace = disableTrace;
 
             return executor;
         }
@@ -64,7 +68,10 @@ namespace XDaggerMinerManager.Utils
 
         public T ExecuteCommandAndThrow<T>(string commandFullLine, string arguments = "")
         {
-            logger.Trace($"ExecuteCommand: [{commandFullLine}] with arguments [{arguments}]");
+            if (!disableTrace)
+            {
+                logger.Trace($"ExecuteCommand: [{commandFullLine}] with arguments [{arguments}]");
+            }
 
             try
             {

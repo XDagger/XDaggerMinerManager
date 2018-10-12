@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,17 +13,71 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using XDaggerMinerManager.ObjectModel;
 
 namespace XDaggerMinerManager.UI.Controls
 {
     /// <summary>
-    /// Interaction logic for MachineConnectionDataGrid.xaml
+    /// Interaction logic for MachineConnectivityDataGrid.xaml
     /// </summary>
-    public partial class MachineConnectionDataGrid : UserControl
+    public partial class MachineConnectivityDataGrid : UserControl
     {
-        public MachineConnectionDataGrid()
+        private ObservableCollection<MachineConnectivityDataGridItem> dataGridItems = null;
+        
+        public MachineConnectivityDataGrid()
         {
             InitializeComponent();
+
+            dataGridItems = new ObservableCollection<MachineConnectivityDataGridItem>();
         }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.dataGrid.AutoGenerateColumns = false;
+            this.dataGrid.AllowDrop = false;
+            this.dataGrid.CanUserAddRows = false;
+            this.dataGrid.CanUserReorderColumns = false;
+            this.dataGrid.IsReadOnly = false;
+            this.dataGrid.CanUserDeleteRows = false;
+            this.dataGrid.CanUserResizeRows = false;
+            this.dataGrid.SelectionUnit = DataGridSelectionUnit.FullRow;
+
+            /// this.dataGridMachineList.Items.Clear();
+            this.dataGrid.ItemsSource = dataGridItems;
+            this.dataGrid.Items.Refresh();
+
+            foreach (DataGridColumn col in dataGrid.Columns)
+            {
+                col.IsReadOnly = true;
+            }
+        }
+
+        #region Public Methods
+
+        public void AddItem(MachineConnectivity connectivity)
+        {
+            dataGridItems.Add(new MachineConnectivityDataGridItem(connectivity));
+            this.dataGrid.Items.Refresh();
+        }
+
+        public void ClearItems()
+        {
+            dataGridItems.Clear();
+            this.dataGrid.Items.Refresh();
+        }
+
+        public List<MachineConnectivity> GetAllConnectivities()
+        {
+            return dataGridItems.Select(item => item.Connectivity).ToList();
+        }
+
+        public void Refresh()
+        {
+            this.dataGrid.Items.Refresh();
+
+        }
+
+        #endregion
+
     }
 }

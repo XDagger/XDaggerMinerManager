@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -16,11 +17,15 @@ namespace XDaggerMinerManager.Utils
         private List<MinerMachine> minerMachines = null;
         private Dictionary<string, MachineConnectivity> connectivityResults = null;
 
-        public event EventHandler<EventArgs> OnFinished;
-        public event EventHandler<EventArgs> OnUpdated;
+        private Logger logger = Logger.GetInstance();
+
+        //// public event EventHandler<EventArgs> OnFinished;
+        public event EventHandler<MachineConnectivityEventArgs> OnUpdated;
 
         private int startedWorksCount;
         private int finishedWorksCount;
+
+        private string testingFolderPath = string.Empty;
 
         public MachineConnectivityBackgroundWork(Window window)
         {
@@ -35,12 +40,27 @@ namespace XDaggerMinerManager.Utils
             minerMachines = machineList;
             connectivityResults = new Dictionary<string, MachineConnectivity>();
         }
-        
+
+        public void SetTestingFolderPath(string localPath)
+        {
+            this.testingFolderPath = localPath;
+        }
+
+        public void AddConnectivity(MachineConnectivity connectivity)
+        {
+            if (connectivity == null || connectivity.Machine == null)
+            {
+                throw new ArgumentNullException("AddConnectivity with null argument.");
+            }
+
+            connectivityResults[connectivity.Machine.FullName] = connectivity;
+        }
+
         public void AddMachine(MinerMachine machine)
         {
             if (!connectivityResults.ContainsKey(machine.FullName))
             {
-                connectivityResults[machine.FullName] = new MachineConnectivity();
+                connectivityResults[machine.FullName] = new MachineConnectivity(machine);
             }
         }
 
@@ -70,7 +90,7 @@ namespace XDaggerMinerManager.Utils
 
             foreach (KeyValuePair<string, MachineConnectivity> keyValue in connectivityResults)
             {
-                MachineConnectivity connectivity = GetConnectivity(keyValue.Key);
+                MachineConnectivity connectivity = keyValue.Value;
 
                 if (connectivity.CanPing ?? false)
                 {
@@ -80,11 +100,7 @@ namespace XDaggerMinerManager.Utils
                 startedWorksCount++;
 
                 string machineName = keyValue.Key;
-                BackgroundWork<PingReply>.CreateWork(
-                    window,
-                    () =>
-                    {
-                    },
+                BackgroundWork<PingReply>.CreateWork(window, () => { },
                     () =>
                     {
                         return PingUtil.Send(machineName);
@@ -105,35 +121,161 @@ namespace XDaggerMinerManager.Utils
                         ConsolidatePingResult(machineName, result);
                     }
                 ).Execute();
+            }
+
+            foreach (KeyValuePair<string, MachineConnectivity> keyValue in connectivityResults)
+            {
+                MachineConnectivity connectivity = keyValue.Value;
+
+                if (connectivity.CanRemotePathAccess ?? false)
+                {
+                    continue;
+                }
+
+                startedWorksCount++;
+                
+                string machineName = keyValue.Key;
+                string remoteTestingFolderPath = string.Format("\\\\{0}\\{1}", machineName, testingFolderPath.Replace(":", "$"));
+
+                BackgroundWork.CreateWork(window, () => { },
+                    () =>
+                    {
+                        if (!Directory.Exists(remoteTestingFolderPath))
+                        {
+                            Directory.CreateDirectory(remoteTestingFolderPath);
+                        }
+
+                        File.Create(Path.Combine(remoteTestingFolderPath, "touch.tst"), 10, FileOptions.DeleteOnClose);
+                        
+                        return 0;
+                    },
+                    (taskResult) =>
+                    {
+                        bool result = true;
+                        if (taskResult.HasError)
+                        {
+                            logger.Error($"Testing of RemotePathAccess failed for machine [{ machineName }]. Message: { taskResult.Exception.ToString() }");
+                            result = false;
+                        }
+
+                        ConsolidateRemotePathAccessResult(machineName, result);
+                    }
+                ).Execute();
 
             }
 
-            while(finishedWorksCount < startedWorksCount)
+            foreach (KeyValuePair<string, MachineConnectivity> keyValue in connectivityResults)
+            {
+                MachineConnectivity connectivity = keyValue.Value;
+                MinerMachine machine = connectivity.Machine;
+                if (connectivity.CanRemotePowershell ?? false)
+                {
+                    continue;
+                }
+
+                startedWorksCount++;
+
+                string machineName = keyValue.Key;
+
+                if (machineName.Equals("LOCALHOST"))
+                {
+                    // Directly pass if this is local powershell
+                    ConsolidateRemotePowershellResult(machineName, true);
+                    continue;
+                }
+
+                BackgroundWork.CreateWork(window, () => { },
+                    () =>
+                    {
+                        RemoteExecutor executor = new RemoteExecutor(machineName);
+                        if (machine.Credential != null)
+                        {
+                            executor.SetCredential(machine.Credential.UserName, machine.Credential.LoginPlainPassword);
+                        }
+
+                        executor.TestConnection();
+                        return 0;
+                    },
+                    (taskResult) =>
+                    {
+                        bool result = true;
+                        if (taskResult.HasError)
+                        {
+                            logger.Error($"Testing of RemotePathAccess failed for machine [{ machineName }]. Message: { taskResult.Exception.ToString() }");
+                            result = false;
+                        }
+
+                        ConsolidateRemotePowershellResult(machineName, result);
+                    }
+                ).Execute();
+            }
+
+            while (finishedWorksCount < startedWorksCount)
             {
                 Thread.Sleep(30);
             }
-
-            OnFinished?.Invoke(this, new EventArgs());
         }
 
         private void ConsolidatePingResult(string machineName, bool result)
         {
-            MachineConnectivity connectivity = GetConnectivity(machineName);
-            connectivity.CanPing = result;
-
-            OnUpdated?.Invoke(this, new EventArgs());
-
             finishedWorksCount++;
+
+            MachineConnectivity connectivity = connectivityResults[machineName];
+            lock (connectivity)
+            {
+                connectivity.CanPing = result;
+            }
+
+            OnUpdated?.Invoke(this, new MachineConnectivityEventArgs(connectivity));
+        }
+
+        private void ConsolidateRemotePathAccessResult(string machineName, bool result)
+        {
+            finishedWorksCount++;
+
+            MachineConnectivity connectivity = connectivityResults[machineName];
+            lock (connectivity)
+            {
+                connectivity.CanRemotePathAccess = result;
+            }
+
+            OnUpdated?.Invoke(this, new MachineConnectivityEventArgs(connectivity));
+        }
+
+        private void ConsolidateRemotePowershellResult(string machineName, bool result)
+        {
+            finishedWorksCount++;
+
+            MachineConnectivity connectivity = connectivityResults[machineName];
+            lock (connectivity)
+            {
+                connectivity.CanRemotePowershell = result;
+            }
+
+            OnUpdated?.Invoke(this, new MachineConnectivityEventArgs(connectivity));
         }
 
         public MachineConnectivity GetConnectivity(string machineName)
         {
             if (!connectivityResults.ContainsKey(machineName))
             {
-                connectivityResults[machineName] = new MachineConnectivity();
+                connectivityResults[machineName] = new MachineConnectivity(new MinerMachine() { FullName = machineName } );
             }
 
             return connectivityResults[machineName];
+        }
+    }
+
+    public class MachineConnectivityEventArgs : EventArgs
+    {
+        public MachineConnectivityEventArgs(MachineConnectivity connectivity)
+        {
+            this.Result = connectivity;
+        }
+
+        public MachineConnectivity Result
+        {
+            get; set;
         }
     }
 }

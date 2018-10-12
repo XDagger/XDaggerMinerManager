@@ -108,5 +108,25 @@ namespace XDaggerMinerManager.Utils
                 credentialPassword.AppendChar(x);
             }
         }
+
+        public void TestConnection()
+        {
+            try
+            {
+                string content = this.ExecuteCommand("cmd.exe");
+
+                if (!content.Contains("Microsoft Windows"))
+                {
+                    string message = $"The TestConnection result validation failed on machine [{ this.MachineName }], it doesn't contain 'Microsoft Windows'. Content: { content }";
+                    logger.Error(message);
+                    throw new Exception(message);
+                }
+            }
+            catch(Exception ex)
+            {
+                logger.Error($"TestConnection failed on machine [{ this.MachineName }] with UserName [ {this.credentialUsername} ]. Error: { ex.ToString() }");
+                throw;
+            }
+        }
     }
 }

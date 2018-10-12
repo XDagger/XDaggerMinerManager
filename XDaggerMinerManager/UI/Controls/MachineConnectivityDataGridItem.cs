@@ -9,26 +9,36 @@ namespace XDaggerMinerManager.UI.Controls
 {
     public class MachineConnectivityDataGridItem
     {
-        private MinerMachine minerMachine = null;
-
         private MachineConnectivity connectivity = null;
 
-        public MachineConnectivityDataGridItem(MinerMachine machine, MachineConnectivity connectivity = null)
+        public MachineConnectivityDataGridItem(MachineConnectivity connectivity)
         {
-            minerMachine = machine;
+            if (connectivity == null || connectivity.Machine == null)
+            {
+                throw new ArgumentNullException("MachineConnectivity has null data.");
+            }
+
             this.connectivity = connectivity;
+        }
+
+        public MachineConnectivity Connectivity
+        {
+            get
+            {
+                return this.connectivity;
+            }
         }
 
         public MinerMachine GetMachine()
         {
-            return minerMachine;
+            return connectivity.Machine;
         }
 
         public string FullName
         {
             get
             {
-                return minerMachine.FullName;
+                return connectivity.Machine.FullName;
             }
         }
 
@@ -36,7 +46,7 @@ namespace XDaggerMinerManager.UI.Controls
         {
             get
             {
-                return minerMachine.IpAddressV4;
+                return connectivity.Machine.IpAddressV4;
             }
         }
 

@@ -378,14 +378,14 @@ namespace XDaggerMinerManager.ObjectModel
             return string.Format("\\\\{0}\\{1}", this.MachineFullName, Path.GetTempPath().Replace(":", "$"));
         }
 
-        public T ExecuteDaemon<T>(string parameters)
+        public T ExecuteDaemon<T>(string parameters, bool disableTrace = false)
         {
             if (this.Machine == null)
             {
                 throw new ArgumentNullException("The Machine object is not initialized in MinerClient. " + this.MachineFullName);
             }
 
-            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.Machine);
+            TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(this.Machine, disableTrace);
             string daemonFullPath = Path.Combine(this.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
             return executor.ExecuteCommandAndThrow<T>(daemonFullPath, parameters);
@@ -424,7 +424,7 @@ namespace XDaggerMinerManager.ObjectModel
         {
             try
             {
-                ReportOutput report = this.ExecuteDaemon<ReportOutput>("-r");
+                ReportOutput report = this.ExecuteDaemon<ReportOutput>("-r", true);
                 if (report == null)
                 {
                     if (hasStatusChanged)

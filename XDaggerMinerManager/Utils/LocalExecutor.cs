@@ -31,7 +31,10 @@ namespace XDaggerMinerManager.Utils
         /// <returns></returns>
         public string ExecuteCommandWithStreamOutput(string commandFullLine, string arguments, Func<StreamReader, string> streamHandler)
         {
-            logger.Trace("Start ExecuteCommandWithStreamOutput.");
+            if (!disableTrace)
+            {
+                logger.Trace("Start ExecuteCommandWithStreamOutput.");
+            }
 
             Process process = new System.Diagnostics.Process();
             ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
