@@ -117,6 +117,8 @@
       <DependentUpon>MachineDataGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Controls\MachineDataGridItem.cs" />
+    <Compile Include="UI\Controls\MachineDeploymentDataGrid.xaml.cs" />
+    <Compile Include="UI\Controls\MachineDeploymentDataGridItem.cs" />
     <Compile Include="UI\Forms\AddBatchMinerWizardWindow.xaml.cs">
       <DependentUpon>AddBatchMinerWizardWindow.xaml</DependentUpon>
     </Compile>
@@ -173,6 +175,10 @@
     <Page Include="UI\Controls\MachineDataGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Controls\MachineDeploymentDataGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\Forms\AddBatchMinerWizardWindow.xaml">
       <SubType>Designer</SubType>

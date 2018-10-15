@@ -33,7 +33,7 @@ namespace XDaggerMinerManager.ObjectModel
             get; set;
         }
 
-        public bool IsAllSuccess()
+        public bool IsAllTestingSuccess()
         {
             return this.CanPing.HasValue && this.CanPing.Value
                 && this.CanRemotePathAccess.HasValue && this.CanRemotePathAccess.Value

@@ -64,7 +64,27 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
-        public abstract string ExecuteCommand(string commandFile, string arguments = "");
+        public abstract List<string> Execute(string commandFile, string arguments = "");
+        
+        public string ExecuteCommand(string commandExec, string arguments = "")
+        {
+            List<string> resultStrings = Execute(commandExec, arguments);
+            if (resultStrings == null)
+            {
+                return string.Empty;
+            }
+
+            foreach (var result in resultStrings)
+            {
+                string resultString = result.ToString();
+                if (resultString.Contains("||"))
+                {
+                    return resultString;
+                }
+            }
+
+            return string.Empty;
+        }
 
         public T ExecuteCommandAndThrow<T>(string commandFullLine, string arguments = "")
         {

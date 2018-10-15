@@ -29,9 +29,18 @@
             <Label Content="选择矿机版本：" HorizontalAlignment="Left" Margin="35,37,0,0" VerticalAlignment="Top" Width="105"/>
             <ComboBox x:Name="cbxMinerClientVersions" Margin="145,37,65,0" VerticalAlignment="Top" Height="25"/>
             <Label Content="选择矿机类型：" HorizontalAlignment="Left" Margin="35,92,0,0" VerticalAlignment="Top" Width="105"/>
-            <ComboBox x:Name="cbxMinerType" Margin="145,96,65,0" VerticalAlignment="Top"/>
-
+            <ComboBox x:Name="cbxMinerInstanceType" Margin="145,96,65,0" VerticalAlignment="Top" IsReadOnly="True" SelectedIndex="0">
+                <ComboBoxItem Content="XDagger"/>
+                <ComboBoxItem Content="Ethereum"/>
+            </ComboBox>
         </Grid>
+        <Grid x:Name="grdStepThreeStatus" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
+            <Button x:Name="btnStepThreeStatusNext" Content="下一步" Margin="0,0,24,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeStatusNext_Click"/>
+            <Button x:Name="btnStepThreeStatusBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepThreeStatusBack_Click"/>
+            <u:MachineDeploymentDataGrid x:Name="dataGridMachineDeployment" Margin="24,41,24,64"/>
+            
+        </Grid>
+
         <Grid x:Name="grdStepFive" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
             <Button x:Name="btnStepFiveFinish" Content="完成" Margin="0,0,24,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFiveFinish_Click"/>
             <Button x:Name="btnStepFiveBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFiveBack_Click"/>
@@ -44,14 +53,14 @@
             <Button x:Name="btnStepFourEthBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourEthBack_Click"/>
 
             <Label Content="选择硬件：" HorizontalAlignment="Left" Margin="10,19,0,0" VerticalAlignment="Top" Width="78"/>
-            <ComboBox x:Name="cBxTargetDeviceEth" Margin="100,23,22.667,0" VerticalAlignment="Top" IsReadOnly="True" />
+            <ComboBox x:Name="cbxTargetDeviceEth" Margin="100,23,22.667,0" VerticalAlignment="Top" IsReadOnly="True" />
             <Label x:Name="lblEthWalletAddress" Content="ETH钱包地址：" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" Width="90"/>
             <TextBox x:Name="txtWalletAddressEth" Height="23" Margin="100,94,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
             <CheckBox x:Name="cbxSaveToDefaultEth" Content="保存为默认矿池地址" HorizontalAlignment="Left" Margin="19,209,0,0" VerticalAlignment="Top" Width="162" IsChecked="True"/>
 
             <Label Content="选择矿池：" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top" Width="78"/>
-            <ComboBox x:Name="cBxTargetEthPool" Margin="100,59,0,0" VerticalAlignment="Top" IsReadOnly="True" HorizontalAlignment="Left" Width="168" />
-            <ComboBox x:Name="cBxTargetEthPoolHost" Margin="282,59,23,0" VerticalAlignment="Top" IsReadOnly="True" />
+            <ComboBox x:Name="cbxTargetEthPool" Margin="100,59,0,0" VerticalAlignment="Top" IsReadOnly="True" HorizontalAlignment="Left" Width="168" />
+            <ComboBox x:Name="cbxTargetEthPoolHost" Margin="282,59,23,0" VerticalAlignment="Top" IsReadOnly="True" />
             <Label Content="Worker名称：" HorizontalAlignment="Left" Margin="10,128,0,0" VerticalAlignment="Top" Width="90"/>
             <TextBox x:Name="txtEthWorkerName" Height="23" Margin="100,131,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
             <Label Content="Email地址：" HorizontalAlignment="Left" Margin="10,167,0,0" VerticalAlignment="Top" Width="90"/>
@@ -62,7 +71,7 @@
             <Button x:Name="btnStepFourXDaggerBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourXDaggerBack_Click"/>
 
             <Label Content="选择硬件：" HorizontalAlignment="Left" Margin="29,26,0,0" VerticalAlignment="Top" Width="78"/>
-            <ComboBox x:Name="cBxTargetDevice" Margin="112,30,36.667,0" VerticalAlignment="Top" IsReadOnly="True" />
+            <ComboBox x:Name="cbxTargetDevice" Margin="112,30,36.667,0" VerticalAlignment="Top" IsReadOnly="True" />
             <Label Content="钱包地址：" HorizontalAlignment="Left" Margin="29,70,0,0" VerticalAlignment="Top" Width="78"/>
             <TextBox x:Name="txtXDaggerWalletAddress" Height="23" Margin="112,70,36.667,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
             <CheckBox x:Name="cbxXDaggerSaveToDefault" Content="保存为默认地址" HorizontalAlignment="Left" Margin="112,156,0,0" VerticalAlignment="Top" Width="133" IsChecked="True"/>
@@ -101,6 +110,7 @@
 
         </Grid>
         <ProgressBar x:Name="prbIndicator" Margin="0,0,0.5,6" Foreground="#FF4D5E83" Visibility="Visible" Height="4" VerticalAlignment="Bottom"/>
+        <Label x:Name="lblProgressIndicator" Content="" Margin="10,0,15,20" Height="20" VerticalAlignment="Bottom"/>
 
     </Grid>
 

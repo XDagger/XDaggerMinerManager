@@ -592,15 +592,13 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在拷贝文件到目标目录......", btnStepTwoNext, btnStepTwoBack);
                 },
                 () => {
-                    if (!Directory.Exists(createdClient.GetRemoteBinaryPath()))
+                    if (Directory.Exists(createdClient.GetRemoteBinaryPath()))
                     {
-                        winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
-                    }
-                    else
-                    {
-                        logger.Information($"Directory {createdClient.GetRemoteBinaryPath()} already exists, so skip copying.");
+                        logger.Information($"Directory {createdClient.GetRemoteBinaryPath()} already exists, so GenerateFolderSuffix.");
+                        createdClient.GenerateFolderSuffix();
                     }
 
+                    winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
                     return 0;
                 },
                 (taskResult) => {

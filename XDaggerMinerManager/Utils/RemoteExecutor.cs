@@ -27,7 +27,7 @@ namespace XDaggerMinerManager.Utils
             get; private set;
         }
 
-        public override string ExecuteCommand(string commandExec, string arguments = "")
+        public override List<string> Execute(string commandExec, string arguments = "")
         {
             PSCredential credentials = new PSCredential(credentialUsername, credentialPassword);
 
@@ -44,20 +44,13 @@ namespace XDaggerMinerManager.Utils
 
                     var results = psinstance.Invoke();
 
-                    StringBuilder stringBuilder = new StringBuilder();
-
+                    List<string> resultStringList = new List<string>();
                     foreach (var result in results)
                     {
-                        string resultString = result.ToString();
-                        if (resultString.Contains("||"))
-                        {
-                            return resultString;
-                        }
+                        resultStringList.Add(result.ToString());
                     }
-                }
-                catch (PSRemotingDataStructureException ex)
-                {
-                    throw ex;
+
+                    return resultStringList;
                 }
                 catch (PSRemotingTransportException ex)
                 {
@@ -72,6 +65,11 @@ namespace XDaggerMinerManager.Utils
                         // WinRM Service cannot be connected
                         throw new TargetMachineException(TargetMachineErrorCode.WINRM_CONNECTION_FAILED, "远程机器连接失败，请检查目标机器上WinRM服务是否开启。");
                     }
+
+                    throw ex;
+                }
+                catch (PSRemotingDataStructureException ex)
+                {
                     throw ex;
                 }
                 catch (Exception ex)
@@ -84,10 +82,8 @@ namespace XDaggerMinerManager.Utils
                     runspace.Close();
                 }
             }
-
-            return string.Empty;
         }
-
+        
         public override void SetCredential(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
@@ -113,9 +109,9 @@ namespace XDaggerMinerManager.Utils
         {
             try
             {
-                string content = this.ExecuteCommand("cmd.exe");
+                List<string> content = this.Execute("cmd.exe");
 
-                if (!content.Contains("Microsoft Windows"))
+                if (!content.Any(s => s.Contains("Microsoft Windows")))
                 {
                     string message = $"The TestConnection result validation failed on machine [{ this.MachineName }], it doesn't contain 'Microsoft Windows'. Content: { content }";
                     logger.Error(message);

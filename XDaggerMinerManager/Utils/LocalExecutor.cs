@@ -16,10 +16,12 @@ namespace XDaggerMinerManager.Utils
         /// <param name="commandFullLine"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        public override string ExecuteCommand(string commandFullLine, string arguments = "")
+        public override List<string> Execute(string commandFullLine, string arguments = "")
         {
-            return ExecuteCommandWithStreamOutput(commandFullLine, arguments,
+            string result = ExecuteCommandWithStreamOutput(commandFullLine, arguments,
                 (reader) => { return (reader == null) ? null : reader.ReadToEnd(); });
+
+            return new List<string>() { result };
         }
 
         /// <summary>

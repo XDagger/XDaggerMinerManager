@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using XDaggerMinerManager.Configuration;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.UI.Controls;
 using XDaggerMinerManager.Utils;
@@ -41,6 +42,9 @@ namespace XDaggerMinerManager.UI.Forms
         private string deploymentFolderPath = string.Empty;
 
         private List<Control> freezedControlList = new List<Control>();
+
+        private WinMinerReleaseBinary winMinerBinary = null;
+
 
         private MinerClient.InstanceTypes selectedMinerClientType;
 
@@ -222,13 +226,26 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepThreeNext_Click(object sender, RoutedEventArgs e)
         {
-            selectedMinerClientType = MinerClient.InstanceTypes.XDagger;
-            SwitchUIToStep(4);
+            StepThree_DownloadPackage();
+
+
+            ///selectedMinerClientType = MinerClient.InstanceTypes.XDagger;
+            ///SwitchUIToStep(4);
         }
 
         private void btnStepThreeBack_Click(object sender, RoutedEventArgs e)
         {
             SwitchUIToStep(2);
+        }
+
+        private void btnStepThreeStatusNext_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchUIToStep(4);
+        }
+
+        private void btnStepThreeStatusBack_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchUIToStep(3);
         }
 
         private void btnStepFourXDaggerNext_Click(object sender, RoutedEventArgs e)
@@ -297,11 +314,13 @@ namespace XDaggerMinerManager.UI.Forms
             });
         }
 
-        private void ShowProgressIndicator(string progressMesage, params Control[] controlList)
+        private void ShowProgressIndicator(string message, params Control[] controlList)
         {
             logger.Trace("Start ShowProgressIndicator.");
 
-            lblTestConnectionNotice.Content = progressMesage;
+            lblProgressIndicator.Visibility = Visibility.Visible;
+            lblProgressIndicator.Content = message;
+
             prbIndicator.Visibility = Visibility.Visible;
             prbIndicator.IsIndeterminate = true;
 
@@ -321,7 +340,9 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("Start HideProgressIndicator.");
 
-            lblTestConnectionNotice.Content = string.Empty;
+            lblProgressIndicator.Visibility = Visibility.Hidden;
+            lblProgressIndicator.Content = string.Empty;
+
             prbIndicator.IsIndeterminate = false;
             prbIndicator.Visibility = Visibility.Hidden;
 
@@ -341,6 +362,7 @@ namespace XDaggerMinerManager.UI.Forms
             grdStepOne.Visibility = Visibility.Hidden;
             grdStepTwo.Visibility = Visibility.Hidden;
             grdStepThree.Visibility = Visibility.Hidden;
+            grdStepThreeStatus.Visibility = Visibility.Hidden;
             grdStepFourXDagger.Visibility = Visibility.Hidden;
             grdStepFourEth.Visibility = Visibility.Hidden;
             grdStepFive.Visibility = Visibility.Hidden;
@@ -440,6 +462,7 @@ namespace XDaggerMinerManager.UI.Forms
             BackgroundWork.CreateWork(
                 this,
                 () => {
+                    /// lblTestConnectionNotice.Content = "正在测试目标机器的连接，请稍后...";
                     ShowProgressIndicator("正在测试目标机器的连接，请稍后...", btnStepTwoNext, btnStepTwoBack);
                 },
                 () => {
@@ -456,7 +479,7 @@ namespace XDaggerMinerManager.UI.Forms
                         return;
                     }
 
-                    bool hasFailure = machineConnectivityCache.Any(conn => !conn.IsAllSuccess());
+                    bool hasFailure = machineConnectivityCache.Any(conn => !conn.IsAllTestingSuccess());
                     if (hasFailure)
                     {
                         btnStepTwoNext.IsEnabled = false;
@@ -474,16 +497,324 @@ namespace XDaggerMinerManager.UI.Forms
             ).Execute();
         }
 
-        private void StepFour_RetrieveDeviceList()
+        private void StepThree_DownloadPackage()
         {
-            
+            logger.Trace("Start StepThree_DownloadPackage.");
+
+            string version = this.cbxMinerClientVersions.Text;
+            if (string.IsNullOrEmpty(version))
+            {
+                MessageBox.Show("请选择一个版本");
+                logger.Warning("Need to select one version to proceed.");
+
+                return;
+            }
+
+            string instanceType = cbxMinerInstanceType.Text;
+            selectedMinerClientType = (MinerClient.InstanceTypes)(this.cbxMinerInstanceType.SelectedIndex + 1);
+
+            logger.Information($"Selected version: { version }.");
+            logger.Information($"Selected instance type: { selectedMinerClientType }.");
+
+            foreach(MinerClient client in createdClients)
+            {
+                client.Version = version;
+                client.InstanceType = this.cbxMinerInstanceType.Text;
+                client.InstanceTypeEnum = selectedMinerClientType;
+            }
+
+            winMinerBinary = new WinMinerReleaseBinary(version);
+
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在下载安装包......", btnStepThreeNext, btnStepThreeBack);
+                },
+                () => {
+                    winMinerBinary.DownloadPackage();
+                    return 0;
+                },
+                (taskResult) => {
+
+                    if (taskResult.HasError)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("下载过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while downloading package: " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        StepThree_ExtractPackage();
+                    }
+                }
+            ).Execute();
+        }
+
+        private void StepThree_ExtractPackage()
+        {
+            logger.Trace("Start StepThree_ExtractPackage.");
+
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在解压缩安装包......", btnStepThreeNext, btnStepThreeBack);
+                },
+                () => {
+                    winMinerBinary.ExtractPackage();
+                    return 0;
+                },
+                (taskResult) => {
+
+                    if (taskResult.HasError)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while extracting: " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        StepThree_CopyBinary();
+                    }
+                }
+            ).Execute();
+
+        }
+
+        private void StepThree_CopyBinary()
+        {
+            logger.Trace("Start StepThree_CopyBinary.");
+
+            grdStepThree.Visibility = Visibility.Hidden;
+            grdStepThreeStatus.Visibility = Visibility.Visible;
+
+            dataGridMachineDeployment.ClearItems();
+            foreach(MinerClient client in createdClients)
+            {
+                dataGridMachineDeployment.AddItem(client);
+            }
+
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在部署到目标机器......", btnStepThreeStatusNext, btnStepThreeStatusBack);
+                },
+                () => {
+                    StepThree_CopyBinary_Sync();
+                    return 0;
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("部署过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while copying binary: " + taskResult.Exception.ToString());
+
+                        btnStepThreeStatusNext.IsEnabled = false;
+                        return;
+                    }
+
+                    List<MinerClient> failedClients = new List<MinerClient>();
+                    foreach(MinerClient client in createdClients)
+                    {
+                        if (client.CurrentDeploymentStatus != MinerClient.DeploymentStatus.Downloaded)
+                        {
+                            failedClients.Add(client);
+                        }
+                    }
+
+                    if (failedClients.Count > 0)
+                    {
+                        MessageBox.Show("有部分矿机部署失败，请退回上一步重试.", "提示");
+                        btnStepThreeStatusNext.IsEnabled = false;
+                    }
+
+
+                }
+            ).Execute();
+
+        }
+
+        private void StepThree_CopyBinary_Sync()
+        {
+            int startedWorkCount = 0;
+            int finishedWorkCount = 0;
+
+            foreach(MinerClient client in createdClients)
+            {
+                if (client.CurrentDeploymentStatus == MinerClient.DeploymentStatus.Downloaded)
+                {
+                    continue;
+                }
+
+                startedWorkCount++;
+                BackgroundWork<int>.CreateWork(this, () => { },
+                () => {
+                    if (Directory.Exists(client.GetRemoteBinaryPath()))
+                    {
+                        if (client.HasFolderSuffix && client.CurrentDeploymentStatus == MinerClient.DeploymentStatus.Downloaded)
+                        {
+                            logger.Information($"Directory {client.GetRemoteBinaryPath()} already exists, so skip copying.");
+                            return 0;
+                        }
+                        else
+                        {
+                            client.GenerateFolderSuffix();
+                        }
+                    }
+
+                    winMinerBinary.CopyBinaryToTargetPath(client.GetRemoteBinaryPath());
+                    return 0;
+                },
+                (taskResult) => {
+
+                    finishedWorkCount++;
+                    if (taskResult.HasError)
+                    {
+                        logger.Error("Got error while copying binaries: " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        client.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Downloaded;
+                        dataGridMachineDeployment.Refresh();
+                    }
+                }
+                ).Execute();
+            }
+
+            while(finishedWorkCount < startedWorkCount)
+            {
+                Thread.Sleep(30);
+            }
         }
 
         private void StepThree_RetrieveMinerVersions()
         {
-            
+            logger.Trace("Start StepThree_RetrieveMinerVersions.");
+
+            WinMinerReleaseVersions releaseVersions = null;
+
+            // Check all Versions
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在获取矿机版本...", btnStepTwoNext, btnStepTwoBack);
+                },
+                () => {
+                    releaseVersions = WinMinerReleaseBinary.GetVersionInfo();
+                    return 0;
+                },
+                (taskResult) => {
+
+                    if (taskResult.HasError || releaseVersions == null)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.ToString());
+                        logger.Error("GetVersionInfo failed with exception: " + taskResult.Exception.ToString());
+                        return;
+                    }
+
+                    logger.Information($"GetVersionInfo got release version with lastest={ releaseVersions.Latest }.");
+
+                    // Update the version list
+                    cbxMinerClientVersions.Items.Clear();
+                    foreach (string availableVersion in releaseVersions.AvailableVersions)
+                    {
+                        cbxMinerClientVersions.Items.Add(availableVersion);
+                    }
+
+                    cbxMinerClientVersions.SelectedValue = releaseVersions.Latest;
+
+                    HideProgressIndicator();
+                }
+            ).Execute();
         }
-     
+        
+        private void StepFour_RetrieveDeviceList()
+        {
+            logger.Trace("Start StepFour_RetrieveDeviceList.");
+
+            txtWalletAddress.Text = ManagerConfig.Current.DefaultXDagger.WalletAddress;
+            txtXDaggerPoolAddress.Text = ManagerConfig.Current.DefaultXDagger.PoolAddress;
+            txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEth.WalletAddress;
+            txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEth.EmailAddress;
+            txtEthWorkerName.Text = ManagerConfig.Current.DefaultEth.WorkerName;
+            if (ManagerConfig.Current.DefaultEth.PoolIndex != null)
+            {
+                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolIndex.GetHashCode();
+            }
+            if (ManagerConfig.Current.DefaultEth.PoolHostIndex != null)
+            {
+                cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolHostIndex.Value;
+            }
+
+            MinerMachine existingMachine = ManagerInfo.Current.Machines.FirstOrDefault(m => m.FullName.Equals(createdClient.MachineFullName));
+            if (existingMachine != null && existingMachine.Devices != null && existingMachine.Devices.Count > 0)
+            {
+                // This machine has been queried before and the devices are saved in the ManagerInfo cache, read it
+                displayedDeviceList = existingMachine.Devices;
+                cBxTargetDevice.Items.Clear();
+                cBxTargetDeviceEth.Items.Clear();
+                logger.Trace("Got Devices from ManagerInfo cache. Count: " + displayedDeviceList.Count);
+                foreach (MinerDevice device in displayedDeviceList)
+                {
+                    cBxTargetDevice.Items.Add(device.DisplayName);
+                    cBxTargetDeviceEth.Items.Add(device.DisplayName);
+                }
+            }
+            else
+            {
+                // Didn't find the machine in cache, use Executor to retrieve it
+                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineFullName);
+                string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
+
+                BackgroundWork<List<DeviceOutput>>.CreateWork(
+                    this,
+                    () =>
+                    {
+                        ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
+                    },
+                    () =>
+                    {
+                        return executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
+                    },
+                    (taskResult) =>
+                    {
+
+                        HideProgressIndicator();
+                        if (taskResult.HasError)
+                        {
+                            MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
+                            logger.Error("ExecuteCommand failed: " + taskResult.Exception.ToString());
+                            return;
+                        }
+                        List<DeviceOutput> devices = taskResult.Result;
+
+                        if (devices == null || devices.Count == 0)
+                        {
+                            MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
+                            logger.Warning("没有找到任何满足条件的硬件，请检查目标机器配置");
+                            return;
+                        }
+
+                        cBxTargetDevice.Items.Clear();
+                        cBxTargetDeviceEth.Items.Clear();
+                        logger.Trace("Got Devices count: " + devices.Count);
+                        foreach (DeviceOutput deviceOut in devices)
+                        {
+                            MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
+                            displayedDeviceList.Add(device);
+                            cBxTargetDevice.Items.Add(device.DisplayName);
+                            cBxTargetDeviceEth.Items.Add(device.DisplayName);
+
+                            createdClient.Machine.Devices.Add(device);
+                        }
+                    }
+                ).Execute();
+            }
+        }
+
         /// <summary>
         /// Add the new list into the current machine list, if there are duplicate, prompt merge
         /// </summary>

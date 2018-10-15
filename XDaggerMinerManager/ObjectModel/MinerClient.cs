@@ -465,6 +465,14 @@ namespace XDaggerMinerManager.ObjectModel
             
         }
 
+        public bool HasFolderSuffix
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(FolderSuffix);
+            }
+        }
+
         #region Private Methods
 
 
