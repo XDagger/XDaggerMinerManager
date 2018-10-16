@@ -80,6 +80,11 @@
             <TextBox x:Name="txtXDaggerPoolAddress" Text="xdag.coolmine.top:13654" Height="23" Margin="112,114,37,0" TextWrapping="NoWrap"  VerticalAlignment="Top"/>
 
         </Grid>
+        <Grid x:Name="grdStepFourStatus" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
+            <Button x:Name="btnStepFourStatusNext" Content="下一步" Margin="0,0,24,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourStatusNext_Click"/>
+            <Button x:Name="btnStepFourStatusBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourStatusBack_Click"/>
+            <u:MachineConfigurationDataGrid x:Name="dataGridMachineConfiguration" Margin="24,41,24,64"/>
+        </Grid>
         <Grid x:Name="grdStepOne" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="260"/>
@@ -110,7 +115,7 @@
 
         </Grid>
         <ProgressBar x:Name="prbIndicator" Margin="0,0,0.5,6" Foreground="#FF4D5E83" Visibility="Visible" Height="4" VerticalAlignment="Bottom"/>
-        <Label x:Name="lblProgressIndicator" Content="" Margin="10,0,15,20" Height="20" VerticalAlignment="Bottom"/>
+        <Label x:Name="lblProgressIndicator" Content="" Margin="10,0,15,26" Height="20" VerticalAlignment="Bottom"/>
 
     </Grid>
 

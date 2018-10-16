@@ -30,8 +30,12 @@ namespace XDaggerMinerManager.UI.Forms
         #region Private Members
 
         private List<MinerClient> createdClients = null;
+        private Logger logger = Logger.GetInstance();
+        private MinerClient.InstanceTypes selectedMinerClientType;
 
         private bool needRefreshMachineConnections = true;
+
+        private bool isWizardStatusFinished = false;
 
         // private Dictionary<string, MachineConnectivity> machineConnectivitiesResult = null;
 
@@ -45,10 +49,19 @@ namespace XDaggerMinerManager.UI.Forms
 
         private WinMinerReleaseBinary winMinerBinary = null;
 
+        private List<MinerDevice> displayeDeviceList = null;
 
-        private MinerClient.InstanceTypes selectedMinerClientType;
+        private void OnMinerCreated(MinerCreatedEventArgs e)
+        {
+            EventHandler<MinerCreatedEventArgs> handler = MinerCreated;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
 
-        private Logger logger = Logger.GetInstance();
+        public event EventHandler<MinerCreatedEventArgs> MinerCreated;
+
 
         #endregion
 
@@ -73,6 +86,27 @@ namespace XDaggerMinerManager.UI.Forms
 
             dataGridMachines.SetDisplayColumns(MachineDataGrid.Columns.FullName, MachineDataGrid.Columns.IpAddressV4);
             /// dataGridMachines.CanUserEdit = true;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void onClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (isWizardStatusFinished)
+            {
+                return;
+            }
+
+            MessageBoxResult result = MessageBox.Show("确定要离开此向导吗？", "确认", MessageBoxButton.YesNo);
+            if (result != MessageBoxResult.Yes)
+            {
+                e.Cancel = true;
+            }
+
+            logger.Trace("AddBatchMinerWizardWindow Closed by user.");
         }
 
         private void btnAddByName_Click(object sender, RoutedEventArgs e)
@@ -250,7 +284,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepFourXDaggerNext_Click(object sender, RoutedEventArgs e)
         {
-            SwitchUIToStep(5);
+            StepFour_ConfigureClients();
         }
 
         private void btnStepFourXDaggerBack_Click(object sender, RoutedEventArgs e)
@@ -260,7 +294,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnStepFourEthNext_Click(object sender, RoutedEventArgs e)
         {
-            SwitchUIToStep(5);
+            StepFour_ConfigureClients();
         }
 
         private void btnStepFourEthBack_Click(object sender, RoutedEventArgs e)
@@ -268,9 +302,26 @@ namespace XDaggerMinerManager.UI.Forms
             SwitchUIToStep(3);
         }
 
+        private void btnStepFourStatusNext_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchUIToStep(5);
+        }
+
+        private void btnStepFourStatusBack_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchUIToStep(3);
+        }
+
         private void btnStepFiveFinish_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            if (cbxSetStartTarget.IsChecked.HasValue && cbxSetStartTarget.IsChecked.Value)
+            {
+                StepFive_StartService();
+            }
+            else
+            {
+                StepFive_Finish();
+            }
         }
 
         private void btnStepFiveBack_Click(object sender, RoutedEventArgs e)
@@ -365,6 +416,7 @@ namespace XDaggerMinerManager.UI.Forms
             grdStepThreeStatus.Visibility = Visibility.Hidden;
             grdStepFourXDagger.Visibility = Visibility.Hidden;
             grdStepFourEth.Visibility = Visibility.Hidden;
+            grdStepFourStatus.Visibility = Visibility.Hidden;
             grdStepFive.Visibility = Visibility.Hidden;
 
             lblStepOne.Background = null;
@@ -629,8 +681,7 @@ namespace XDaggerMinerManager.UI.Forms
                         MessageBox.Show("有部分矿机部署失败，请退回上一步重试.", "提示");
                         btnStepThreeStatusNext.IsEnabled = false;
                     }
-
-
+                    
                 }
             ).Execute();
 
@@ -735,49 +786,30 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("Start StepFour_RetrieveDeviceList.");
 
-            txtWalletAddress.Text = ManagerConfig.Current.DefaultXDagger.WalletAddress;
+            txtXDaggerWalletAddress.Text = ManagerConfig.Current.DefaultXDagger.WalletAddress;
             txtXDaggerPoolAddress.Text = ManagerConfig.Current.DefaultXDagger.PoolAddress;
             txtWalletAddressEth.Text = ManagerConfig.Current.DefaultEth.WalletAddress;
             txtEmailAddressEth.Text = ManagerConfig.Current.DefaultEth.EmailAddress;
             txtEthWorkerName.Text = ManagerConfig.Current.DefaultEth.WorkerName;
             if (ManagerConfig.Current.DefaultEth.PoolIndex != null)
             {
-                cBxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolIndex.GetHashCode();
+                cbxTargetEthPool.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolIndex.GetHashCode();
             }
             if (ManagerConfig.Current.DefaultEth.PoolHostIndex != null)
             {
-                cBxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolHostIndex.Value;
+                cbxTargetEthPoolHost.SelectedIndex = ManagerConfig.Current.DefaultEth.PoolHostIndex.Value;
             }
 
-            MinerMachine existingMachine = ManagerInfo.Current.Machines.FirstOrDefault(m => m.FullName.Equals(createdClient.MachineFullName));
-            if (existingMachine != null && existingMachine.Devices != null && existingMachine.Devices.Count > 0)
-            {
-                // This machine has been queried before and the devices are saved in the ManagerInfo cache, read it
-                displayedDeviceList = existingMachine.Devices;
-                cBxTargetDevice.Items.Clear();
-                cBxTargetDeviceEth.Items.Clear();
-                logger.Trace("Got Devices from ManagerInfo cache. Count: " + displayedDeviceList.Count);
-                foreach (MinerDevice device in displayedDeviceList)
-                {
-                    cBxTargetDevice.Items.Add(device.DisplayName);
-                    cBxTargetDeviceEth.Items.Add(device.DisplayName);
-                }
-            }
-            else
-            {
-                // Didn't find the machine in cache, use Executor to retrieve it
-                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineFullName);
-                string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
-
-                BackgroundWork<List<DeviceOutput>>.CreateWork(
+            BackgroundWork.CreateWork(
                     this,
                     () =>
                     {
-                        ShowProgressIndicator("正在获取硬件信息", btnStepThreeNext, btnStepThreeBack);
+                        ShowProgressIndicator("正在获取硬件信息...", btnStepFourXDaggerNext, btnStepFourXDaggerBack);
                     },
                     () =>
                     {
-                        return executor.ExecuteCommandAndThrow<List<DeviceOutput>>(daemonFullPath, "-l");
+                        StepFour_RetrieveDeviceList_Sync();
+                        return 0;
                     },
                     (taskResult) =>
                     {
@@ -785,34 +817,394 @@ namespace XDaggerMinerManager.UI.Forms
                         HideProgressIndicator();
                         if (taskResult.HasError)
                         {
-                            MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
                             logger.Error("ExecuteCommand failed: " + taskResult.Exception.ToString());
-                            return;
-                        }
-                        List<DeviceOutput> devices = taskResult.Result;
-
-                        if (devices == null || devices.Count == 0)
-                        {
-                            MessageBox.Show("没有找到任何满足条件的硬件，请检查目标机器配置");
-                            logger.Warning("没有找到任何满足条件的硬件，请检查目标机器配置");
-                            return;
                         }
 
-                        cBxTargetDevice.Items.Clear();
-                        cBxTargetDeviceEth.Items.Clear();
-                        logger.Trace("Got Devices count: " + devices.Count);
-                        foreach (DeviceOutput deviceOut in devices)
-                        {
-                            MinerDevice device = new MinerDevice(deviceOut.DeviceId, deviceOut.DisplayName, deviceOut.DeviceVersion, deviceOut.DriverVersion);
-                            displayedDeviceList.Add(device);
-                            cBxTargetDevice.Items.Add(device.DisplayName);
-                            cBxTargetDeviceEth.Items.Add(device.DisplayName);
+                        displayeDeviceList = new List<MinerDevice>();
+                        displayeDeviceList.AddRange(createdClients.First().Machine.Devices);
 
-                            createdClient.Machine.Devices.Add(device);
+                        foreach (MinerClient client in createdClients)
+                        {
+                            // Note: If a machine has null devices, we consider there is temporary issue while retrieving devices so ignore it
+                            List<MinerDevice> machineDevices = client.Machine.Devices;
+                            if (machineDevices == null)
+                            {
+                                continue;
+                            }
+
+                            for(int i = displayeDeviceList.Count - 1; i >= 0; i--)
+                            {
+                                if (!machineDevices.Any(device => device.DisplayName.Equals(displayeDeviceList[i].DisplayName)))
+                                {
+                                    displayeDeviceList.RemoveAt(i);
+                                }
+                            }
+                        }
+                        
+                        if (displayeDeviceList.Count == 0)
+                        {
+                            MessageBox.Show("没有找到在所选择机器上共有的硬件，请检查目标机器配置");
+                            logger.Warning("没有找到在所选择机器上共有的硬件，请检查目标机器配置");
+                            return;
+                        }
+
+                        cbxTargetDevice.Items.Clear();
+                        cbxTargetDeviceEth.Items.Clear();
+                        logger.Trace("Got Devices count: " + displayeDeviceList.Count);
+                        foreach (MinerDevice device in displayeDeviceList)
+                        {
+                            cbxTargetDevice.Items.Add(device.DisplayName);
+                            cbxTargetDeviceEth.Items.Add(device.DisplayName);
                         }
                     }
                 ).Execute();
+        }
+
+        private void StepFour_RetrieveDeviceList_Sync()
+        {
+            int startedWorkCount = 0;
+            int finishedWorkCount = 0;
+
+            foreach(MinerClient client in createdClients)
+            {
+                if (client.Machine.Devices != null && client.Machine.Devices.Count > 0)
+                {
+                    continue;
+                }
+
+                MinerMachine existingMachine = ManagerInfo.Current.Machines.FirstOrDefault(m => m.FullName.Equals(client.Machine.FullName));
+                if (existingMachine != null && existingMachine.Devices != null && existingMachine.Devices.Count > 0)
+                {
+                    // This machine has been queried before and the devices are saved in the ManagerInfo cache, read it
+                    client.Machine.Devices = existingMachine.Devices;
+                }
+                else
+                {
+                    // Didn't find the machine in cache, use Executor to retrieve it
+                    startedWorkCount++;
+                    BackgroundWork<List<DeviceOutput>>.CreateWork(this, () => { },
+                        () =>
+                        {
+                            return client.ExecuteDaemon<List<DeviceOutput>>("-l");
+                        },
+                        (taskResult) =>
+                        {
+                            finishedWorkCount++;
+                            if (taskResult.HasError)
+                            {
+                                logger.Error($"ExecuteCommand on machine [{ client.Machine.FullName }] failed: " + taskResult.Exception.ToString());
+                                return;
+                            }
+
+                            client.Machine.Devices = new List<MinerDevice>();
+                            List<DeviceOutput> deviceOutputs = taskResult.Result;
+                            if (deviceOutputs == null || deviceOutputs.Count == 0)
+                            {
+                                logger.Warning("没有找到任何满足条件的硬件，请检查目标机器配置");
+                                return;
+                            }
+
+                            foreach(DeviceOutput output in deviceOutputs)
+                            {
+                                MinerDevice device = new MinerDevice(output.DeviceId, output.DisplayName, output.DeviceVersion, output.DriverVersion);
+                                client.Machine.Devices.Add(device);
+                            }
+                        }
+                    ).Execute();
+                }
             }
+
+            while(finishedWorkCount < startedWorkCount)
+            {
+                Thread.Sleep(30);
+            }
+        }
+
+        private void StepFour_ConfigureClients()
+        {
+            logger.Trace("Start StepFour_ConfigureClients.");
+
+            string configureParameters = string.Empty;
+            string deviceName = string.Empty;
+
+            if (selectedMinerClientType == MinerClient.InstanceTypes.XDagger)
+            {
+                XDaggerConfig xDaggerConfig = ValidateXDaggerConfig();
+                if (xDaggerConfig == null)
+                {
+                    return;
+                }
+
+                deviceName = (string)cbxTargetDevice.SelectedValue;
+                configureParameters = string.Format(" -c \"{{ 'DeviceName':'{0}', 'XDaggerWallet':'{1}', 'XDaggerPoolAddress':'{2}', 'AutoDecideInstanceId':true }}\"",
+                        deviceName,
+                        xDaggerConfig.WalletAddress,
+                        xDaggerConfig.PoolAddress);
+            }
+            else if (selectedMinerClientType == MinerClient.InstanceTypes.Ethereum)
+            {
+                EthConfig ethConfig = ValidateEthConfig();
+                if (ethConfig == null)
+                {
+                    return;
+                }
+
+                deviceName = (string)cbxTargetDeviceEth.SelectedValue;
+                configureParameters = string.Format(" -c \"{{ 'DeviceName':'{0}', 'EthPoolAddress':'{1}', 'AutoDecideInstanceId':true }}\"",
+                        deviceName,
+                        ethConfig.PoolFullAddress);
+            }
+
+            grdStepFourXDagger.Visibility = Visibility.Hidden;
+            grdStepFourEth.Visibility = Visibility.Hidden;
+            grdStepFourStatus.Visibility = Visibility.Visible;
+
+            dataGridMachineConfiguration.ClearItems();
+            foreach (MinerClient client in createdClients)
+            {
+                client.Device = client.Machine.Devices.FirstOrDefault(d => d.DisplayName.Equals(deviceName));
+                dataGridMachineConfiguration.AddItem(client);
+            }
+
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在配置目标机器......", btnStepFourStatusNext, btnStepFourStatusBack);
+                },
+                () => {
+                    StepFour_ConfigureClients_Sync(configureParameters);
+                    return 0;
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        HideProgressIndicator();
+                        MessageBox.Show("配置过程出现错误: " + taskResult.Exception.ToString());
+                        logger.Error("Got error while copying binary: " + taskResult.Exception.ToString());
+
+                        btnStepFourStatusNext.IsEnabled = false;
+                        return;
+                    }
+
+                    List<MinerClient> failedClients = new List<MinerClient>();
+                    foreach (MinerClient client in createdClients)
+                    {
+                        if (client.CurrentDeploymentStatus != MinerClient.DeploymentStatus.Ready)
+                        {
+                            failedClients.Add(client);
+                        }
+                    }
+
+                    if (failedClients.Count > 0)
+                    {
+                        MessageBox.Show("有部分矿机配置失败，请退回上一步重试.", "提示");
+                        btnStepFourStatusNext.IsEnabled = false;
+                    }
+
+                }
+            ).Execute();
+
+        }
+
+        private void StepFour_ConfigureClients_Sync(string configureParameters)
+        {
+            int startedWorkCount = 0;
+            int finishedWorkCount = 0;
+
+            foreach (MinerClient client in createdClients)
+            {
+                if (client.CurrentDeploymentStatus == MinerClient.DeploymentStatus.Ready)
+                {
+                    continue;
+                }
+
+                startedWorkCount++;
+                BackgroundWork<int>.CreateWork(this, () => { },
+                () => {
+                    OKResult exeResult = client.ExecuteDaemon<OKResult>(configureParameters);
+                    exeResult = client.ExecuteDaemon<OKResult>("-s install");
+
+                    return 0;
+                },
+                (taskResult) => {
+
+                    finishedWorkCount++;
+                    if (taskResult.HasError)
+                    {
+                        logger.Error($"Got error while configuring client on machine [{ client.Machine.FullName }] : " + taskResult.Exception.ToString());
+                    }
+                    else
+                    {
+                        client.CurrentDeploymentStatus = MinerClient.DeploymentStatus.Ready;
+                        dataGridMachineConfiguration.Refresh();
+                    }
+                }
+                ).Execute();
+            }
+
+            while (finishedWorkCount < startedWorkCount)
+            {
+                Thread.Sleep(30);
+            }
+        }
+
+        private XDaggerConfig ValidateXDaggerConfig()
+        {
+            if (cbxTargetDevice.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择一个硬件设备");
+                return null;
+            }
+
+            XDaggerConfig xDaggerConfig = new XDaggerConfig();
+
+            xDaggerConfig.PoolAddress = txtXDaggerPoolAddress.Text.Trim();
+            if (string.IsNullOrWhiteSpace(xDaggerConfig.PoolAddress))
+            {
+                MessageBox.Show("请输入矿池地址");
+                return null;
+            }
+
+            xDaggerConfig.WalletAddress = txtXDaggerWalletAddress.Text.Trim();
+            if (string.IsNullOrWhiteSpace(xDaggerConfig.WalletAddress))
+            {
+                MessageBox.Show("请输入钱包地址");
+                return null;
+            }
+
+            if (xDaggerConfig.WalletAddress.Length != 32)
+            {
+                MessageBox.Show("钱包必须为长度32位的字母与数字组合");
+                return null;
+            }
+
+            return xDaggerConfig;
+        }
+
+        private EthConfig ValidateEthConfig()
+        {
+            if (cbxTargetDeviceEth.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择一个硬件设备");
+                return null;
+            }
+
+            string ethWalletAddress = txtWalletAddressEth.Text;
+            ethWalletAddress = ethWalletAddress.Trim();
+
+            if (string.IsNullOrWhiteSpace(ethWalletAddress))
+            {
+                MessageBox.Show("请输入钱包地址");
+                return null;
+            }
+
+            if (!ethWalletAddress.StartsWith("0x"))
+            {
+                MessageBox.Show("钱包必须是以0x开头的32位字符串");
+                return null;
+            }
+
+            if (cbxTargetEthPool.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择一个ETH矿池");
+                return null;
+            }
+
+            if (cbxTargetEthPoolHost.SelectedIndex < 0)
+            {
+                MessageBox.Show("请选择一个ETH矿池地址");
+                return null;
+            }
+
+            EthConfig ethConfig = new EthConfig();
+            ethConfig.PoolIndex = (EthConfig.PoolIndexes)cbxTargetEthPool.SelectedIndex;
+            ethConfig.PoolHostIndex = cbxTargetEthPoolHost.SelectedIndex;
+            ethConfig.WalletAddress = txtWalletAddressEth.Text.Trim();
+            ethConfig.EmailAddress = txtEmailAddressEth.Text;
+            ethConfig.WorkerName = txtEthWorkerName.Text;
+
+            try
+            {
+                ethConfig.ValidateProperties();
+                return ethConfig;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Eth配置数据有误：" + ex.ToString());
+                logger.Error("ValidateProperties failed: " + ex.ToString());
+                return null;
+            }
+        }
+
+        private void StepFive_StartService()
+        {
+            BackgroundWork<int>.CreateWork(
+                this,
+                () => {
+                    ShowProgressIndicator("正在启动目标矿机......", btnStepFiveFinish, btnStepFiveBack);
+                },
+                () => {
+                    StepFive_StartService_Sync();
+                    return 0;
+                },
+                (taskResult) => {
+
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.ToString());
+                        logger.Error("Got error while starting miner: " + taskResult.Exception.ToString());
+                    }
+
+                    StepFive_Finish();
+                }
+            ).Execute();
+
+        }
+
+        private void StepFive_StartService_Sync()
+        {
+            int startedWorkCount = 0;
+            int finishedWorkCount = 0;
+
+            foreach (MinerClient client in createdClients)
+            {
+                startedWorkCount++;
+                BackgroundWork<int>.CreateWork(this, () => { },
+                () =>
+                {
+                    OKResult exeResult = client.ExecuteDaemon<OKResult>("-s start");
+                    return 0;
+                },
+                (taskResult) =>
+                {
+                    finishedWorkCount++;
+                    HideProgressIndicator();
+                    if (taskResult.HasError)
+                    {
+                        logger.Error("Got error while starting miner: " + taskResult.Exception.ToString());
+                    }
+                }
+                ).Execute();
+            }
+
+            while(finishedWorkCount < startedWorkCount)
+            {
+                Thread.Sleep(30);
+            }
+        }
+
+        private void StepFive_Finish()
+        {
+            logger.Trace("Start StepFive_Finish.");
+
+            MinerCreatedEventArgs ev = new MinerCreatedEventArgs(createdClients);
+            this.OnMinerCreated(ev);
+
+            isWizardStatusFinished = true;
+            this.Close();
         }
 
         /// <summary>

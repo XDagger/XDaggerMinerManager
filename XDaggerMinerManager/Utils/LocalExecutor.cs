@@ -68,14 +68,17 @@ namespace XDaggerMinerManager.Utils
                     {
                         process.Kill();
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         // Swallow exception
                     }
                 }
-                
             }
         }
-    }
 
+        public override void TestConnection()
+        {
+            // Do nothing in the local executor
+        }
+    }
 }

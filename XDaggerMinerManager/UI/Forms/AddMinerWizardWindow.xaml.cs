@@ -55,16 +55,16 @@ namespace XDaggerMinerManager.UI.Forms
 
         private ManagerConfig managerConfig = ManagerConfig.Current;
 
-        private void OnMinerCreated(EventArgs e)
+        private void OnMinerCreated(MinerCreatedEventArgs e)
         {
-            EventHandler handler = MinerCreated;
+            EventHandler<MinerCreatedEventArgs> handler = MinerCreated;
             if (handler != null)
             {
                 handler(this, e);
             }
         }
 
-        public event EventHandler MinerCreated;
+        public event EventHandler<MinerCreatedEventArgs> MinerCreated;
 
         public AddMinerWizardWindow()
         {
@@ -1016,14 +1016,19 @@ namespace XDaggerMinerManager.UI.Forms
     
     public class MinerCreatedEventArgs : EventArgs
     {
-        public MinerClient CreatedClient
+        public List<MinerClient> CreatedClients
         {
             get; private set;
         }
 
         public MinerCreatedEventArgs(MinerClient client)
         {
-            this.CreatedClient = client;
+            this.CreatedClients = new List<MinerClient>() { client };
+        }
+
+        public MinerCreatedEventArgs(List<MinerClient> clients)
+        {
+            this.CreatedClients = clients;
         }
     }
 }

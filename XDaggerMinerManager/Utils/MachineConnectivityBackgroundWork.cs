@@ -177,17 +177,10 @@ namespace XDaggerMinerManager.Utils
 
                 string machineName = keyValue.Key;
 
-                if (machineName.Equals("LOCALHOST"))
-                {
-                    // Directly pass if this is local powershell
-                    ConsolidateRemotePowershellResult(machineName, true);
-                    continue;
-                }
-
                 BackgroundWork.CreateWork(window, () => { },
                     () =>
                     {
-                        RemoteExecutor executor = new RemoteExecutor(machineName);
+                        TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(machineName);
                         if (machine.Credential != null)
                         {
                             executor.SetCredential(machine.Credential.UserName, machine.Credential.LoginPlainPassword);

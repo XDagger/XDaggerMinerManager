@@ -92,6 +92,7 @@ namespace XDaggerMinerManager.UI.Forms
         private void btnAddBatchMiner_Click(object sender, RoutedEventArgs e)
         {
             AddBatchMinerWizardWindow addBatchMinerWizard = new AddBatchMinerWizardWindow();
+            addBatchMinerWizard.MinerCreated += OnMinerCreated;
             addBatchMinerWizard.ShowDialog();
         }
 
@@ -250,19 +251,22 @@ namespace XDaggerMinerManager.UI.Forms
             this.tBxClientStatisticsSummary.Text = string.Format(MinerStatisticsSummaryTemplate, totalClient, runningClient, stoppedClient, totalHashrate / 1000000.0f);
         }
 
-        public void OnMinerCreated(object sender, EventArgs e)
+        public void OnMinerCreated(object sender, MinerCreatedEventArgs e)
         {
             logger.Trace("Start OnMinerCreated.");
 
             MinerCreatedEventArgs args = e as MinerCreatedEventArgs;
 
-            if (args == null || args.CreatedClient == null)
+            if (args == null || args.CreatedClients == null)
             {
                 return;
             }
 
-            minerManager.AddClient(args.CreatedClient);
-            minerListGridItems.Add(new MinerDataGridItem(args.CreatedClient));
+            foreach (MinerClient client in args.CreatedClients)
+            {
+                minerManager.AddClient(client);
+                minerListGridItems.Add(new MinerDataGridItem(client));
+            }
 
             RefreshMinerListGrid();
 

@@ -105,7 +105,7 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
-        public void TestConnection()
+        public override void TestConnection()
         {
             try
             {

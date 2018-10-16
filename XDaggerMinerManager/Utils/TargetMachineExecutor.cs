@@ -53,7 +53,7 @@ namespace XDaggerMinerManager.Utils
             string currentMachineName = Environment.MachineName.Split('.')[0];
 
             if (machineName.Equals("LOCALHOST", StringComparison.InvariantCultureIgnoreCase)
-                || machineName.Equals(currentMachineName, StringComparison.InvariantCultureIgnoreCase))
+                || machineName.StartsWith(currentMachineName, StringComparison.InvariantCultureIgnoreCase))
             {
                 //// return new RemoteExecutor(machineName);
                 return new LocalExecutor();
@@ -65,7 +65,9 @@ namespace XDaggerMinerManager.Utils
         }
 
         public abstract List<string> Execute(string commandFile, string arguments = "");
-        
+
+        public abstract void TestConnection();
+
         public string ExecuteCommand(string commandExec, string arguments = "")
         {
             List<string> resultStrings = Execute(commandExec, arguments);

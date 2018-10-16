@@ -109,6 +109,8 @@
     <Compile Include="ObjectModel\MinerMachine.cs" />
     <Compile Include="ObjectModel\MinerManager.cs" />
     <Compile Include="UI\BrowseNetworkMachine.cs" />
+    <Compile Include="UI\Controls\MachineConfigurationDataGrid.xaml.cs" />
+    <Compile Include="UI\Controls\MachineConfigurationDataGridItem.cs" />
     <Compile Include="UI\Controls\MachineConnectivityDataGrid.xaml.cs">
       <DependentUpon>MachineConnectivityDataGrid.xaml</DependentUpon>
     </Compile>
@@ -168,6 +170,10 @@
     <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WatsonDump.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
+    <Page Include="UI\Controls\MachineConfigurationDataGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\Controls\MachineConnectivityDataGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
