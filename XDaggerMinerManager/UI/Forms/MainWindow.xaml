@@ -8,7 +8,7 @@
         xmlns:local1="clr-namespace:XDaggerMinerManager.UI.Forms"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" x:Class="XDaggerMinerManager.UI.Forms.MainWindow"
         mc:Ignorable="d"
-        Title="XDagger Miner Management Platform" Height="545.7" Width="924.667" Loaded="Window_Loaded">
+        Title="XDagger Miner Management Platform" Height="555.7" Width="924.667" Loaded="Window_Loaded">
     <Window.Resources>
         <DataTemplate x:Key="IsSelectedColumnTemplate">
             <CheckBox IsChecked="{Binding Path=IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="minerListGridItems_IsSelected_CheckChanged" Unchecked="minerListGridItems_IsSelected_CheckChanged" />
@@ -26,7 +26,7 @@
                         <RowDefinition Height="2" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" ItemsSource="{Binding}" Loaded="minerListGrid_Loaded">
+                    <DataGrid Grid.Row="0" x:Name="minerListGrid" Margin="10,59,10.333,10" ItemsSource="{Binding}" Loaded="minerListGrid_Loaded" SelectionChanged="minerListGrid_SelectionChanged">
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Header="选择" CellTemplate="{StaticResource IsSelectedColumnTemplate}" />
                             <!--<DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />-->
@@ -48,7 +48,20 @@
                     <GridSplitter Height="2" Grid.Row="1" HorizontalAlignment="Stretch" Margin="0,0,0.333,0" ResizeDirection="Rows" />
                     <TabControl Grid.Row="2" Margin="10,10,10.333,10" >
                         <TabItem Name="tabMinerDescription" Header="描述" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
-                            <Grid Background="#FFE5E5E5"/>
+                            <Grid Background="#FFE5E5E5">
+                                <Label Content="矿机名称：" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="76"/>
+                                <Label Content="机器名称：" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Width="76"/>
+                                <Label Content="矿卡名称：" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="76"/>
+                                <Label x:Name="lblMinerClientName" Content="" HorizontalAlignment="Left" Margin="91,10,0,0" VerticalAlignment="Top" Width="285"/>
+                                <Label x:Name="lblMinerMachineName" Content="" HorizontalAlignment="Left" Margin="91,36,0,0" VerticalAlignment="Top" Width="285"/>
+                                <Label x:Name="lblMinerDeviceName" Content="" HorizontalAlignment="Left" Margin="91,62,0,0" VerticalAlignment="Top" Width="285"/>
+                                <Label Content="矿机类型：" HorizontalAlignment="Left" Margin="381,10,0,0" VerticalAlignment="Top" Width="75"/>
+                                <Label Content="钱包地址：" HorizontalAlignment="Left" Margin="381,36,0,0" VerticalAlignment="Top" Width="75"/>
+                                <Label Content="矿池地址：" HorizontalAlignment="Left" Margin="381,62,0,0" VerticalAlignment="Top" Width="75"/>
+                                <Label x:Name="lblMinerType" Content="" Margin="461,10,10,0" VerticalAlignment="Top"/>
+                                <Label x:Name="lblWalletAddress" Content="" Margin="461,36,10,0" VerticalAlignment="Top"/>
+                                <Label x:Name="lblPoolAddress" Content="" Margin="461,62,10,0" VerticalAlignment="Top"/>
+                            </Grid>
                         </TabItem>
                         <TabItem Name="tabMinerMonitor" Header="监控" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
                             <Grid Background="#FFE5E5E5"/>

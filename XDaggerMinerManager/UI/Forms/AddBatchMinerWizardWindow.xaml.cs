@@ -93,7 +93,7 @@ namespace XDaggerMinerManager.UI.Forms
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void onClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (isWizardStatusFinished)
             {
@@ -927,9 +927,12 @@ namespace XDaggerMinerManager.UI.Forms
             string configureParameters = string.Empty;
             string deviceName = string.Empty;
 
+            XDaggerConfig xDaggerConfig = null;
+            EthConfig ethConfig = null;
+
             if (selectedMinerClientType == MinerClient.InstanceTypes.XDagger)
             {
-                XDaggerConfig xDaggerConfig = ValidateXDaggerConfig();
+                xDaggerConfig = ValidateXDaggerConfig();
                 if (xDaggerConfig == null)
                 {
                     return;
@@ -943,7 +946,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
             else if (selectedMinerClientType == MinerClient.InstanceTypes.Ethereum)
             {
-                EthConfig ethConfig = ValidateEthConfig();
+                ethConfig = ValidateEthConfig();
                 if (ethConfig == null)
                 {
                     return;
@@ -963,6 +966,15 @@ namespace XDaggerMinerManager.UI.Forms
             foreach (MinerClient client in createdClients)
             {
                 client.Device = client.Machine.Devices.FirstOrDefault(d => d.DisplayName.Equals(deviceName));
+                if (selectedMinerClientType == MinerClient.InstanceTypes.XDagger)
+                {
+                    client.XDaggerConfig = xDaggerConfig;
+                }
+                else if(selectedMinerClientType == MinerClient.InstanceTypes.Ethereum)
+                {
+                    client.EthConfig = ethConfig;
+                }
+                
                 dataGridMachineConfiguration.AddItem(client);
             }
 
@@ -1239,8 +1251,9 @@ namespace XDaggerMinerManager.UI.Forms
 
 
 
+
         #endregion
 
-       
+        
     }
 }

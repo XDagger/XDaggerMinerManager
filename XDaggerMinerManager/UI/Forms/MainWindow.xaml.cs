@@ -192,6 +192,12 @@ namespace XDaggerMinerManager.UI.Forms
             RefreshMinerOperationButtonState();
         }
 
+        private void minerListGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            MinerDataGridItem cell = (MinerDataGridItem)minerListGrid.SelectedItem;
+            UpdateInformationPanel(cell?.Client);
+        }
+
         private void cbxSelectMiners_Click(object sender, RoutedEventArgs e)
         {
             logger.Trace("cbxSelectMiners_Click");
@@ -249,6 +255,36 @@ namespace XDaggerMinerManager.UI.Forms
             int stoppedClient = totalClient - runningClient;
 
             this.tBxClientStatisticsSummary.Text = string.Format(MinerStatisticsSummaryTemplate, totalClient, runningClient, stoppedClient, totalHashrate / 1000000.0f);
+        }
+
+        private void UpdateInformationPanel(MinerClient client)
+        {
+            if (client == null)
+            {
+                lblMinerClientName.Content = string.Empty;
+                lblMinerMachineName.Content = string.Empty;
+                lblMinerDeviceName.Content = string.Empty;
+                lblMinerType.Content = string.Empty;
+                lblPoolAddress.Content = string.Empty;
+                lblWalletAddress.Content = string.Empty;
+                return;
+            }
+
+            lblMinerClientName.Content = client.Name;
+            lblMinerMachineName.Content = client.Machine?.FullName;
+            lblMinerDeviceName.Content = client.Device?.DisplayName;
+            lblMinerType.Content = client.InstanceTypeEnum.ToString();
+
+            if (client.InstanceTypeEnum == MinerClient.InstanceTypes.XDagger)
+            {
+                lblWalletAddress.Content = client.XDaggerConfig.WalletAddress;
+                lblPoolAddress.Content = client.XDaggerConfig.PoolAddress;
+            }
+            else
+            {
+                lblWalletAddress.Content = client.EthConfig.WalletAddress;
+                lblPoolAddress.Content = client.EthConfig.PoolFullAddress;
+            }
         }
 
         public void OnMinerCreated(object sender, MinerCreatedEventArgs e)
@@ -527,8 +563,9 @@ namespace XDaggerMinerManager.UI.Forms
             return this.minerListGridItems.Where(row => row.IsSelected).ToList();
         }
 
+
         #endregion
 
-        
+       
     }
 }

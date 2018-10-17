@@ -6,7 +6,7 @@
         xmlns:u="clr-namespace:XDaggerMinerManager.UI.Controls"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="批量添加矿机" Height="450" Width="531.333" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
+        Title="批量添加矿机" Height="450" Width="531.333" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" Closing="Window_Closing">
     <Grid>
 
         <Label x:Name="lblStepOne" Content="1. 选择机器" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="108" FontSize="16" BorderThickness="2" FontWeight="ExtraBold" Background="#FFCBDFEE"/>
@@ -114,8 +114,8 @@
             <Button Grid.Column="2" x:Name="btnStepOneNext" Content="下一步" Margin="0,0,23.833,24.667" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepOneNext_Click"/>
 
         </Grid>
-        <ProgressBar x:Name="prbIndicator" Margin="0,0,0.5,6" Foreground="#FF4D5E83" Visibility="Visible" Height="4" VerticalAlignment="Bottom"/>
-        <Label x:Name="lblProgressIndicator" Content="" Margin="10,0,15,26" Height="20" VerticalAlignment="Bottom"/>
+        <ProgressBar x:Name="prbIndicator" Margin="10,0,10,6" Foreground="#FF4D5E83" Visibility="Visible" Height="4" VerticalAlignment="Bottom"/>
+        <Label x:Name="lblProgressIndicator" Content="" Margin="10,0,15,10" Height="26" VerticalAlignment="Bottom"/>
 
     </Grid>
 
