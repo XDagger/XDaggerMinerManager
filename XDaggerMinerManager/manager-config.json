@@ -1,5 +1,5 @@
 ﻿{
-    "version": "v0.2.2",
+    "version": "v0.2.4",
     "miner_url_path": "http://pgaikjq1k.bkt.clouddn.com/",
     "miner_package_name": "XDaggerMinerWin-{0}-x64.zip",
     "default_install_path": "C:\\Temp\\xdagger\\",
