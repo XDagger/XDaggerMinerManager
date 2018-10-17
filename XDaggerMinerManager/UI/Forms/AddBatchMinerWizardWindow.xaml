@@ -19,7 +19,7 @@
             <Button x:Name="btnStepTwoNext" Content="下一步" Margin="0,0,24,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepTwoNext_Click"/>
             <Button x:Name="btnStepTwoBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepTwoBack_Click"/>
             <u:MachineConnectivityDataGrid x:Name="dataGridMachineConnections" Margin="24,41,24,64"/>
-            <Label x:Name="lblTestConnectionNotice" Content="正在测试目标机器的连接，请稍后..." HorizontalAlignment="Left" Margin="24,14,0,0" VerticalAlignment="Top" Width="244"/>
+            <Label x:Name="lblTestConnectionNotice" Content="正在测试目标机器的连接，请稍后..." HorizontalAlignment="Left" Margin="24,14,0,0" VerticalAlignment="Top" Width="244" Visibility="Hidden"/>
 
         </Grid>
         <Grid x:Name="grdStepThree" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
