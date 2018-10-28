@@ -151,6 +151,7 @@
     <Compile Include="Utils\CustomWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Utils\ImpersonatedUser.cs" />
     <Compile Include="Utils\LocalExecutor.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Configuration\ManagerConfig.cs" />

@@ -100,10 +100,10 @@ namespace XDaggerMinerManager.Utils
                 startedWorksCount++;
 
                 string machineName = keyValue.Key;
-                BackgroundWork<PingReply>.CreateWork(window, () => { },
+                BackgroundWork<bool>.CreateWork(window, () => { },
                     () =>
                     {
-                        return PingUtil.Send(machineName);
+                        return PingUtil.PingHost(machineName);
                     },
                     (taskResult) =>
                     {
@@ -114,8 +114,7 @@ namespace XDaggerMinerManager.Utils
                         }
                         else
                         {
-                            PingReply reply = taskResult.Result;
-                            result = (reply.Status == IPStatus.Success);
+                            result = taskResult.Result;
                         }
 
                         ConsolidatePingResult(machineName, result);
@@ -136,17 +135,22 @@ namespace XDaggerMinerManager.Utils
                 
                 string machineName = keyValue.Key;
                 string remoteTestingFolderPath = string.Format("\\\\{0}\\{1}", machineName, testingFolderPath.Replace(":", "$"));
+                string userName = connectivity.Machine.Credential.UserName;
+                string password = connectivity.Machine.Credential.LoginPlainPassword;
 
                 BackgroundWork.CreateWork(window, () => { },
                     () =>
                     {
-                        if (!Directory.Exists(remoteTestingFolderPath))
+                        using (var impersonation = new ImpersonatedUser(userName, null, password))
                         {
-                            Directory.CreateDirectory(remoteTestingFolderPath);
+                            if (!Directory.Exists(remoteTestingFolderPath))
+                            {
+                                Directory.CreateDirectory(remoteTestingFolderPath);
+                            }
+
+                            File.Create(Path.Combine(remoteTestingFolderPath, "touch.tst"), 10, FileOptions.DeleteOnClose);
                         }
 
-                        File.Create(Path.Combine(remoteTestingFolderPath, "touch.tst"), 10, FileOptions.DeleteOnClose);
-                        
                         return 0;
                     },
                     (taskResult) =>
@@ -161,7 +165,6 @@ namespace XDaggerMinerManager.Utils
                         ConsolidateRemotePathAccessResult(machineName, result);
                     }
                 ).Execute();
-
             }
 
             foreach (KeyValuePair<string, MachineConnectivity> keyValue in connectivityResults)
