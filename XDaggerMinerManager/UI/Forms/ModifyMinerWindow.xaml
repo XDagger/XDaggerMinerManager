@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="修改矿机配置" Height="363.298" Width="527.703" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner">
+        Title="修改矿机配置" Height="363.298" Width="527.703" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="26*"/>

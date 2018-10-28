@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:XDaggerMinerManager.UI.Forms"
         mc:Ignorable="d"
-        Title="发送错误报告" Height="225.82" Width="428.19">
+        Title="发送错误报告" Height="225.82" Width="428.19" WindowStartupLocation="CenterScreen">
     <Grid>
         <Button x:Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="70,0,0,16.667" Width="110" Height="34" VerticalAlignment="Bottom" Click="btnConfirm_Click"/>
         <Button x:Name="btnCancel" Content="取消" Margin="250,0,68.333,16.667" Height="34" VerticalAlignment="Bottom" Click="btnCancel_Click"/>
