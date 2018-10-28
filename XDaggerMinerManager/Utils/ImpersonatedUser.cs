@@ -17,7 +17,7 @@ namespace XDaggerMinerManager.Utils
                         user,
                         domain,
                         password,
-                        LogonType.Interactive,
+                        LogonType.NewCredentials,       // TODO: Make sure it's correct here
                         LogonProvider.Default,
                         out userHandle);
             if (!loggedOn)

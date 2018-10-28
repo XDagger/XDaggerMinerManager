@@ -141,7 +141,7 @@ namespace XDaggerMinerManager.Utils
                 BackgroundWork.CreateWork(window, () => { },
                     () =>
                     {
-                        using (var impersonation = new ImpersonatedUser(userName, null, password))
+                        using (var impersonation = new ImpersonatedUser(userName, machineName, password))
                         {
                             if (!Directory.Exists(remoteTestingFolderPath))
                             {
