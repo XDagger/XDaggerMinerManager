@@ -7,6 +7,7 @@ using XDaggerMinerManager.Utils;
 using Newtonsoft.Json;
 using System.IO;
 using XDaggerMinerManager.Configuration;
+using XDaggerMinerManager.Networking;
 
 namespace XDaggerMinerManager.ObjectModel
 {
@@ -458,11 +459,7 @@ namespace XDaggerMinerManager.ObjectModel
 
         public void GenerateFolderSuffix()
         {
-            do
-            {
-                FolderSuffix = RandomUtils.GenerateString(3);
-            } while (Directory.Exists(this.GetRemoteBinaryPath()));
-            
+            FolderSuffix = RandomUtils.GenerateString(3);
         }
 
         public bool HasFolderSuffix

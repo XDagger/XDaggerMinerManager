@@ -85,6 +85,14 @@ namespace XDaggerMinerManager.Utils
             }
         }
 
+        public string ExtractedBinaryPath
+        {
+            get
+            {
+                return Path.Combine(TempDownloadFolder, WinMinerReleaseBinary.ProjectName);
+            }
+        }
+
         /// <summary>
         /// Get all version list from the Release Website
         /// </summary>

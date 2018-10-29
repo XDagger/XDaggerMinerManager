@@ -22,6 +22,7 @@ using IO = System.IO;
 using XDaggerMinerManager.Utils;
 using XDaggerMinerManager.Configuration;
 using System.Diagnostics;
+using XDaggerMinerManager.Networking;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -54,6 +55,8 @@ namespace XDaggerMinerManager.UI.Forms
         private Logger logger = Logger.GetInstance();
 
         private ManagerConfig managerConfig = ManagerConfig.Current;
+
+        private NetworkFileAccess networkFileAccess = null;
 
         private void OnMinerCreated(MinerCreatedEventArgs e)
         {
@@ -377,51 +380,30 @@ namespace XDaggerMinerManager.UI.Forms
         {
             logger.Trace("Start StepOne_ValidateTargetPath.");
 
-            if (!Directory.Exists(createdClient.GetRemoteDeploymentPath()))
+            string username = createdClient.Machine.Credential?.UserName;
+            string password = createdClient.Machine.Credential?.LoginPlainPassword;
+
+            networkFileAccess = new NetworkFileAccess(createdClient.MachineFullName, username, password);
+
+            try
             {
-                logger.Trace($"Trying to create directory {createdClient.GetRemoteDeploymentPath()}");
-                try
-                {
-                    Directory.CreateDirectory(createdClient.GetRemoteDeploymentPath());
-                    logger.Trace($"Directory {createdClient.GetRemoteDeploymentPath()} created.");
-                }
-                catch (UnauthorizedAccessException unauthException)
-                {
-                    // TODO Handle Exception
-                    logger.Error("Got UnauthorizedAccessException: " + unauthException.ToString());
+                networkFileAccess.EnsureDirectory(createdClient.DeploymentFolder);
 
-                    // Enable the UI
-                    btnStepOneNext.IsEnabled = true;
-                    return;
-                }
-                catch (Exception ex)
+                while (networkFileAccess.DirectoryExists(createdClient.BinaryPath))
                 {
-                    MessageBox.Show("目标路径错误：" + ex.ToString());
-                    logger.Error("Got Exception while creating directory: " + ex.ToString());
-
-                    // Enable the UI
-                    btnStepOneNext.IsEnabled = true;
-                    return;
+                    createdClient.GenerateFolderSuffix();
                 }
             }
-
-            bool confirmedAddNewMiner = false;
-            if (Directory.Exists(createdClient.GetRemoteBinaryPath()))
+            catch (Exception ex)
             {
-                MessageBoxResult r = MessageBox.Show("目标路径下已经存在矿机，要创建新矿机吗？", "提示", MessageBoxButton.YesNo);
-                logger.Information("检测到目标路径下已经存在矿机.");
+                MessageBox.Show("目标路径错误：" + ex.ToString());
+                logger.Error("Got Exception while creating directory: " + ex.ToString());
 
-                if (r == MessageBoxResult.No)
-                {
-                    // Enable the UI
-                    btnStepOneNext.IsEnabled = true;
-                    return;
-                }
-
-                confirmedAddNewMiner = true;
-                createdClient.GenerateFolderSuffix();
+                // Enable the UI
+                btnStepOneNext.IsEnabled = true;
+                return;
             }
-
+            
             BackgroundWork<bool>.CreateWork(
                 this,
                 () => {
@@ -446,15 +428,12 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         logger.Warning("Scann finished miner instance found.");
 
-                        if (!confirmedAddNewMiner)
+                        MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
+                        if (result == MessageBoxResult.No)
                         {
-                            MessageBoxResult result = MessageBox.Show("检测到目标机器上已有矿机，确定要装新的矿机吗？", "确认", MessageBoxButton.YesNo);
-                            if (result == MessageBoxResult.No)
-                            {
-                                logger.Information("User cancelled while prompting install new instance.");
-                                btnStepOneNext.IsEnabled = true;
-                                return;
-                            }
+                            logger.Information("User cancelled while prompting install new instance.");
+                            btnStepOneNext.IsEnabled = true;
+                            return;
                         }
                     }
 
@@ -592,13 +571,8 @@ namespace XDaggerMinerManager.UI.Forms
                     ShowProgressIndicator("正在拷贝文件到目标目录......", btnStepTwoNext, btnStepTwoBack);
                 },
                 () => {
-                    if (Directory.Exists(createdClient.GetRemoteBinaryPath()))
-                    {
-                        logger.Information($"Directory {createdClient.GetRemoteBinaryPath()} already exists, so GenerateFolderSuffix.");
-                        createdClient.GenerateFolderSuffix();
-                    }
 
-                    winMinerBinary.CopyBinaryToTargetPath(createdClient.GetRemoteBinaryPath());
+                    networkFileAccess.DirectoryCopy(winMinerBinary.ExtractedBinaryPath, createdClient.BinaryPath);
                     return 0;
                 },
                 (taskResult) => {

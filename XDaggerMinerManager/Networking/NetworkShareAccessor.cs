@@ -6,10 +6,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Networking
 {
     /// <summary>
     /// Provides access to a network share.
+    /// This class is not currently used.
     /// </summary>
     public class NetworkShareAccesser : IDisposable
     {

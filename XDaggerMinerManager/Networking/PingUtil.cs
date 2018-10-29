@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Networking
 {
     public class PingUtil
     {
@@ -183,10 +183,10 @@ namespace XDaggerMinerManager.Utils
             //isnt 0 then we have a connection
             if (((int)ConnectionStatusEnum.INTERNET_CONNECTION_OFFLINE & (int)state) != 0)
             {
-                //return true, we have a connection
+                //return false, no connection available
                 return false;
             }
-            //return false, no connection available
+            //return true, we have a connection
             return true;
         }
 
