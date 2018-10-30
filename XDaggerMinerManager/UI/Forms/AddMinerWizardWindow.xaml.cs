@@ -445,13 +445,17 @@ namespace XDaggerMinerManager.UI.Forms
                 (taskResult) => {
 
                     HideProgressIndicator();
+
+                    bool hasExistingService = false;
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("扫描目标机器错误：" + taskResult.Exception.ToString());
+                        //// MessageBox.Show("扫描目标机器错误：" + taskResult.Exception.ToString());
                         logger.Error("Scann finished with error: " + taskResult.Exception.ToString());
-                        return;
                     }
-                    bool hasExistingService = taskResult.Result;
+                    else
+                    {
+                        hasExistingService = taskResult.Result;
+                    }
 
                     if (hasExistingService)
                     {
