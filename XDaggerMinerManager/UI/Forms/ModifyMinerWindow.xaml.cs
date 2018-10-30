@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.Configuration;
 using XDaggerMinerManager.Utils;
+using XDaggerMinerManager.Network;
 
 namespace XDaggerMinerManager.UI.Forms
 {

@@ -22,6 +22,7 @@ using IO = System.IO;
 using XDaggerMinerManager.Utils;
 using XDaggerMinerManager.Configuration;
 using System.Diagnostics;
+using XDaggerMinerManager.Network;
 
 namespace XDaggerMinerManager.UI.Forms
 {

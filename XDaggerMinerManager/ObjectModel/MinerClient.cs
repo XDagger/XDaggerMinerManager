@@ -7,6 +7,7 @@ using XDaggerMinerManager.Utils;
 using Newtonsoft.Json;
 using System.IO;
 using XDaggerMinerManager.Configuration;
+using XDaggerMinerManager.Network;
 
 namespace XDaggerMinerManager.ObjectModel
 {

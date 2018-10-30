@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Network
 {
     /// <summary>
     /// Provides access to a network share.

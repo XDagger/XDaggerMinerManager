@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Network
 {
     public class PingUtil
     {

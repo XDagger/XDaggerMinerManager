@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;using System.ComponentModel;using System.Runtime.InteropServices;using System.Security.Principal;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Network
 {
     public class ImpersonatedUser : IDisposable
     {

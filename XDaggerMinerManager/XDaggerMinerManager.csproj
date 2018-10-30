@@ -151,24 +151,24 @@
     <Compile Include="Utils\CustomWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Utils\ImpersonatedUser.cs" />
-    <Compile Include="Utils\LocalExecutor.cs" />
+    <Compile Include="Network\ImpersonatedUser.cs" />
+    <Compile Include="Network\LocalExecutor.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Configuration\ManagerConfig.cs" />
     <Compile Include="Configuration\ManagerInfo.cs" />
     <Compile Include="Utils\MachineConnectivityBackgroundWork.cs" />
     <Compile Include="Utils\ManagerReleaseBinary.cs" />
-    <Compile Include="Utils\NetworkShareAccessor.cs" />
-    <Compile Include="Utils\NetworkUtils.cs" />
+    <Compile Include="Network\NetworkShareAccessor.cs" />
+    <Compile Include="Network\NetworkUtils.cs" />
     <Compile Include="Utils\PathUtils.cs" />
-    <Compile Include="Utils\PingUtil.cs" />
+    <Compile Include="Network\PingUtil.cs" />
     <Compile Include="Utils\RandomUtils.cs" />
     <Compile Include="Utils\ReleasedBinary.cs" />
-    <Compile Include="Utils\RemoteExecutor.cs" />
+    <Compile Include="Network\RemoteExecutor.cs" />
     <Compile Include="Utils\SecureStringHelper.cs" />
     <Compile Include="Utils\ServiceUtils.cs" />
     <Compile Include="Utils\TargetMachineException.cs" />
-    <Compile Include="Utils\TargetMachineExecutor.cs" />
+    <Compile Include="Network\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WatsonDump.cs" />
     <Compile Include="Utils\WinMinerReleaseBinary.cs" />
     <Page Include="UI\Controls\MachineConfigurationDataGrid.xaml">

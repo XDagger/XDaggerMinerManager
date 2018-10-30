@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using XDaggerMinerManager.Network;
 using XDaggerMinerManager.ObjectModel;
 
 namespace XDaggerMinerManager.Utils

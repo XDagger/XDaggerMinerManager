@@ -7,8 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using XDaggerMinerManager.ObjectModel;
+using XDaggerMinerManager.Utils;
 
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Network
 {
     public abstract class TargetMachineExecutor
     {

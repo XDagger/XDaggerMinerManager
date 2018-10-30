@@ -7,9 +7,9 @@ using System.Management.Automation.Runspaces;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using XDaggerMinerManager.Utils;
 
-
-namespace XDaggerMinerManager.Utils
+namespace XDaggerMinerManager.Network
 {
     public class RemoteExecutor : TargetMachineExecutor
     {

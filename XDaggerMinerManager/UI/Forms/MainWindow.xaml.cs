@@ -25,6 +25,7 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Security;
 using System.Web;
+using XDaggerMinerManager.Network;
 
 namespace XDaggerMinerManager.UI.Forms
 {
