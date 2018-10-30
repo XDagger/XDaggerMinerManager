@@ -367,7 +367,7 @@ namespace XDaggerMinerManager.UI.Forms
                     HideProgressIndicator();
                     if (taskResult.HasError)
                     {
-                        string errorMessage = string.Format(@"[{0}] {1}", createdClient.MachineFullName, taskResult.Exception.ToString());
+                        string errorMessage = string.Format(@"[{0}] {1}", createdClient.MachineFullName, taskResult.Exception.Message);
                         MessageBox.Show("无法连接到目标机器:" + errorMessage);
                         logger.Error("Error: " + errorMessage);
 
@@ -404,7 +404,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show("目标路径错误：" + ex.ToString());
+                MessageBox.Show("目标路径错误：" + ex.Message);
                 logger.Error("Got Exception while creating directory: " + ex.ToString());
 
                 // Enable the UI
@@ -497,7 +497,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError || releaseVersions == null)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.Message);
                         logger.Error("GetVersionInfo failed with exception: " + taskResult.Exception.ToString());
                         return;
                     }
@@ -554,7 +554,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("下载过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("下载过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while downloading package: " + taskResult.Exception.ToString());
                     }
                     else
@@ -613,7 +613,7 @@ namespace XDaggerMinerManager.UI.Forms
                     HideProgressIndicator();
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("拷贝过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("拷贝过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while copying binaries: " + taskResult.Exception.ToString());
                     }
                     else
@@ -661,7 +661,7 @@ namespace XDaggerMinerManager.UI.Forms
             else
             {
                 // Didn't find the machine in cache, use Executor to retrieve it
-                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineFullName);
+                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.Machine);
                 string daemonFullPath = IO.Path.Combine(createdClient.BinaryPath, WinMinerReleaseBinary.DaemonExecutionFileName);
 
                 BackgroundWork<List<DeviceOutput>>.CreateWork(
@@ -680,7 +680,7 @@ namespace XDaggerMinerManager.UI.Forms
                         HideProgressIndicator();
                         if (taskResult.HasError)
                         {
-                            MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.ToString());
+                            MessageBox.Show("查询系统硬件信息错误：" + taskResult.Exception.Message);
                             logger.Error("ExecuteCommand failed: " + taskResult.Exception.ToString());
                             return;
                         }
@@ -769,7 +769,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
+                        MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.Message);
                         logger.Error("ConfigureCommand failed: " + taskResult.Exception.ToString());
                         return;
                     }
@@ -853,7 +853,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
             catch(Exception ex)
             {
-                MessageBox.Show("配置数据有误：" + ex.ToString());
+                MessageBox.Show("配置数据有误：" + ex.Message);
                 logger.Error("ValidateProperties failed: " + ex.ToString());
                 return;
             }
@@ -878,7 +878,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.ToString());
+                        MessageBox.Show("配置矿机出现错误：" + taskResult.Exception.Message);
                         logger.Error("ConfigureCommand failed: " + taskResult.Exception.ToString());
                         return;
                     }
@@ -919,7 +919,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("安装矿机出现错误：" + taskResult.Exception.ToString());
+                        MessageBox.Show("安装矿机出现错误：" + taskResult.Exception.Message);
                         logger.Error("Error while installing miner: " + taskResult.Exception.ToString());
                         return;
                     }
@@ -958,7 +958,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.ToString());
+                        MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.Message);
                         logger.Error("Got error while starting miner: " + taskResult.Exception.ToString());
                         createdClient.CurrentServiceStatus = MinerClient.ServiceStatus.Stopped;
                     }
