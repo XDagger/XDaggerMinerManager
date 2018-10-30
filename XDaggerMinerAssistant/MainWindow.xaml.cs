@@ -177,8 +177,9 @@ namespace XDaggerMinerAssistant
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
             startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
 
-            startInfo.FileName = @"C:\Windows\System32\cmd.exe";
+            startInfo.FileName = @"cmd.exe";
             startInfo.Arguments = "/K " + commandScript;
             process.StartInfo = startInfo;
 
