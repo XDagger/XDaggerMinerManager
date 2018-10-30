@@ -130,12 +130,20 @@ namespace XDaggerMinerManager.UI.Forms
 
             if (string.IsNullOrEmpty(targetMachineName))
             {
-                throw new ArgumentNullException("机器名不可以为空，本机名请写LOCALHOST.");
+                MessageBox.Show("机器名不可以为空，本机名请写LOCALHOST.", "提示");
+                return;
             }
 
             MinerMachine clientMachine = new MinerMachine() {
                 FullName = targetMachineName.ToUpper()
             };
+
+            if (!clientMachine.IsLocalMachine() 
+                && (string.IsNullOrEmpty(targetMachineName) || string.IsNullOrEmpty(targetMachinePassword)))
+            {
+                MessageBox.Show("请填写用于连接目标机器的用户名和密码信息", "提示");
+                return;
+            }
 
             if (!string.IsNullOrEmpty(targetMachineUserName) && !string.IsNullOrEmpty(targetMachinePassword))
             {

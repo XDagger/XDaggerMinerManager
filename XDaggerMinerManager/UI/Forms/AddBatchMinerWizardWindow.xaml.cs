@@ -206,6 +206,13 @@ namespace XDaggerMinerManager.UI.Forms
                 return;
             }
 
+            if ((machineList.Count > 1 || !machineList[0].IsLocalMachine())
+                && string.IsNullOrWhiteSpace(txtTargetUserName.Text))
+            {
+                MessageBox.Show("请填写用于连接目标机器的用户名和密码信息", "提示");
+                return;
+            }
+
             if (!string.IsNullOrWhiteSpace(txtTargetUserName.Text))
             {
                 string username = txtTargetUserName.Text.Trim();

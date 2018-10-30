@@ -18,6 +18,11 @@ namespace XDaggerMinerManager.ObjectModel
             this.Devices = new List<MinerDevice>();
         }
 
+        public bool IsLocalMachine()
+        {
+            return this.FullName.Equals("LOCALHOST", StringComparison.InvariantCultureIgnoreCase)
+                || this.FullName.Equals(Environment.MachineName, StringComparison.InvariantCultureIgnoreCase);
+        }
 
         /// <summary>
         /// 
