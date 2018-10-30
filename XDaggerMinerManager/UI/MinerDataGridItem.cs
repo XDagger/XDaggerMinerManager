@@ -115,7 +115,7 @@ namespace XDaggerMinerManager.UI
                     case MinerClient.ServiceStatus.Stopped:
                         return "停止";
                     case MinerClient.ServiceStatus.NotInstalled:
-                        return "未安装";
+                        return "未安装服务";
                     case MinerClient.ServiceStatus.Error:
                         return "错误";
                     case MinerClient.ServiceStatus.Unknown:

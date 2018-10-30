@@ -197,6 +197,11 @@ namespace XDaggerMinerManager.UI.Forms
             MinerDataGridItem cell = (MinerDataGridItem)minerListGrid.SelectedItem;
             UpdateInformationPanel(cell?.Client);
         }
+        private void minerListGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            MinerDataGridItem cell = (MinerDataGridItem)minerListGrid.SelectedItem;
+            UpdateInformationPanel(cell?.Client);
+        }
 
         private void cbxSelectMiners_Click(object sender, RoutedEventArgs e)
         {
@@ -565,8 +570,9 @@ namespace XDaggerMinerManager.UI.Forms
         }
 
 
+
         #endregion
 
-       
+        
     }
 }

@@ -326,6 +326,11 @@ namespace XDaggerMinerManager.UI.Forms
                 {
                     builder.Append(", ");
                 }
+
+                string poolFullAddress = mergedConfig.PoolFullAddress;
+                poolFullAddress = poolFullAddress.Replace("{MACHINE_NAME}", client.MachineFullName);
+                poolFullAddress = poolFullAddress.Replace("{INSTANCE_ID}", client.InstanceId.ToString());
+
                 builder.AppendFormat(" 'EthPoolAddress':'{0}' ", mergedConfig.PoolFullAddress);
             }
 

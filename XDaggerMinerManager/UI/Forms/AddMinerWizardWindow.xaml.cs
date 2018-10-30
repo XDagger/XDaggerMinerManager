@@ -432,7 +432,8 @@ namespace XDaggerMinerManager.UI.Forms
                 btnStepOneNext.IsEnabled = true;
                 return;
             }
-
+            
+            /*
             BackgroundWork<bool>.CreateWork(
                 this,
                 () => {
@@ -474,6 +475,10 @@ namespace XDaggerMinerManager.UI.Forms
                     SwitchUIToStep(2);
                 }
                 ).Execute();
+                */
+
+            btnStepOneNext.IsEnabled = true;
+            SwitchUIToStep(2);
         }
 
         private void StepTwo_RetrieveMinerVersions()
