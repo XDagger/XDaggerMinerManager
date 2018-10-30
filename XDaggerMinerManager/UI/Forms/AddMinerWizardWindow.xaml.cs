@@ -392,7 +392,7 @@ namespace XDaggerMinerManager.UI.Forms
             string password = createdClient.Machine.Credential?.LoginPlainPassword;
 
             networkFileAccess = new NetworkFileAccess(createdClient.MachineFullName, username, password);
-
+            
             try
             {
                 networkFileAccess.EnsureDirectory(createdClient.DeploymentFolder);
@@ -411,7 +411,28 @@ namespace XDaggerMinerManager.UI.Forms
                 btnStepOneNext.IsEnabled = true;
                 return;
             }
-            
+
+            // Testing Remote Powershell Connection
+            try
+            {
+                TargetMachineExecutor executor = TargetMachineExecutor.GetExecutor(createdClient.MachineFullName);
+                if (username != null)
+                {
+                    executor.SetCredential(username, password);
+                }
+
+                executor.TestConnection();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("目标机器远程执行测试失败，请按照文档先在目标机器上执行XDaggerMinerAssistant.");
+                logger.Error("Got Exception while testing remote powershell: " + ex.ToString());
+
+                // Enable the UI
+                btnStepOneNext.IsEnabled = true;
+                return;
+            }
+
             BackgroundWork<bool>.CreateWork(
                 this,
                 () => {
