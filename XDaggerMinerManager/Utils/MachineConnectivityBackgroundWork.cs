@@ -135,23 +135,16 @@ namespace XDaggerMinerManager.Utils
                 startedWorksCount++;
                 
                 string machineName = keyValue.Key;
-                string remoteTestingFolderPath = string.Format("\\\\{0}\\{1}", machineName, testingFolderPath.Replace(":", "$"));
-                string userName = connectivity.Machine.Credential.UserName;
-                string password = connectivity.Machine.Credential.LoginPlainPassword;
+                string userName = connectivity.Machine.Credential?.UserName;
+                string password = connectivity.Machine.Credential?.LoginPlainPassword;
 
+                NetworkFileAccess fileAccess = new NetworkFileAccess(machineName, userName, password);
+ 
                 BackgroundWork.CreateWork(window, () => { },
                     () =>
                     {
-                        using (var impersonation = new ImpersonatedUser(userName, machineName, password))
-                        {
-                            if (!Directory.Exists(remoteTestingFolderPath))
-                            {
-                                Directory.CreateDirectory(remoteTestingFolderPath);
-                            }
-
-                            File.Create(Path.Combine(remoteTestingFolderPath, "touch.tst"), 10, FileOptions.DeleteOnClose);
-                        }
-
+                        fileAccess.EnsureDirectory(testingFolderPath);
+                        fileAccess.CanAccessDirectory(testingFolderPath);
                         return 0;
                     },
                     (taskResult) =>

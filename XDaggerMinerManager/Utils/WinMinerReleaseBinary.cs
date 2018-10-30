@@ -226,7 +226,11 @@ namespace XDaggerMinerManager.Utils
             ZipFile.ExtractToDirectory(fullPath, TempDownloadFolder);
         }
         
-        public void CopyBinaryToTargetPath(string targetRemoteBinaryPath)
+        /// <summary>
+        /// This is legacy, use the NetworkFileAccess.DirectoryCopy.
+        /// </summary>
+        /// <param name="targetRemoteBinaryPath"></param>
+        private void CopyBinaryToTargetPath(string targetRemoteBinaryPath)
         {
             string sourceBinaryPath = Path.Combine(TempDownloadFolder, WinMinerReleaseBinary.ProjectName);
             if (!Directory.Exists(sourceBinaryPath))

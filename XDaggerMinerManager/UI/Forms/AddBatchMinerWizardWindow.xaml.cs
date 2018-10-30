@@ -16,7 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using XDaggerMinerManager.Configuration;
-using XDaggerMinerManager.Network;
+using XDaggerMinerManager.Networking;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.UI.Controls;
 using XDaggerMinerManager.Utils;
@@ -700,14 +700,20 @@ namespace XDaggerMinerManager.UI.Forms
                     continue;
                 }
 
+                string username = client.Machine?.Credential?.UserName;
+                string password = client.Machine?.Credential?.LoginPlainPassword;
+
+                NetworkFileAccess fileAccess = new NetworkFileAccess(client.MachineFullName, username, password);
+
+
                 startedWorkCount++;
                 BackgroundWork<int>.CreateWork(this, () => { },
                 () => {
-                    if (Directory.Exists(client.GetRemoteBinaryPath()))
+                    if (fileAccess.DirectoryExists(client.BinaryPath))
                     {
                         if (client.HasFolderSuffix && client.CurrentDeploymentStatus == MinerClient.DeploymentStatus.Downloaded)
                         {
-                            logger.Information($"Directory {client.GetRemoteBinaryPath()} already exists, so skip copying.");
+                            logger.Information($"Directory {client.BinaryPath} on machine {client.MachineFullName} already exists, so skip copying.");
                             return 0;
                         }
                         else
@@ -716,7 +722,7 @@ namespace XDaggerMinerManager.UI.Forms
                         }
                     }
 
-                    winMinerBinary.CopyBinaryToTargetPath(client.GetRemoteBinaryPath());
+                    fileAccess.DirectoryCopy(winMinerBinary.ExtractedBinaryPath, client.BinaryPath);
                     return 0;
                 },
                 (taskResult) => {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XDaggerMinerManager.ObjectModel;
+using XDaggerMinerManager.Utils;
 
 namespace XDaggerMinerManager.Networking
 {

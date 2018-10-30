@@ -25,7 +25,6 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Security;
 using System.Web;
-using XDaggerMinerManager.Network;
 
 namespace XDaggerMinerManager.UI.Forms
 {
@@ -507,12 +506,12 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         if (result.Exception is IOException)
                         {
-                            MessageBox.Show("删除矿机目录错误，请到矿机目录下手动删除矿机文件。详细信息：" + result.Exception.ToString());
+                            /// MessageBox.Show("删除矿机目录错误，请到矿机目录下手动删除矿机文件。详细信息：" + result.Exception.ToString());
                             logger.Error("Got error while uninstalling miner with IOException: " + result.Exception.ToString());
                         }
                         else
                         {
-                            MessageBox.Show("错误：" + result.Exception.ToString());
+                            /// MessageBox.Show("错误：" + result.Exception.ToString());
                             logger.Error("Something wrong while uninstalling miner: " + result.Exception.ToString());
                         }
                     }
@@ -525,7 +524,8 @@ namespace XDaggerMinerManager.UI.Forms
                     }
 
                     this.RefreshMinerListGrid();
-                });
+                },
+                false);
             progress.ShowDialog();
         }
 

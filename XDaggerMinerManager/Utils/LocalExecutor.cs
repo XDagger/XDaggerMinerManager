@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 
-namespace XDaggerMinerManager.Network
+namespace XDaggerMinerManager.Utils
 {
     public class LocalExecutor : TargetMachineExecutor
     {

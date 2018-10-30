@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.Utils;
 
-namespace XDaggerMinerManager.Network
+namespace XDaggerMinerManager.Utils
 {
     public abstract class TargetMachineExecutor
     {

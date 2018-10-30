@@ -123,8 +123,15 @@ namespace XDaggerMinerManager.Networking
         /// <param name="targetLocalDirectory"></param>
         public void DirectoryCopy(string sourceLocalDirectory, string targetLocalDirectory)
         {
-            string remoteDirectory = ConvertToRemotePath(targetLocalDirectory);
+            if (!Directory.Exists(sourceLocalDirectory))
+            {
+                // No binaries, ignore
+                return;
+            }
 
+            string targetRemoteDirectory = ConvertToRemotePath(targetLocalDirectory);
+
+            EnsureDirectory(targetLocalDirectory);
             if (!CanAccessDirectory(targetLocalDirectory))
             {
                 throw new InvalidOperationException($"Cannot access target directory [{targetLocalDirectory}].");
@@ -132,15 +139,53 @@ namespace XDaggerMinerManager.Networking
 
             try
             {
-                ConnectToShare(remoteDirectory);
+                DisconnectFromShare(targetRemoteDirectory, true);
+                if (ConnectToShare(targetRemoteDirectory) == NO_ERROR)
+                {
+                    this.EnsureDirectory(targetLocalDirectory);
+                }
+                
+                string[] fileEntries = Directory.GetFiles(sourceLocalDirectory);
+                foreach (string sourceFullFileName in fileEntries)
+                {
+                    string singleFileName = sourceFullFileName.Substring(sourceFullFileName.LastIndexOf("\\") + 1);
+                    File.Copy(sourceFullFileName, Path.Combine(targetRemoteDirectory, singleFileName));
+                }
 
+                string[] directoryEntries = Directory.GetDirectories(sourceLocalDirectory);
+                foreach (string dir in directoryEntries)
+                {
+                    string[] files = Directory.GetFiles(dir);
+                    string singleDir = dir.Substring(dir.LastIndexOf("\\") + 1);
 
-
+                    Directory.CreateDirectory(Path.Combine(targetRemoteDirectory, singleDir));
+                    foreach (string file in files)
+                    {
+                        string singleFileName = file.Substring(file.LastIndexOf("\\") + 1);
+                        File.Copy(file, Path.Combine(targetRemoteDirectory, singleDir, singleFileName));
+                    }
+                }
             }
             finally
             {
-                DisconnectFromShare(remoteDirectory, true);
+                DisconnectFromShare(targetRemoteDirectory, true);
             }
+        }
+
+        public void DirectoryDelete(string localPath)
+        {
+            string remoteDirectory = ConvertToRemotePath(localPath);
+            AccessWithCredential<int>(() => {
+                try
+                {
+                    Directory.Delete(remoteDirectory);
+                    return 0;
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            });
         }
 
         #endregion
@@ -151,7 +196,7 @@ namespace XDaggerMinerManager.Networking
         /// Connects to the remote share
         /// </summary>
         /// <returns>Null if successful, otherwise error message.</returns>
-        private string ConnectToShare(string remotePath)
+        private int ConnectToShare(string remotePath)
         {
             //Create netresource and point it at the share
             NETRESOURCE nr = new NETRESOURCE();
@@ -159,29 +204,17 @@ namespace XDaggerMinerManager.Networking
             nr.lpRemoteName = remotePath;
 
             //Create the share
-            int ret = WNetUseConnection(IntPtr.Zero, nr, password, userName, 0, null, null, null);
-
-            //Check for errors
-            if (ret == NO_ERROR)
-                return null;
-            else
-                return GetError(ret);
+            return WNetUseConnection(IntPtr.Zero, nr, password, userName, 0, null, null, null);
         }
 
         /// <summary>
         /// Remove the share from cache.
         /// </summary>
         /// <returns>Null if successful, otherwise error message.</returns>
-        private string DisconnectFromShare(string remotePath, bool force)
+        private int DisconnectFromShare(string remotePath, bool force)
         {
             //remove the share
-            int ret = WNetCancelConnection(remotePath, force);
-
-            //Check for errors
-            if (ret == NO_ERROR)
-                return null;
-            else
-                return GetError(ret);
+            return WNetCancelConnection(remotePath, force);
         }
 
         /// <summary>
@@ -192,16 +225,24 @@ namespace XDaggerMinerManager.Networking
         /// <returns></returns>
         private T AccessWithCredential<T>(Func<T> accessFunction)
         {
-            if (string.IsNullOrEmpty(userName))
+            if (!string.IsNullOrEmpty(userName))
             {
-                return accessFunction();
+                try
+                {
+                    using (var impersonation = new ImpersonatedUser(userName, machineName, password))
+                    {
+                        return accessFunction();
+                    }
+                }
+                catch(Exception ex)
+                {
+                    // Catch all exception and ignore
+                    return accessFunction();
+                }
             }
             else
             {
-                using (var impersonation = new ImpersonatedUser(userName, machineName, password))
-                {
-                    return accessFunction();
-                }
+                return accessFunction();
             }
         }
 

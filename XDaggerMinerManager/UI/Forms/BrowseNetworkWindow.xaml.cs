@@ -12,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using XDaggerMinerManager.Network;
+using XDaggerMinerManager.Networking;
 using XDaggerMinerManager.ObjectModel;
 using XDaggerMinerManager.UI.Controls;
 using XDaggerMinerManager.Utils;

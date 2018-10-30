@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XDaggerMinerManager.Utils;
 
-namespace XDaggerMinerManager.Network
+namespace XDaggerMinerManager.Utils
 {
     public class RemoteExecutor : TargetMachineExecutor
     {

@@ -35,9 +35,13 @@ namespace XDaggerMinerManager.ObjectModel
 
         public bool IsAllTestingSuccess()
         {
+            /*
             return this.CanPing.HasValue && this.CanPing.Value
                 && this.CanRemotePathAccess.HasValue && this.CanRemotePathAccess.Value
                 && this.CanRemotePowershell.HasValue && this.CanRemotePowershell.Value;
+                */
+            return  this.CanRemotePathAccess.HasValue && this.CanRemotePathAccess.Value
+                 && this.CanRemotePowershell.HasValue && this.CanRemotePowershell.Value;
         }
 
         public void ResetFailureResults()

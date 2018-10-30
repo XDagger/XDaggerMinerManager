@@ -403,12 +403,11 @@ namespace XDaggerMinerManager.ObjectModel
 
             try
             {
-                string binariesPath = GetRemoteBinaryPath();
+                string username = this.Machine?.Credential?.UserName;
+                string password = this.Machine?.Credential?.LoginPlainPassword;
 
-                if (!string.IsNullOrEmpty(binariesPath))
-                {
-                    System.IO.Directory.Delete(binariesPath, true);
-                }
+                NetworkFileAccess fileAccess = new NetworkFileAccess(this.MachineFullName, username, password);
+                fileAccess.DirectoryDelete(BinaryPath);
 
                 this.CurrentDeploymentStatus = MinerClient.DeploymentStatus.NotExist;
             }
