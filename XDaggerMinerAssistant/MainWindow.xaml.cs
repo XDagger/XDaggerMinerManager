@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
 using System.ServiceProcess;
@@ -58,12 +59,15 @@ namespace XDaggerMinerAssistant
             ServiceController service = new ServiceController("winrm");
             TimeSpan timeout = TimeSpan.FromMilliseconds(5000);
             
-            // Run Powershell with Enable-PSRemoting -force
+            // Run Powershell
             PowerShell psinstance = PowerShell.Create();
-            psinstance.AddScript("Enable-PSRemoting -force");
+            psinstance.AddScript("Enable-PSRemoting -SkipNetworkProfileCheck -Force");
+            psinstance.AddScript("Set-NetFirewallRule -Name 'WINRM-HTTP-In-TCP' -RemoteAddress Any");
 
             try
             {
+                psinstance.Invoke();
+
                 if (service.Status != ServiceControllerStatus.Running && service.Status != ServiceControllerStatus.Stopped)
                 {
                     service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
@@ -75,7 +79,9 @@ namespace XDaggerMinerAssistant
                     service.WaitForStatus(ServiceControllerStatus.Running, timeout);
                 }
 
-                psinstance.Invoke();
+                // Turn on file and printer sharing
+                InvokeScript("netsh advfirewall firewall set rule group=\"File and Printer Sharing\" new enable=Yes");
+                InvokeScript("netsh advfirewall set currentprofile state on");
 
                 MessageBox.Show("本机设置完成！");
             }
@@ -163,5 +169,41 @@ namespace XDaggerMinerAssistant
             System.IO.Directory.Delete(folderFullPath, true);
         }
 
+        private void InvokeScript(string commandScript)
+        {
+            Process process = new System.Diagnostics.Process();
+            ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardOutput = true;
+
+            startInfo.FileName = @"C:\Windows\System32\cmd.exe";
+            startInfo.Arguments = "/K " + commandScript;
+            process.StartInfo = startInfo;
+
+            try
+            {
+                process.Start();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                if (!process.HasExited)
+                {
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch (Exception)
+                    {
+                        // Swallow exception
+                    }
+                }
+            }
+        }
     }
 }

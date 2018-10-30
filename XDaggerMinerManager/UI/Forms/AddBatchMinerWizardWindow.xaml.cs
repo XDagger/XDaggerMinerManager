@@ -543,7 +543,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (hasFailure)
                     {
                         btnStepTwoNext.IsEnabled = false;
-                        MessageBox.Show("连接测试结果中有部分异常，请退回上一步重新选择机器或重新输入连接信息.");
+                        MessageBox.Show("连接测试结果中有部分异常，请按照说明在目标机器上运行XDaggerMinerAssistant，然后退回上一步重试.");
 
                         logger.Warning("MachineConnectivityWork Finished with some failure, following is the detailed data:");
                         foreach (MachineConnectivity conn in machineConnectivityCache)

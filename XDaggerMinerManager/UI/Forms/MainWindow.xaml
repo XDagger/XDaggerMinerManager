@@ -8,7 +8,7 @@
         xmlns:local1="clr-namespace:XDaggerMinerManager.UI.Forms"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" x:Class="XDaggerMinerManager.UI.Forms.MainWindow"
         mc:Ignorable="d"
-        Title="XDagger Miner Management Platform" Height="555.7" Width="924.667" Loaded="Window_Loaded">
+        Title="XDagger Miner Management Platform" Height="555.7" Width="924.667" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <DataTemplate x:Key="IsSelectedColumnTemplate">
             <CheckBox IsChecked="{Binding Path=IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="minerListGridItems_IsSelected_CheckChanged" Unchecked="minerListGridItems_IsSelected_CheckChanged" />

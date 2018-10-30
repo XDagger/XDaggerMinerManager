@@ -101,7 +101,7 @@ namespace XDaggerMinerManager.Networking
                             switch (pingReply.Status)
                             {
                                 case IPStatus.Success:
-                                    returnMessage = string.Format("Reply from {0}: bytes={1} time={2}ms TTL={3}", pingReply.Address, pingReply.Buffer.Length, pingReply.RoundtripTime, pingReply.Options.Ttl);
+                                    returnMessage = string.Format("Reply from {0}: bytes={1} time={2}ms TTL={3}", pingReply.Address, pingReply.Buffer?.Length, pingReply.RoundtripTime, pingReply.Options?.Ttl);
                                     return true;
                                 case IPStatus.TimedOut:
 
