@@ -16,8 +16,8 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <Button Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="20,0,0,25.667" Width="134" Click="btnConfirm_Click" Height="29" VerticalAlignment="Bottom" IsEnabled="False"/>
-        <Button Name="btnCancel" Content="取消" Margin="0,0,23,25.667" HorizontalAlignment="Right" Width="139" Click="btnCancel_Click" Height="29" VerticalAlignment="Bottom"/>
+        <Button Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="20,0,0,25.667" Width="134" Click="btnConfirm_Click" Height="29" VerticalAlignment="Bottom" IsEnabled="False" TabIndex="1"/>
+        <Button Name="btnCancel" Content="取消" Margin="0,0,23,25.667" HorizontalAlignment="Right" Width="139" Click="btnCancel_Click" Height="29" VerticalAlignment="Bottom" TabIndex="2"/>
         <u:MachineDataGrid x:Name="dataGridMachines" Margin="10,10,10,78">
         </u:MachineDataGrid>
         <!--

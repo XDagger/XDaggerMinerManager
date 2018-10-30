@@ -42,9 +42,9 @@
                             <!--<DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay}" /> -->
                         </DataGrid.Columns>
                     </DataGrid>
-                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="198,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20"/>
-                    <Button Grid.Row="0" x:Name="btnAddBatchMiner" Content="批量添加矿机..." HorizontalAlignment="Left" Margin="310,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddBatchMiner_Click" Height="20"/>
-                    <CheckBox x:Name="cbxSelectMiners" Content="全选" HorizontalAlignment="Left" Height="20" Margin="10,31,0,0" VerticalAlignment="Top" Width="54" IsThreeState="True" Checked="cbxSelectMiners_Checked" Unchecked="cbxSelectMiners_Unchecked" Click="cbxSelectMiners_Click"/>
+                    <Button Grid.Row="0" x:Name="btnAddMiner" Content="添加矿机..." HorizontalAlignment="Left" Margin="198,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddMiner_Click" Height="20" TabIndex="3"/>
+                    <Button Grid.Row="0" x:Name="btnAddBatchMiner" Content="批量添加矿机..." HorizontalAlignment="Left" Margin="310,27,0,0" VerticalAlignment="Top" Width="97" Click="btnAddBatchMiner_Click" Height="20" TabIndex="2"/>
+                    <CheckBox x:Name="cbxSelectMiners" Content="全选" HorizontalAlignment="Left" Height="20" Margin="10,31,0,0" VerticalAlignment="Top" Width="54" IsThreeState="True" Checked="cbxSelectMiners_Checked" Unchecked="cbxSelectMiners_Unchecked" Click="cbxSelectMiners_Click" TabIndex="1"/>
                     <GridSplitter Height="2" Grid.Row="1" HorizontalAlignment="Stretch" Margin="0,0,0.333,0" ResizeDirection="Rows" />
                     <TabControl Grid.Row="2" Margin="10,10,10.333,10" >
                         <TabItem Name="tabMinerDescription" Header="描述" HorizontalAlignment="Left" Height="20" Margin="0" VerticalAlignment="Top" Width="54">
@@ -67,7 +67,7 @@
                             <Grid Background="#FFE5E5E5"/>
                         </TabItem>
                     </TabControl>
-                    <xctk:SplitButton Name="btnMinerOperation" Content="操作矿机" Height="20" Width="95" Margin="89,27,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" >
+                    <xctk:SplitButton Name="btnMinerOperation" Content="操作矿机" Height="20" Width="95" Margin="89,27,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" TabIndex="2" >
                         <xctk:SplitButton.DropDownContent>
                             <Grid>
                                 <Button Name="operStartMiner" Content="启动" Height="20" Width="95" Margin="0,0,0,0" VerticalAlignment="Top" Click="operStartMiner_Click" />
@@ -79,36 +79,18 @@
                     </xctk:SplitButton>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="mainTab2" Header="设置与工具" Margin="8,0,-12,0">
-                <Grid Background="#FFE5E5E5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="159*"/>
-                        <ColumnDefinition Width="724*"/>
-                    </Grid.ColumnDefinitions>
-                </Grid>
-            </TabItem>
-            <TabItem Header="消息通知" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="80" Margin="14,0,-14,0">
-                <Grid x:Name="mainTab3" Background="#FFE5E5E5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="50*"/>
-                        <ColumnDefinition Width="27*"/>
-                        <ColumnDefinition Width="224*"/>
-                    </Grid.ColumnDefinitions>
-                </Grid>
-            </TabItem>
             <TabItem Header="系统信息" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="90" Margin="16,0,-16,0">
                 <Grid Background="#FFE5E5E5" Margin="0,0,0,-4">
-                    <TextBox x:Name="textBox1" Margin="457,54,24,78" TextWrapping="Wrap" Text="Windows Version:" IsEnabled="False"/>
+                    <TextBox x:Name="tbxWinInformation" Margin="457,54,24,78" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True" IsTabStop="False" IsEnabled="False"/>
                     <Label x:Name="lblSystemInfo" Content="操作系统版本信息：" HorizontalAlignment="Left" Margin="449,22,0,0" VerticalAlignment="Top" Width="146"/>
                     <Label x:Name="lblSystemInfo_Copy" Content="当前管理平台版本信息：" HorizontalAlignment="Left" Margin="27,22,0,0" VerticalAlignment="Top" Width="217"/>
-                    <TextBox x:Name="textBox1_Copy" Margin="32,53,0,139" TextWrapping="Wrap" Text="XDaggerMinerManager Version:" IsEnabled="False" HorizontalAlignment="Left" Width="383"/>
-                    <Button x:Name="btCheckUpdate" Content="检查更新" HorizontalAlignment="Left" Margin="237,325,0,0" VerticalAlignment="Top" Width="178" Height="43"/>
-                    <Button x:Name="btnSendWalsonReport" Content="发送错误报告" HorizontalAlignment="Left" Margin="32,325,0,0" VerticalAlignment="Top" Width="182" Height="43" Click="btnSendWalsonReport_Click"/>
+                    <TextBox x:Name="tbxMinerInformation" Margin="32,53,0,78" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True" HorizontalAlignment="Left" Width="383" IsTabStop="False" IsEnabled="False"/>
+                    <Button x:Name="btnSendWalsonReport" Content="发送错误报告" HorizontalAlignment="Left" Margin="32,398,0,0" VerticalAlignment="Top" Width="212" Height="34" Click="btnSendWalsonReport_Click" TabIndex="10"/>
                 </Grid>
             </TabItem>
         </TabControl>
         <TextBox x:Name="tBxClientStatisticsSummary" Margin="10,0,130,16.667" TextWrapping="Wrap" Text="当前矿机：0台  0台在线  0台下线  当前主算力：N/A" FontSize="16" Height="23" VerticalAlignment="Bottom"/>
-        <Button x:Name="btnLockScreen" Content="锁屏离开" Margin="0,0,19,16.667" Click="btnLockScreen_Click" HorizontalAlignment="Right" Width="102" Height="23" VerticalAlignment="Bottom"/>
+        <Button x:Name="btnLockScreen" Content="锁屏离开" Margin="0,0,19,16.667" Click="btnLockScreen_Click" HorizontalAlignment="Right" Width="102" Height="23" VerticalAlignment="Bottom" TabIndex="5"/>
 
     </Grid>
 </Window>

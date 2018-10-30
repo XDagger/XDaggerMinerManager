@@ -7,9 +7,9 @@
         mc:Ignorable="d"
         Title="发送错误报告" Height="225.82" Width="428.19" WindowStartupLocation="CenterScreen">
     <Grid>
-        <Button x:Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="70,0,0,16.667" Width="110" Height="34" VerticalAlignment="Bottom" Click="btnConfirm_Click"/>
-        <Button x:Name="btnCancel" Content="取消" Margin="250,0,68.333,16.667" Height="34" VerticalAlignment="Bottom" Click="btnCancel_Click"/>
-        <TextBox x:Name="txtDescription" Margin="25,42,26.333,64.667" TextWrapping="Wrap" Text=""/>
+        <Button x:Name="btnConfirm" Content="确认" HorizontalAlignment="Left" Margin="70,0,0,16.667" Width="110" Height="34" VerticalAlignment="Bottom" Click="btnConfirm_Click" TabIndex="2"/>
+        <Button x:Name="btnCancel" Content="取消" Margin="250,0,68.333,16.667" Height="34" VerticalAlignment="Bottom" Click="btnCancel_Click" TabIndex="3"/>
+        <TextBox x:Name="txtDescription" Margin="25,42,26.333,64.667" TextWrapping="Wrap" Text="" TabIndex="1"/>
         <Label Content="请输入错误描述（可选）：" HorizontalAlignment="Left" Margin="25,12,0,0" VerticalAlignment="Top" Width="155"/>
 
     </Grid>

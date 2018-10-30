@@ -28,6 +28,29 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void btnConfirm_Click(object sender, RoutedEventArgs e)
         {
+            FinishDialog();
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            txtMachineName.Focus();
+        }
+
+        private void txtMachineName_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                FinishDialog();
+            }
+        }
+
+        private void FinishDialog()
+        {
             if (string.IsNullOrWhiteSpace(txtMachineName.Text))
             {
                 MessageBox.Show("请输入机器名称");
@@ -38,11 +61,6 @@ namespace XDaggerMinerManager.UI.Forms
             this.Close();
 
             OnFinished?.Invoke(this, new MachineNameEventArgs(machineName));
-        }
-
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
     }
 

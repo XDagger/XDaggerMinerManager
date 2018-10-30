@@ -72,6 +72,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Management.Automation.dll.10.0.10586.0\lib\net40\System.Management.Automation.dll</HintPath>
       <Private>True</Private>
@@ -168,6 +169,7 @@
     <Compile Include="Utils\RemoteExecutor.cs" />
     <Compile Include="Utils\SecureStringHelper.cs" />
     <Compile Include="Utils\ServiceUtils.cs" />
+    <Compile Include="Utils\SystemInformation.cs" />
     <Compile Include="Utils\TargetMachineException.cs" />
     <Compile Include="Utils\TargetMachineExecutor.cs" />
     <Compile Include="Utils\WatsonDump.cs" />

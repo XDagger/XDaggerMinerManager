@@ -62,6 +62,8 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            InitializeInformationTextBox();
+
             // Set up a timer to trigger every second.  
             Timer timer = new Timer();
             timer.Interval = 2000;
@@ -241,6 +243,7 @@ namespace XDaggerMinerManager.UI.Forms
 
             RefreshMinerListGrid();
             RefreshMinerOperationButtonState();
+            
 
             logger.Trace("End InitializeUIData.");
         }
@@ -290,6 +293,29 @@ namespace XDaggerMinerManager.UI.Forms
                 lblWalletAddress.Content = client.EthConfig.WalletAddress;
                 lblPoolAddress.Content = client.EthConfig.PoolFullAddress;
             }
+        }
+
+        private void InitializeInformationTextBox()
+        {
+            // Miner Information
+            StringBuilder builder = new StringBuilder();
+            builder.Append("XDaggerMinerManager Version: \r\n");
+            builder.AppendFormat("{0}\r\n", ManagerConfig.Current.Version);
+            builder.Append("\r\n");
+
+            builder.Append("Latest Miner Version:\r\n");
+            WinMinerReleaseVersions versions = WinMinerReleaseBinary.GetVersionInfo();
+            builder.AppendFormat("{0}\r\n", versions.Latest);
+
+            tbxMinerInformation.Text = builder.ToString();
+
+            // OS Information
+            StringBuilder builder2 = new StringBuilder();
+            builder2.Append("Windows Version: \r\n");
+            builder2.AppendFormat("{0}\r\n", SystemInformation.GetWindowsVersion());
+            builder2.Append("\r\n");
+
+            tbxWinInformation.Text = builder2.ToString();
         }
 
         public void OnMinerCreated(object sender, MinerCreatedEventArgs e)

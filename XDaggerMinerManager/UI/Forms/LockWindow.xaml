@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="请输入密码解除锁定" Height="79.334" Width="350" WindowStartupLocation="CenterOwner" Icon="/XDaggerMinerManager;component/Resources/XDagger.ico" ResizeMode="NoResize" WindowStyle="ToolWindow" Closing="Window_Closing" Loaded="Window_Loaded">
     <Grid>
-        <Button Content="确定" Margin="0,10,9.667,0" HorizontalAlignment="Right" Width="91" Height="24" VerticalAlignment="Top" Click="Button_Click"/>
-        <PasswordBox x:Name="tBxPassword" Margin="18,10,0,0" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" PasswordChanged="tBxPassword_PasswordChanged"/>
+        <Button Content="确定" Margin="0,10,9.667,0" HorizontalAlignment="Right" Width="91" Height="24" VerticalAlignment="Top" Click="Button_Click" TabIndex="2"/>
+        <PasswordBox x:Name="tBxPassword" Margin="18,10,0,0" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" PasswordChanged="tBxPassword_PasswordChanged" TabIndex="1"/>
 
     </Grid>
 </Window>
