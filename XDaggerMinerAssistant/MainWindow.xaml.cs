@@ -176,6 +176,7 @@ namespace XDaggerMinerAssistant
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardInput = true;
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
 
@@ -186,6 +187,28 @@ namespace XDaggerMinerAssistant
             try
             {
                 process.Start();
+
+                var output = new List<string>();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                process.OutputDataReceived += (sender, args) =>
+                {
+                    var outputData = args.Data;
+                    // ...
+                };
+                process.ErrorDataReceived += (sender, args) =>
+                {
+                    var errorData = args.Data;
+                    // ...
+                };
+
+                process.StandardInput.WriteLine("echo hi");
+                process.StandardInput.WriteLine("exit");
+
+                process.WaitForExit();
+
+                int exitCode = process.ExitCode;
             }
             catch (Exception ex)
             {
@@ -193,16 +216,17 @@ namespace XDaggerMinerAssistant
             }
             finally
             {
-                if (!process.HasExited)
+                try
                 {
-                    try
+                    process.Close();
+                    if (!process.HasExited)
                     {
                         process.Kill();
                     }
-                    catch (Exception)
-                    {
-                        // Swallow exception
-                    }
+                }
+                catch (Exception)
+                {
+                    // Swallow exception
                 }
             }
         }
