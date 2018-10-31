@@ -870,9 +870,8 @@ namespace XDaggerMinerManager.UI.Forms
                 },
                 () => {
 
-                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'InstanceId':'{1}', 'EthPoolAddress':'{2}' }}\"",
+                    string commandParameters = string.Format(" -c \"{{ 'DeviceId':'{0}', 'EthPoolAddress':'{1}', 'AutoDecideInstanceId':true }}\"",
                         selectedDevice.DeviceId,
-                        createdClient.InstanceId,
                         ethConfig.PoolFullAddress);
                     OKResult exeResult = createdClient.ExecuteDaemon<OKResult>(commandParameters);
                     return 0;

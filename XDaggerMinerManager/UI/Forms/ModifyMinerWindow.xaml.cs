@@ -259,7 +259,7 @@ namespace XDaggerMinerManager.UI.Forms
             updatedConfig.PoolHostIndex = cbxTargetEthPoolHost.SelectedIndex;
             updatedConfig.EmailAddress = txtEmailAddress.Text.Trim();
             updatedConfig.WalletAddress = ethWalletAddress;
-            updatedConfig.WorkerName = "{MACHINE_NAME}_{INSTANCE_ID}";
+            updatedConfig.WorkerName = @"{MACHINE_NAME}_{INSTANCE_ID}";
             properties.EthConfig = updatedConfig;
 
             if (cbxEthDevice.SelectedIndex >= 0)
@@ -328,10 +328,9 @@ namespace XDaggerMinerManager.UI.Forms
                 }
 
                 string poolFullAddress = mergedConfig.PoolFullAddress;
-                poolFullAddress = poolFullAddress.Replace("{MACHINE_NAME}", client.MachineFullName);
-                poolFullAddress = poolFullAddress.Replace("{INSTANCE_ID}", client.InstanceId.ToString());
+                poolFullAddress = client.FillStringTags(poolFullAddress);
 
-                builder.AppendFormat(" 'EthPoolAddress':'{0}' ", mergedConfig.PoolFullAddress);
+                builder.AppendFormat(" 'EthPoolAddress':'{0}' ", poolFullAddress);
             }
 
             builder.Append(" }\"");

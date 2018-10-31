@@ -15,35 +15,6 @@
         <Label x:Name="lblStepFour" Content="4. 配置环境" Margin="330,10,0,0" VerticalAlignment="Top" FontSize="16" BorderThickness="2" HorizontalAlignment="Left" Width="106" RenderTransformOrigin="0.65,0.5"/>
         <Label x:Name="lblStepFive" Content="5. 启动" Margin="441,10,0,0" VerticalAlignment="Top" FontSize="16" BorderThickness="2" HorizontalAlignment="Left" Width="74"/>
 
-        <Grid x:Name="grdStepOne" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260"/>
-                <ColumnDefinition Width="2"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <GridSplitter Width="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="0,0,0,0" ResizeDirection="Columns" />
-
-            <GroupBox Grid.Column="0" Header="机器名称列表" Height="280" Margin="7,10,10,0" VerticalAlignment="Top" >
-                <!--<DataGrid x:Name="dataGridMachineList" Margin="0,10,-1.667,2.333"/>-->
-                <u:MachineDataGrid x:Name="dataGridMachines" Margin="0" />
-            </GroupBox>
-            <GroupBox Grid.Column="2" Header="连接信息" Height="280" Margin="7,10,10,0" VerticalAlignment="Top">
-                <Grid>
-                    <Label x:Name="label1" Content="安装路径：" HorizontalAlignment="Left" Margin="10,0,0,75.667" VerticalAlignment="Bottom" Width="78"/>
-                    <TextBox x:Name="txtTargetPath" Margin="10,0,10.333,47.667" TextWrapping="Wrap" Text="C:\Temp\XDagger" Height="23" VerticalAlignment="Bottom" TextChanged="txtTargetPath_TextChanged" TabIndex="3"/>
-                    <Label x:Name="label2" Content="登录用户名：" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="78"/>
-                    <TextBox x:Name="txtTargetUserName" Height="23" Margin="10,43,10.333,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="txtTargetUserName_TextChanged" TabIndex="5"/>
-                    <Label x:Name="label2_Copy" Content="登录密码：" HorizontalAlignment="Left" Margin="10,74,0,0" VerticalAlignment="Top" Width="78"/>
-                    <PasswordBox x:Name="txtTargetUserPassword" Height="23" Margin="10,105,10.333,0" VerticalAlignment="Top" PasswordChanged="txtTargetUserPassword_PasswordChanged" TabIndex="6"/>
-                </Grid>
-            </GroupBox>
-            <Button Grid.Column="0" x:Name="btnAddByName"  Content="添加..." HorizontalAlignment="Left" Margin="10,0,0,35.667" Width="78" Click="btnAddByName_Click" Height="20" VerticalAlignment="Bottom" TabIndex="1"/>
-            <Button Grid.Column="0" x:Name="btnOpenNetwork" Content="扫描网络..." Margin="0,0,10,35.667" Height="20" VerticalAlignment="Bottom" Click="btnOpenNetwork_Click" HorizontalAlignment="Right" Width="144" TabIndex="3"/>
-            <Button Grid.Column="0" x:Name="btnImportMachineList" Content="从文件导入..." Margin="0,0,10,9.667" Height="20" VerticalAlignment="Bottom"  Click="btnImportMachineList_Click" HorizontalAlignment="Right" Width="144" TabIndex="8" />
-            <Button Grid.Column="0" x:Name="btnDeleteMachine" Content="删除" HorizontalAlignment="Left" Margin="10,0,0,9.667" Width="78" Height="20" VerticalAlignment="Bottom" Click="btnDeleteMachine_Click" TabIndex="2"/>
-            <Button Grid.Column="2" x:Name="btnStepOneNext" Content="下一步" Margin="0,0,23.833,24.667" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepOneNext_Click" TabIndex="8"/>
-
-        </Grid>
         <Grid x:Name="grdStepFourStatus" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
             <Button x:Name="btnStepFourStatusNext" Content="下一步" Margin="0,0,24,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourStatusNext_Click" TabIndex="412"/>
             <Button x:Name="btnStepFourStatusBack" Content="后退" Margin="0,0,136,24" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepFourStatusBack_Click" TabIndex="411"/>
@@ -74,10 +45,10 @@
             <CheckBox x:Name="cbxSaveToDefaultEth" Content="保存为默认矿池地址" HorizontalAlignment="Left" Margin="19,209,0,0" VerticalAlignment="Top" Width="162" IsChecked="True" TabIndex="424"/>
 
             <Label Content="选择矿池：" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top" Width="78"/>
-            <ComboBox x:Name="cbxTargetEthPool" Margin="100,59,0,0" VerticalAlignment="Top" IsReadOnly="True" HorizontalAlignment="Left" Width="168" TabIndex="422" />
+            <ComboBox x:Name="cbxTargetEthPool" Margin="100,59,0,0" VerticalAlignment="Top" IsReadOnly="True" HorizontalAlignment="Left" Width="168" TabIndex="422" SelectionChanged="cbxTargetEthPool_SelectionChanged" />
             <ComboBox x:Name="cbxTargetEthPoolHost" Margin="282,59,23,0" VerticalAlignment="Top" IsReadOnly="True" TabIndex="423" />
-            <Label Content="Worker名称：" HorizontalAlignment="Left" Margin="10,128,0,0" VerticalAlignment="Top" Width="90"/>
-            <TextBox x:Name="txtEthWorkerName" Height="23" Margin="100,131,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top" TabIndex="423"/>
+            <Label Content="Worker名称：" HorizontalAlignment="Left" Margin="10,128,0,0" VerticalAlignment="Top" Width="90" />
+            <TextBox x:Name="txtEthWorkerName" Height="23" Margin="100,131,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top" TabIndex="423" ToolTip="名称可以填写通配符，例如‘{MACHINE_NAME}-{INSTANCE_ID}’"/>
             <Label Content="Email地址：" HorizontalAlignment="Left" Margin="10,167,0,0" VerticalAlignment="Top" Width="90"/>
             <TextBox x:Name="txtEmailAddressEth" Height="23" Margin="100,170,22.667,0" TextWrapping="Wrap" VerticalAlignment="Top" TabIndex="426"/>
         </Grid>
@@ -116,6 +87,37 @@
         <ProgressBar x:Name="prbIndicator" Margin="10,0,10,6" Foreground="#FF4D5E83" Visibility="Visible" Height="4" VerticalAlignment="Bottom"/>
         <Label x:Name="lblProgressIndicator" Content="" Margin="10,0,15,10" Height="26" VerticalAlignment="Bottom"/>
 
+        <Grid x:Name="grdStepOne" Margin="10,50,9.667,10.333" Background="#FFE8E5E5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <GridSplitter Width="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="0,0,0,0" ResizeDirection="Columns" />
+
+            <GroupBox Grid.Column="0" Header="机器名称列表" Height="280" Margin="7,10,10,0" VerticalAlignment="Top" >
+                <!--<DataGrid x:Name="dataGridMachineList" Margin="0,10,-1.667,2.333"/>-->
+                <u:MachineDataGrid x:Name="dataGridMachines" Margin="0" />
+            </GroupBox>
+            <GroupBox Grid.Column="2" Header="连接信息" Height="280" Margin="7,10,10,0" VerticalAlignment="Top">
+                <Grid>
+                    <Label x:Name="label1" Content="安装路径：" HorizontalAlignment="Left" Margin="10,0,0,75.667" VerticalAlignment="Bottom" Width="78"/>
+                    <TextBox x:Name="txtTargetPath" Margin="10,0,10.333,47.667" TextWrapping="Wrap" Text="C:\Temp\XDagger" Height="23" VerticalAlignment="Bottom" TextChanged="txtTargetPath_TextChanged" TabIndex="3"/>
+                    <Label x:Name="label2" Content="登录用户名：" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="78"/>
+                    <TextBox x:Name="txtTargetUserName" Height="23" Margin="10,43,10.333,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="txtTargetUserName_TextChanged" TabIndex="5"/>
+                    <Label x:Name="label2_Copy" Content="登录密码：" HorizontalAlignment="Left" Margin="10,74,0,0" VerticalAlignment="Top" Width="78"/>
+                    <PasswordBox x:Name="txtTargetUserPassword" Height="23" Margin="10,105,10.333,0" VerticalAlignment="Top" PasswordChanged="txtTargetUserPassword_PasswordChanged" TabIndex="6"/>
+                </Grid>
+            </GroupBox>
+            <Button Grid.Column="0" x:Name="btnAddByName"  Content="添加..." HorizontalAlignment="Left" Margin="10,0,0,35.667" Width="78" Click="btnAddByName_Click" Height="20" VerticalAlignment="Bottom" TabIndex="1"/>
+            <Button Grid.Column="0" x:Name="btnOpenNetwork" Content="扫描网络..." Margin="0,0,10,35.667" Height="20" VerticalAlignment="Bottom" Click="btnOpenNetwork_Click" HorizontalAlignment="Right" Width="144" TabIndex="3"/>
+            <Button Grid.Column="0" x:Name="btnImportMachineList" Content="从文件导入..." Margin="0,0,10,9.667" Height="20" VerticalAlignment="Bottom"  Click="btnImportMachineList_Click" HorizontalAlignment="Right" Width="144" TabIndex="8" />
+            <Button Grid.Column="0" x:Name="btnDeleteMachine" Content="删除" HorizontalAlignment="Left" Margin="10,0,0,9.667" Width="78" Height="20" VerticalAlignment="Bottom" Click="btnDeleteMachine_Click" TabIndex="2"/>
+            <Button Grid.Column="2" x:Name="btnStepOneNext" Content="下一步" Margin="0,0,23.833,24.667" Height="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="96" Background="{DynamicResource WizardStepButton}" BorderBrush="#FF93C4CF" Click="btnStepOneNext_Click" TabIndex="8"/>
+
+        </Grid>
+
+        
     </Grid>
 
 </Window>

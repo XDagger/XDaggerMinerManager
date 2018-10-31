@@ -84,6 +84,7 @@ namespace XDaggerMinerManager.UI.Forms
 
         private void InitializeUI()
         {
+            InitializeEthPoolAddresses();
 
             dataGridMachines.SetDisplayColumns(MachineDataGrid.Columns.FullName, MachineDataGrid.Columns.IpAddressV4);
             /// dataGridMachines.CanUserEdit = true;
@@ -110,6 +111,36 @@ namespace XDaggerMinerManager.UI.Forms
             logger.Trace("AddBatchMinerWizardWindow Closed by user.");
         }
 
+
+        private void cbxTargetEthPool_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            logger.Trace("cBxTargetEthPool_SelectionChanged.");
+
+            cbxTargetEthPoolHost.Items.Clear();
+            if (cbxTargetEthPool.SelectedIndex < 0 || cbxTargetEthPool.SelectedIndex >= EthConfig.PoolHostUrls.Count)
+            {
+                return;
+            }
+
+            foreach (string ethPoolHost in EthConfig.PoolHostUrls[cbxTargetEthPool.SelectedIndex])
+            {
+                cbxTargetEthPoolHost.Items.Add(ethPoolHost);
+            }
+        }
+
+        private void InitializeEthPoolAddresses()
+        {
+            logger.Trace("InitializeEthPoolAddresses.");
+
+            cbxTargetEthPool.Items.Clear();
+            foreach (string ethPoolName in EthConfig.PoolDisplayNames)
+            {
+                cbxTargetEthPool.Items.Add(ethPoolName);
+            }
+
+            cbxTargetEthPoolHost.Items.Clear();
+        }
+        
         private void btnAddByName_Click(object sender, RoutedEventArgs e)
         {
             logger.Trace("btnAddByName Clicked.");
@@ -775,7 +806,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError || releaseVersions == null)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("查询矿机版本错误: " + taskResult.Exception.Message);
                         logger.Error("GetVersionInfo failed with exception: " + taskResult.Exception.ToString());
                         return;
                     }
@@ -987,6 +1018,7 @@ namespace XDaggerMinerManager.UI.Forms
                 else if(selectedMinerClientType == MinerClient.InstanceTypes.Ethereum)
                 {
                     client.EthConfig = ethConfig;
+                    client.EthConfig.WorkerName = client.FillStringTags( client.EthConfig.WorkerName);
                 }
                 
                 dataGridMachineConfiguration.AddItem(client);
@@ -1007,7 +1039,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("配置过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("配置过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while copying binary: " + taskResult.Exception.ToString());
 
                         btnStepFourStatusNext.IsEnabled = false;
@@ -1046,10 +1078,12 @@ namespace XDaggerMinerManager.UI.Forms
                     continue;
                 }
 
+                string clientConfigureParameters = client.FillStringTags(configureParameters);
+
                 startedWorkCount++;
                 BackgroundWork<int>.CreateWork(this, () => { },
                 () => {
-                    OKResult exeResult = client.ExecuteDaemon<OKResult>(configureParameters);
+                    OKResult exeResult = client.ExecuteDaemon<OKResult>(clientConfigureParameters);
                     exeResult = client.ExecuteDaemon<OKResult>("-s install");
 
                     return 0;
@@ -1158,7 +1192,7 @@ namespace XDaggerMinerManager.UI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Eth配置数据有误：" + ex.ToString());
+                MessageBox.Show("Eth配置数据有误：" + ex.Message);
                 logger.Error("ValidateProperties failed: " + ex.ToString());
                 return null;
             }

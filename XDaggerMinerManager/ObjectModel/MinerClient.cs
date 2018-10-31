@@ -418,6 +418,25 @@ namespace XDaggerMinerManager.ObjectModel
         }
 
         /// <summary>
+        /// Tags Sample: MACHINE_NAME, INSTANCE_ID
+        /// </summary>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        public string FillStringTags(string template)
+        {
+            if (string.IsNullOrEmpty(template))
+            {
+                return string.Empty;
+            }
+
+            string result = template;
+            result = result.Replace(@"{MACHINE_NAME}", this.MachineFullName);
+            result = result.Replace(@"{INSTANCE_ID}", this.InstanceId.ToString());
+
+            return result;
+        }
+
+        /// <summary>
         /// Update the current deployment status and service status
         /// </summary>
         public bool RefreshStatus()
