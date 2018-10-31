@@ -87,7 +87,7 @@ namespace XDaggerMinerAssistant
             }
             catch(Exception ex)
             {
-                MessageBox.Show("本机设置错误：" + ex.ToString());
+                MessageBox.Show("本机设置错误：" + ex.Message);
             }
         }
 

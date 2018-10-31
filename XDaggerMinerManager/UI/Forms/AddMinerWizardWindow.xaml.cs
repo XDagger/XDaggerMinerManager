@@ -588,7 +588,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while extracting: " + taskResult.Exception.ToString());
                     }
                     else

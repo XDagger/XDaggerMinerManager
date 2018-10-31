@@ -148,7 +148,7 @@ namespace XDaggerMinerManager.UI.Forms
 
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("检测局域网错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("检测局域网错误: " + taskResult.Exception.Message);
                         return;
                     }
 

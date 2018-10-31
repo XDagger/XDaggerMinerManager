@@ -415,7 +415,7 @@ namespace XDaggerMinerManager.UI.Forms
                 (result) => {
                     if (result.HasError)
                     {
-                        MessageBox.Show("错误：" + result.Exception.ToString());
+                        MessageBox.Show("错误：" + result.Exception.Message);
                         logger.Error("Got Error while starting miner: " + result.Exception.ToString());
                     }
                     else
@@ -455,7 +455,7 @@ namespace XDaggerMinerManager.UI.Forms
                 (result) => {
                     if (result.HasError)
                     {
-                        MessageBox.Show("错误：" + result.Exception.ToString());
+                        MessageBox.Show("错误：" + result.Exception.Message);
                         logger.Error("Got Error while stoping miner: " + result.Exception.ToString());
                     }
                     else
@@ -537,12 +537,12 @@ namespace XDaggerMinerManager.UI.Forms
                     {
                         if (result.Exception is IOException)
                         {
-                            /// MessageBox.Show("删除矿机目录错误，请到矿机目录下手动删除矿机文件。详细信息：" + result.Exception.ToString());
+                            /// MessageBox.Show("删除矿机目录错误，请到矿机目录下手动删除矿机文件。详细信息：" + result.Exception.Message);
                             logger.Error("Got error while uninstalling miner with IOException: " + result.Exception.ToString());
                         }
                         else
                         {
-                            /// MessageBox.Show("错误：" + result.Exception.ToString());
+                            /// MessageBox.Show("错误：" + result.Exception.Message);
                             logger.Error("Something wrong while uninstalling miner: " + result.Exception.ToString());
                         }
                     }

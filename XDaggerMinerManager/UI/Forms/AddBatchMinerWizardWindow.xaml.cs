@@ -630,7 +630,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("下载过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("下载过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while downloading package: " + taskResult.Exception.ToString());
                     }
                     else
@@ -659,7 +659,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("解压缩过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while extracting: " + taskResult.Exception.ToString());
                     }
                     else
@@ -699,7 +699,7 @@ namespace XDaggerMinerManager.UI.Forms
                     if (taskResult.HasError)
                     {
                         HideProgressIndicator();
-                        MessageBox.Show("部署过程出现错误: " + taskResult.Exception.ToString());
+                        MessageBox.Show("部署过程出现错误: " + taskResult.Exception.Message);
                         logger.Error("Got error while copying binary: " + taskResult.Exception.ToString());
 
                         btnStepThreeStatusNext.IsEnabled = false;
@@ -1214,7 +1214,7 @@ namespace XDaggerMinerManager.UI.Forms
                     HideProgressIndicator();
                     if (taskResult.HasError)
                     {
-                        MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.ToString());
+                        MessageBox.Show("启动矿机出现错误，请稍后手动启动：" + taskResult.Exception.Message);
                         logger.Error("Got error while starting miner: " + taskResult.Exception.ToString());
                     }
 
